@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UseAppHost>false</UseAppHost>
+    <RootNamespace>TodoList.Api</RootNamespace>
   </PropertyGroup>
 
 </Project>

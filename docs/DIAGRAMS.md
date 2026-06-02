@@ -6,38 +6,51 @@ mapa de componentes, depois os diagramas de classe e, por fim, os fluxos.
 
 O detalhamento textual de cada componente fica em [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
-> **Estado atual:** o projeto é um *scaffold* Blazor com renderização estática (SSR) e uma única
-> página. Os diagramas abaixo refletem apenas o que já existe.
+> **Estado atual:** dois projetos separados — `TodoList.Web` (Blazor WebAssembly, roda no navegador)
+> e `TodoList.Api` (.NET Web API). Cada um exibe/expõe apenas o mínimo atual (página "Olá, Mundo" e
+> endpoint `GET /health`). Os diagramas abaixo refletem apenas o que já existe.
 
 ---
 
 ## Mapa de componentes
 
-Como as pastas/componentes de nível raiz se relacionam. A direção da seta indica a dependência
-(quem chama → quem é chamado).
+Como os projetos e os componentes de nível raiz se relacionam. A direção da seta indica a
+dependência (quem chama → quem é chamado). A fronteira HTTP separa o que roda no navegador do que
+roda no servidor.
 
 ```mermaid
 graph TD
-    Program["Program.cs"]
-    App["Components/App.razor"]
-    Routes["Components/Routes.razor"]
-    Layout["Components/Layout/"]
-    Pages["Components/Pages/"]
+    subgraph Web["TodoList.Web (navegador — WASM)"]
+        IndexHtml["wwwroot/index.html"]
+        WebProgram["Program.cs"]
+        App["Components/App.razor"]
+        Layout["Components/Layout/"]
+        Pages["Components/Pages/"]
+    end
 
-    Program -->|"mapeia como raiz"| App
-    App -->|"renderiza"| Routes
-    Routes -->|"aplica layout padrão"| Layout
-    Routes -->|"resolve a rota para"| Pages
+    subgraph Api["TodoList.Api (servidor — Web API)"]
+        ApiProgram["Program.cs"]
+        Health["Controllers/HealthController"]
+    end
+
+    IndexHtml -->|"monta #app e carrega o runtime"| WebProgram
+    WebProgram -->|"registra como raiz"| App
+    App -->|"aplica layout padrão"| Layout
+    App -->|"resolve a rota para"| Pages
     Pages -->|"envolvida por"| Layout
+    WebProgram -->|"HttpClient (HTTP/JSON)"| ApiProgram
+    ApiProgram -->|"mapeia controllers"| Health
 ```
 
 ---
 
 ## Diagramas de classe
 
+### Componentes Blazor (`TodoList.Web`)
+
 Hierarquia dos componentes Blazor. Todo componente `.razor` deriva (direta ou implicitamente) de
-`ComponentBase`; layouts derivam de `LayoutComponentBase`. As classes de framework aparecem
-apenas para situar a herança.
+`ComponentBase`; layouts derivam de `LayoutComponentBase`. As classes de framework aparecem apenas
+para situar a herança.
 
 ```mermaid
 classDiagram
@@ -49,10 +62,6 @@ classDiagram
         +RenderFragment Body
     }
     class App {
-        +HTML do documento
-        +renderiza Routes
-    }
-    class Routes {
         +Router
         +DefaultLayout = MainLayout
     }
@@ -66,42 +75,50 @@ classDiagram
 
     ComponentBase <|-- LayoutComponentBase
     ComponentBase <|-- App
-    ComponentBase <|-- Routes
     ComponentBase <|-- Home
     LayoutComponentBase <|-- MainLayout
 
-    App *-- Routes : compõe
-    Routes ..> MainLayout : usa como layout
-    Routes ..> Home : roteia para
+    App ..> MainLayout : usa como layout
+    App ..> Home : roteia para
     MainLayout *-- Home : envolve via Body
+```
+
+### Controllers (`TodoList.Api`)
+
+```mermaid
+classDiagram
+    class ControllerBase {
+        <<framework>>
+    }
+    class HealthController {
+        +Get() IActionResult
+    }
+
+    ControllerBase <|-- HealthController
 ```
 
 ---
 
 ## Fluxos principais
 
-### Ciclo de uma requisição de página (SSR)
+### Carregamento do app WASM e chamada à API
 
-Lifecycle de uma requisição HTTP até a renderização estática da página inicial.
+Lifecycle desde a abertura da página no navegador até uma chamada HTTP à API.
 
 ```mermaid
 sequenceDiagram
     participant Browser as Navegador
-    participant Pipeline as Pipeline HTTP (Program.cs)
-    participant App as App.razor
-    participant Routes as Routes.razor
-    participant Layout as MainLayout.razor
+    participant Index as index.html
+    participant WebApp as App.razor (WASM)
     participant Home as Home.razor
+    participant Api as TodoList.Api
 
-    Browser->>Pipeline: GET /
-    Pipeline->>App: renderiza componente raiz
-    App->>Routes: renderiza Routes
-    Routes->>Routes: resolve rota "/"
-    Routes->>Layout: aplica DefaultLayout
-    Layout->>Home: renderiza @Body
-    Home-->>Layout: marcação "Olá, Mundo"
-    Layout-->>Routes: main + conteúdo
-    Routes-->>App: árvore de renderização
-    App-->>Pipeline: HTML completo
-    Pipeline-->>Browser: 200 OK (HTML)
+    Browser->>Index: GET /
+    Index-->>Browser: HTML + blazor.webassembly.js
+    Browser->>WebApp: baixa o runtime e monta #app
+    WebApp->>Home: resolve rota "/" e renderiza
+    Home-->>Browser: "Olá, Mundo"
+    Note over WebApp,Api: Chamadas de dados (futuras / health check) via HttpClient
+    WebApp->>Api: GET /health (HTTP/JSON, com CORS)
+    Api-->>WebApp: 200 OK { status, timeUtc }
 ```
