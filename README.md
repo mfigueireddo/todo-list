@@ -44,14 +44,17 @@ Essa opção é "agressiva": no início do projeto ela pode travar o build por a
 
 A [`IDEA.md`](IDEA.md) pede **Blazor (frontend)** e **.NET Web API (backend)** separados. Um único `.csproj` com o SDK `Microsoft.NET.Sdk.Web` funciona para começar, mas mais à frente provavelmente será necessário dividir em **dois projetos** (ex.: `TodoList.Web` e `TodoList.Api`) organizados dentro de uma **solution (`.sln`)**. Essa reestruturação está pendente para quando a arquitetura for definida.
 
-### 3. Arquivos ainda não criados (`/Error` e `launchSettings.json`)
+### 3. Página `/Error` ainda não criada
 
-O [`Program.cs`](Program.cs) já referencia, no tratamento de erros por ambiente, alguns elementos que **ainda não existem**:
+O [`Program.cs`](Program.cs) referencia, no tratamento de erros por ambiente, a página `/Error` (via `app.UseExceptionHandler("/Error")`). Ela **ainda não existe**: como só é acionada em produção, não quebra o build, mas precisará ser criada.
 
-- **Página `/Error`**: usada por `app.UseExceptionHandler("/Error")` apenas em produção. Como só é acionada em produção, não quebra o build, mas precisará ser criada.
-- **`Properties/launchSettings.json`**: define a variável `ASPNETCORE_ENVIRONMENT` (normalmente `Development`), que determina qual ramo do tratamento de erros é executado. Enquanto esse arquivo não existir, o ambiente é determinado pela variável de ambiente do sistema (ou assume `Production` por padrão).
+> O [`Properties/launchSettings.json`](Properties/launchSettings.json) já foi criado e define `ASPNETCORE_ENVIRONMENT=Development` nos perfis `http` e `https`, determinando qual ramo do tratamento de erros é executado durante o desenvolvimento.
 
-Ambos costumam ser gerados junto com o scaffold do projeto e estão pendentes para os próximos passos.
+Notas sobre o `launchSettings.json`:
+
+- **Vale apenas localmente.** É usado por `dotnet run` / IDE em desenvolvimento e **não vai para produção** (o processo de publicação o ignora). Por isso é o lugar adequado para `ASPNETCORE_ENVIRONMENT=Development`.
+- **Portas arbitrárias (`5150`/`7150`).** Foram escolhidas manualmente (o template normalmente sorteia). Se conflitarem com algo na máquina, basta trocá-las.
+- **HTTPS local exige o certificado de desenvolvimento do .NET.** Antes de rodar com HTTPS, é preciso confiar no certificado uma vez por máquina via `dotnet dev-certs https --trust`. Pendente até instalarmos o SDK e rodarmos o projeto.
 
 ### 4. Configuração em `appsettings.json`
 
