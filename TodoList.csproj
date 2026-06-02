@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Não gerar o apphost nativo (TodoList.exe). O Smart App Control do Windows 11
+         bloqueia executáveis não assinados; sem o apphost, "dotnet run" executa via
+         o host "dotnet" (assinado pela Microsoft), que o SAC permite. Ver README. -->
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 
 </Project>

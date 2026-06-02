@@ -108,6 +108,19 @@ dotnet build
 
 ---
 
+## Solução de problemas
+
+### `An Application Control policy has blocked this file` (Win32 4551) no Windows 11
+
+Se o `dotnet run` falhar tentando iniciar `bin\Debug\net8.0\TodoList.exe`, a causa é o **Smart App
+Control** do Windows 11 bloqueando o executável não assinado. O projeto já contorna isso com
+`<UseAppHost>false</UseAppHost>` no [`TodoList.csproj`](TodoList.csproj): sem o `.exe` nativo, o
+`dotnet run` executa via o host `dotnet` (assinado pela Microsoft), que o SAC permite. Se o erro
+ainda aparecer, garanta que essa configuração está presente e refaça o build (`dotnet build`).
+Detalhes em "Limitações conhecidas" do [`README.md`](README.md).
+
+---
+
 ## Resumo rápido (TL;DR)
 
 ```powershell

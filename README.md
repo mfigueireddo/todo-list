@@ -17,6 +17,7 @@ O arquivo [`TodoList.csproj`](TodoList.csproj) define as configurações de buil
 | `<Nullable>enable</Nullable>` | Ativa os *nullable reference types*. O compilador passa a distinguir tipos que podem ser nulos (`string?`) dos que não podem (`string`), gerando avisos quando há risco de `NullReferenceException`. Ajuda a previnir erros de null em tempo de compilação. |
 | `<ImplicitUsings>enable</ImplicitUsings>` | Adiciona automaticamente os *usings* mais comuns (`System`, `System.Collections.Generic`, `System.Linq`, etc.) em todos os arquivos, reduzindo código repetitivo no topo dos arquivos. |
 | `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` | Faz com que **todo** aviso (*warning*) do compilador seja tratado como erro, impedindo o build de concluir enquanto houver avisos. Força a correção de problemas potenciais (incluindo os de *nullability*) em vez de ignorá-los. |
+| `<UseAppHost>false</UseAppHost>` | Desativa a geração do executável nativo (`TodoList.exe`). Sem ele, `dotnet run` executa a aplicação via o host `dotnet` (assinado pela Microsoft) em vez de um `.exe` recém-compilado e sem assinatura. Necessário porque o **Smart App Control** do Windows 11 bloqueia executáveis não assinados — ver "Limitações conhecidas". |
 
 ---
 
@@ -105,3 +106,24 @@ Atualmente o [`appsettings.json`](appsettings.json) e o [`Properties/launchSetti
 > - Se for usar `appsettings.Development.json`/`appsettings.Production.json` com segredos, adicioná-los ao [`.gitignore`](.gitignore).
 >
 > O `.gitignore` já ignora arquivos de banco locais (`*.mdf`, `*.ldf`, `*.ndf`), mas **não** ignora os `appsettings*.json` — essa decisão precisará ser revista conforme a estratégia de segredos escolhida.
+
+### 8. Smart App Control bloqueia o `.exe` (Windows 11) → `UseAppHost=false`
+
+Em máquinas Windows 11 com o **Smart App Control** ligado em modo de imposição, rodar `dotnet run`
+falhava com `Win32Exception (4551): An Application Control policy has blocked this file` ao tentar
+iniciar `bin\Debug\net8.0\TodoList.exe`. O SAC bloqueia executáveis não assinados/sem reputação, e o
+"apphost" nativo gerado pelo .NET é um `.exe` recém-compilado e sem assinatura.
+
+**Decisão adotada:** definir `<UseAppHost>false</UseAppHost>` no [`TodoList.csproj`](TodoList.csproj).
+Sem o apphost, `dotnet run` executa `dotnet TodoList.dll` através do host `dotnet`, que é assinado
+pela Microsoft e portanto permitido pelo SAC. Isso resolve o bloqueio **sem desligar a segurança do
+Windows**.
+
+> **A revisitar no futuro:**
+> - Trata-se de uma característica do ambiente do desenvolvedor, não da aplicação. Se nenhum
+>   desenvolvedor usar Windows com SAC, a opção pode ser removida (o template padrão gera o apphost).
+> - Para **publicação/distribuição** com apphost (ex.: `dotnet publish` gerando um `.exe`), o
+>   executável precisará ser **assinado** para não ser bloqueado pelo SAC nas máquinas de destino.
+> - Estado do SAC na máquina: consultável em
+>   `HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy` → `VerifiedAndReputablePolicyState`
+>   (`0` = desligado, `1` = imposição, `2` = avaliação).

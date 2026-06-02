@@ -32,9 +32,9 @@ O projeto está na **etapa inicial de scaffolding**. O que existe e funciona hoj
 - Documentação de build ([`BUILD.md`](BUILD.md)) e `.gitignore` para o ecossistema .NET.
 
 **Ainda não implementado:** autenticação, CRUD de tarefas, banco de dados, interatividade no
-cliente e páginas além da inicial. O build **ainda não foi validado** (o .NET SDK não está
-instalado na máquina de desenvolvimento). As pendências detalhadas estão na seção
-**"Limitações conhecidas"** do [`README.md`](README.md).
+cliente e páginas além da inicial. O build **já foi validado** (`dotnet build` sem erros/avisos) e a
+aplicação **roda localmente** (`dotnet run` respondendo HTTP 200 com a página "Olá, Mundo"). As
+pendências detalhadas estão na seção **"Limitações conhecidas"** do [`README.md`](README.md).
 
 ---
 
@@ -135,5 +135,5 @@ Instruções de instalação e execução estão no [`BUILD.md`](BUILD.md).
 - **Qualidade em tempo de compilação:** o projeto usa `Nullable=enable` e
   `TreatWarningsAsErrors=true` ([`TodoList.csproj`](TodoList.csproj)), de modo que qualquer aviso
   do compilador interrompe o build.
-- **Validação de build:** ainda **não realizada** (o .NET SDK não está instalado no ambiente de
-  desenvolvimento). Deve ser confirmada após a instalação do SDK — ver [`BUILD.md`](BUILD.md).
+- **Validação de build:** **realizada** — `dotnet build` conclui sem erros nem avisos, e `dotnet run`
+  sobe a aplicação (HTTP 200 na página inicial). Ver [`BUILD.md`](BUILD.md).
