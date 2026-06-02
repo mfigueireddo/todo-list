@@ -24,13 +24,31 @@ O arquivo [`Program.cs`](Program.cs) é o ponto de entrada da aplicação. Usa *
 
 | Trecho | Para que serve |
 |---|---|
-| `var builder = WebApplication.CreateBuilder(args);` | Cria o *builder* da aplicação web, responsável por configurar serviços, configuração e *logging*. O registro de serviços (Razor Components, banco de dados, autenticação, etc.) será adicionado aqui conforme o projeto cresce. |
+| `using TodoList.Components;` | Importa o namespace dos componentes Blazor (necessário para referenciar `App` em `MapRazorComponents<App>()`, já que o `Program.cs` fica no namespace global). |
+| `var builder = WebApplication.CreateBuilder(args);` | Cria o *builder* da aplicação web, responsável por configurar serviços, configuração e *logging*. |
+| `builder.Services.AddRazorComponents();` | Registra os serviços necessários para renderizar componentes Razor (Blazor) no servidor. |
 | `var app = builder.Build();` | Constrói a instância da aplicação (`WebApplication`) a partir do *builder*, a partir da qual o *pipeline* de requisições é configurado. |
 | `if (!app.Environment.IsDevelopment()) { ... }` | Tratamento de erros por ambiente: em *Development* os erros detalhados ficam visíveis; em *Production* aplicamos o bloco abaixo. |
 | `app.UseExceptionHandler("/Error");` | Em produção, redireciona exceções não tratadas para uma página amigável (`/Error`) em vez de expor detalhes internos. |
 | `app.UseHsts();` | Em produção, envia o cabeçalho HSTS, reforçando o uso de HTTPS pelo navegador. |
 | `app.UseHttpsRedirection();` | Redireciona requisições HTTP para HTTPS. |
+| `app.UseStaticFiles();` | Serve arquivos estáticos (a partir de `wwwroot`, quando existir). |
+| `app.UseAntiforgery();` | Adiciona a proteção *antiforgery* ao *pipeline*, exigida pelos Razor Components. |
+| `app.MapRazorComponents<App>();` | Mapeia o componente raiz (`App`) como ponto de entrada da renderização Blazor. |
 | `app.Run();` | Inicia a aplicação e a mantém escutando por requisições. |
+
+---
+
+## Componentes (`Components/`)
+
+A pasta [`Components/`](Components/) contém a interface Blazor. Estrutura inicial mínima (apenas exibe "Olá, Mundo"):
+
+| Arquivo | Papel |
+|---|---|
+| [`App.razor`](Components/App.razor) | Componente raiz: documento HTML, `<head>`, `HeadOutlet`, o roteador (`Routes`) e o script `blazor.web.js`. |
+| [`Routes.razor`](Components/Routes.razor) | Roteador: resolve a URL para a página correspondente e aplica o layout padrão (`MainLayout`). |
+| [`Layout/MainLayout.razor`](Components/Layout/MainLayout.razor) | Layout base (`LayoutComponentBase`); renderiza o conteúdo da página em `@Body`. |
+| [`Pages/Home.razor`](Components/Pages/Home.razor) | Página em `/` que exibe **`Olá, Mundo`**. |
 
 ---
 
@@ -68,3 +86,9 @@ Notas sobre o `launchSettings.json`:
 O arquivo [`_Imports.razor`](_Imports.razor) concentra os *usings* habituais de componentes Blazor (framework + namespace raiz do projeto), evitando repeti-los em cada componente `.razor`.
 
 > **Lembrete para o futuro:** revisar essa lista. A ideia é **não espalhar *usings* por toda parte** — preferimos centralizar os realmente comuns aqui e remover os que não estiverem efetivamente em uso, em vez de acumular *usings* desnecessários. Conforme os componentes e namespaces do projeto (ex.: `TodoList.Components`) forem criados, esta lista deve ser ajustada de forma enxuta.
+
+### 6. Render estático (sem interatividade)
+
+O Blazor está configurado apenas com `AddRazorComponents()` + `MapRazorComponents<App>()`, ou seja, **renderização estática no servidor (SSR)**, sem interatividade no cliente. É suficiente para o "Olá, Mundo" atual e evita dependências extras (como SignalR do *Interactive Server*).
+
+> **Lembrete para o futuro:** funcionalidades interativas (marcar o *checkbox* de uma tarefa, editar/deletar, filtrar a lista) exigirão habilitar um *render mode* interativo — ex.: `AddInteractiveServerComponents()` no `Program.cs` e `@rendermode InteractiveServer` nos componentes. Pendente até começarmos o CRUD.
