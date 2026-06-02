@@ -67,23 +67,7 @@ todo-list/
 
 ---
 
-## 4. Design Patterns Used
-
-A base é pequena, então poucos padrões estão em uso por enquanto:
-
-- **Top-level statements** no [`Program.cs`](Program.cs) (sem classe `Program`/`Main` explícita);
-- **Component-based UI** (Blazor): a interface é composta por componentes Razor reutilizáveis;
-- **Layout pattern**: [`MainLayout.razor`](Components/Layout/MainLayout.razor) herda de
-  `LayoutComponentBase` e centraliza a estrutura comum das páginas;
-- **Dependency Injection**: provido nativamente pelo ASP.NET Core (serviços registrados em
-  `builder.Services`), ainda com uso mínimo.
-
-Padrões adicionais (ex.: Repository/Service para acesso a dados) serão introduzidos com o CRUD
-e o banco.
-
----
-
-## 5. Code Conventions
+## 4. Code Conventions
 
 As convenções de código do projeto estão centralizadas em [`.claude/`](.claude) e são de uso
 **obrigatório** na geração de código (ver [`CLAUDE.md`](CLAUDE.md)):
@@ -97,7 +81,7 @@ e tipos; `camelCase` para variáveis locais e parâmetros; `_camelCase` para cam
 
 ---
 
-## 6. Error Handling
+## 5. Error Handling
 
 O tratamento de erros é **por ambiente**, definido no [`Program.cs`](Program.cs):
 
@@ -108,13 +92,9 @@ O tratamento de erros é **por ambiente**, definido no [`Program.cs`](Program.cs
 > A página `/Error` **ainda não foi criada** — será acionada apenas em produção. Pendência
 > registrada no [`README.md`](README.md).
 
-Como diretriz geral de código (ver [`.claude/CONVENTIONS.md`](.claude/CONVENTIONS.md)), exceções
-são reservadas para casos extremos; condições esperadas devem ser tratadas por verificações
-explícitas, sem exceções.
-
 ---
 
-## 7. Dependencies
+## 6. Dependencies
 
 - **Runtime/SDK:** .NET 8 (`net8.0`), SDK fixado em [`global.json`](global.json);
 - **Framework:** ASP.NET Core / Blazor, via SDK `Microsoft.NET.Sdk.Web` (sem pacotes NuGet
@@ -129,7 +109,7 @@ Instruções de instalação e execução estão no [`BUILD.md`](BUILD.md).
 
 ---
 
-## 8. Testing and Quality
+## 7. Testing and Quality
 
 - **Testes automatizados:** ainda **não há** projeto de testes.
 - **Qualidade em tempo de compilação:** o projeto usa `Nullable=enable` e
