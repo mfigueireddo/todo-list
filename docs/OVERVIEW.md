@@ -34,7 +34,7 @@ O projeto está na **etapa inicial de scaffolding**. O que existe e funciona hoj
 **Ainda não implementado:** autenticação, CRUD de tarefas, banco de dados, interatividade no
 cliente e páginas além da inicial. O build **já foi validado** (`dotnet build` sem erros/avisos) e a
 aplicação **roda localmente** (`dotnet run` respondendo HTTP 200 com a página "Olá, Mundo"). As
-pendências detalhadas estão na seção **"Limitações conhecidas"** do [`README.md`](../README.md).
+pendências detalhadas estão em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 ---
 
@@ -65,7 +65,7 @@ todo-list/
 
 > **Nota de arquitetura (pendente):** a [`IDEA.md`](IDEA.md) pede frontend e backend separados.
 > Provavelmente será necessário dividir em dois projetos (ex.: `TodoList.Web` e `TodoList.Api`)
-> sob uma *solution* (`.sln`). Ver "Limitações conhecidas" no [`README.md`](../README.md).
+> sob uma *solution* (`.sln`). Ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 ---
 
@@ -92,7 +92,7 @@ O tratamento de erros é **por ambiente**, definido no [`Program.cs`](../Program
   (`app.UseExceptionHandler("/Error")`) e o HSTS é ativado (`app.UseHsts()`).
 
 > A página `/Error` **ainda não foi criada** — será acionada apenas em produção. Pendência
-> registrada no [`README.md`](../README.md).
+> registrada no [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 ---
 

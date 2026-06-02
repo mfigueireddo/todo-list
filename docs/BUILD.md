@@ -27,7 +27,7 @@ Depois, acesse <https://localhost:7150>.
 | Item | Necessário quando | Como instalar |
 |---|---|---|
 | **.NET 8 SDK** | Agora (compilar/rodar) | `winget install Microsoft.DotNet.SDK.8` |
-| **Microsoft SQL Server** | Futuro (quando houver banco de dados) | Pendente — ver `README.md` |
+| **Microsoft SQL Server** | Futuro (quando houver banco de dados) | Pendente — ver `KNOWN-ISSUES.md` |
 
 ---
 
@@ -111,4 +111,4 @@ Control** do Windows 11 bloqueando o executável não assinado. O projeto já co
 `<UseAppHost>false</UseAppHost>` no [`TodoList.csproj`](../TodoList.csproj): sem o `.exe` nativo, o
 `dotnet run` executa via o host `dotnet` (assinado pela Microsoft), que o SAC permite. Se o erro
 ainda aparecer, garanta que essa configuração está presente e refaça o build (`dotnet build`).
-Detalhes em "Limitações conhecidas" do [`README.md`](../README.md).
+Detalhes em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).

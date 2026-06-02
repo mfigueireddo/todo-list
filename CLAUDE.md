@@ -27,15 +27,15 @@ Regras de uso:
   propriedades, constantes e tipos; `camelCase` para variáveis locais e parâmetros;
   `_camelCase` para campos privados.
 
-## Registro de lembretes no README (OBRIGATÓRIO)
+## Registro de lembretes em KNOWN-ISSUES.md (OBRIGATÓRIO)
 
 Sempre que gerar código neste repositório, **todo lembrete importante para a continuidade do
-projeto DEVE ser registrado no [`README.md`](README.md)**. Isso inclui, por exemplo: decisões
-adiadas, configurações provisórias, dependências ainda não criadas, riscos de segurança a
-revisitar e qualquer pendência que precise de atenção futura.
+projeto DEVE ser registrado em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md)**. Isso inclui, por
+exemplo: decisões adiadas, configurações provisórias, dependências ainda não criadas, riscos de
+segurança a revisitar e qualquer pendência que precise de atenção futura.
 
-- Registre o lembrete na seção **"Limitações conhecidas"** do `README.md` (ou em seção
-  equivalente, quando fizer mais sentido).
+- Registre o lembrete em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) (na seção
+  "Limitações conhecidas").
 - O registro deve ser feito **no mesmo momento** em que o código/decisão é gerado — não deixe
   pendências importantes apenas na conversa, pois elas se perdem entre sessões.
 - Cada lembrete deve ser autoexplicativo: o que é, por que está assim e o que precisa ser
@@ -50,6 +50,6 @@ como parte de cada nova feature ou mudança relevante** — não é um documento
   funcionalidade, nova dependência, mudança de arquitetura, novos padrões, testes adicionados,
   build validado), atualize as seções correspondentes **no mesmo momento** da mudança.
 - Mantenha a estrutura de seções definida em [`.claude/OVERVIEW.md`](.claude/OVERVIEW.md).
-- Distinção em relação ao `README.md`: o `OVERVIEW.md` descreve **o que já existe** (estado
-  atual); a seção "Limitações conhecidas" do `README.md` descreve **pendências e lembretes de
-  continuidade**. Os dois devem permanecer coerentes entre si.
+- Distinção em relação ao `KNOWN-ISSUES.md`: o `OVERVIEW.md` descreve **o que já existe** (estado
+  atual); o `docs/KNOWN-ISSUES.md` descreve **pendências e lembretes de continuidade**. Os dois
+  devem permanecer coerentes entre si.

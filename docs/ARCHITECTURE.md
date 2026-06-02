@@ -10,7 +10,7 @@ conforme exigido pela especificação: [`DIAGRAMS.md`](DIAGRAMS.md).
 > [`OVERVIEW.md`](OVERVIEW.md)). É um **único projeto web** Blazor com **renderização estática
 > (SSR)** que exibe apenas a página inicial "Olá, Mundo". Ainda não há autenticação, CRUD de
 > tarefas nem banco de dados. Este documento descreve o que **já existe**; pendências estão em
-> "Limitações conhecidas" no [`README.md`](../README.md).
+> [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 ---
 
