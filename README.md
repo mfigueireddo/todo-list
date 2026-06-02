@@ -59,3 +59,9 @@ Ambos costumam ser gerados junto com o scaffold do projeto e estão pendentes pa
 - **`LogLevel.Default` está como `Trace`**: registra **todos** os logs, no nível mais verboso possível. Útil para depuração agora, mas excessivo (e potencialmente custoso/inseguro) em produção.
 
 > **Lembrete para o futuro:** o ASP.NET Core permite sobrescrever o `appsettings.json` por ambiente através de arquivos como `appsettings.Development.json` e `appsettings.Production.json` (o sufixo casa com `ASPNETCORE_ENVIRONMENT`). A ideia é manter no `appsettings.json` apenas o que é comum e mover as configurações específicas de cada ambiente para o arquivo correspondente — por exemplo, `Trace` e `AllowedHosts: "*"` ficariam no `Development.json`, enquanto produção teria níveis de log mais altos e hosts restritos. Essa separação está pendente.
+
+### 5. *Usings* globais em `_Imports.razor`
+
+O arquivo [`_Imports.razor`](_Imports.razor) concentra os *usings* habituais de componentes Blazor (framework + namespace raiz do projeto), evitando repeti-los em cada componente `.razor`.
+
+> **Lembrete para o futuro:** revisar essa lista. A ideia é **não espalhar *usings* por toda parte** — preferimos centralizar os realmente comuns aqui e remover os que não estiverem efetivamente em uso, em vez de acumular *usings* desnecessários. Conforme os componentes e namespaces do projeto (ex.: `TodoList.Components`) forem criados, esta lista deve ser ajustada de forma enxuta.
