@@ -1,7 +1,7 @@
 # ARCHITECTURE
 
 Documentação da arquitetura do projeto. A estrutura deste documento segue as instruções em
-[`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md).
+[`.claude/ARCHITECTURE.md`](../.claude/ARCHITECTURE.md).
 
 Os diagramas (mapa de componentes, diagramas de classe e fluxos) ficam em um arquivo dedicado,
 conforme exigido pela especificação: [`DIAGRAMS.md`](DIAGRAMS.md).
@@ -10,7 +10,7 @@ conforme exigido pela especificação: [`DIAGRAMS.md`](DIAGRAMS.md).
 > [`OVERVIEW.md`](OVERVIEW.md)). É um **único projeto web** Blazor com **renderização estática
 > (SSR)** que exibe apenas a página inicial "Olá, Mundo". Ainda não há autenticação, CRUD de
 > tarefas nem banco de dados. Este documento descreve o que **já existe**; pendências estão em
-> "Limitações conhecidas" no [`README.md`](README.md).
+> "Limitações conhecidas" no [`README.md`](../README.md).
 
 ---
 
@@ -44,7 +44,7 @@ Componentes Blazor de nível raiz responsáveis por montar o documento HTML e o 
   - Declarar `<head>` com metadados, `<base href="/">` e o `<HeadOutlet />`.
   - Renderizar o componente `<Routes />` no corpo da página.
   - Carregar o *script* do framework Blazor (`_framework/blazor.web.js`).
-- **Usage**: Mapeado por [`Program.cs`](Program.cs) via `MapRazorComponents<App>()` como entrada de renderização.
+- **Usage**: Mapeado por [`Program.cs`](../Program.cs) via `MapRazorComponents<App>()` como entrada de renderização.
 
 #### `Routes.razor`
 - **Pattern**: Componente de roteamento (envolve o `<Router>` do Blazor).

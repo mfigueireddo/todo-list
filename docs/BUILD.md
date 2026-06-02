@@ -45,7 +45,7 @@ Feche e reabra o terminal e verifique a instalação:
 dotnet --version
 ```
 
-A versão exibida deve ser `8.0.x` (compatível com o [`global.json`](global.json)). Para listar todos os SDKs instalados:
+A versão exibida deve ser `8.0.x` (compatível com o [`global.json`](../global.json)). Para listar todos os SDKs instalados:
 
 ```powershell
 dotnet --list-sdks
@@ -79,7 +79,7 @@ ou
 dotnet run --launch-profile http
 ```
 
-Os perfis e portas estão definidos em [`Properties/launchSettings.json`](Properties/launchSettings.json):
+Os perfis e portas estão definidos em [`Properties/launchSettings.json`](../Properties/launchSettings.json):
 
 | Perfil | URL |
 |---|---|
@@ -108,7 +108,7 @@ dotnet build
 
 Se o `dotnet run` falhar tentando iniciar `bin\Debug\net8.0\TodoList.exe`, a causa é o **Smart App
 Control** do Windows 11 bloqueando o executável não assinado. O projeto já contorna isso com
-`<UseAppHost>false</UseAppHost>` no [`TodoList.csproj`](TodoList.csproj): sem o `.exe` nativo, o
+`<UseAppHost>false</UseAppHost>` no [`TodoList.csproj`](../TodoList.csproj): sem o `.exe` nativo, o
 `dotnet run` executa via o host `dotnet` (assinado pela Microsoft), que o SAC permite. Se o erro
 ainda aparecer, garanta que essa configuração está presente e refaça o build (`dotnet build`).
-Detalhes em "Limitações conhecidas" do [`README.md`](README.md).
+Detalhes em "Limitações conhecidas" do [`README.md`](../README.md).

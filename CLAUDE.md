@@ -3,7 +3,7 @@
 Projeto: **TO-DO list com sistema de login de usuários**.
 Stack: Blazor (frontend) + .NET Web API (backend) + Microsoft SQL Server. Alvo: `net8.0`.
 
-Os requisitos do projeto estão em [`IDEA.md`](IDEA.md).
+Os requisitos do projeto estão em [`IDEA.md`](docs/IDEA.md).
 
 ## Especificações de geração de código (OBRIGATÓRIO)
 
@@ -43,7 +43,7 @@ revisitar e qualquer pendência que precise de atenção futura.
 
 ## Sincronização do OVERVIEW.md (OBRIGATÓRIO)
 
-O [`OVERVIEW.md`](OVERVIEW.md) é um retrato do estado atual do projeto e **deve ser atualizado
+O [`OVERVIEW.md`](docs/OVERVIEW.md) é um retrato do estado atual do projeto e **deve ser atualizado
 como parte de cada nova feature ou mudança relevante** — não é um documento escrito uma vez só.
 
 - Sempre que uma alteração afetar o estado descrito no `OVERVIEW.md` (ex.: nova

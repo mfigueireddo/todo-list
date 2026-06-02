@@ -1,7 +1,7 @@
 # OVERVIEW
 
 Visão geral do projeto. A estrutura deste documento segue as instruções em
-[`.claude/OVERVIEW.md`](.claude/OVERVIEW.md).
+[`.claude/OVERVIEW.md`](../.claude/OVERVIEW.md).
 
 ---
 
@@ -23,18 +23,18 @@ Stack pretendida: **Blazor** (frontend) + **ASP.NET Core / .NET Web API** (backe
 
 O projeto está na **etapa inicial de scaffolding**. O que existe e funciona hoje:
 
-- Projeto web .NET 8 configurado ([`TodoList.csproj`](TodoList.csproj));
-- Ponto de entrada ([`Program.cs`](Program.cs)) com *pipeline* mínimo e tratamento de erros por ambiente;
+- Projeto web .NET 8 configurado ([`TodoList.csproj`](../TodoList.csproj));
+- Ponto de entrada ([`Program.cs`](../Program.cs)) com *pipeline* mínimo e tratamento de erros por ambiente;
 - Aplicação Blazor com **renderização estática (SSR)** que exibe uma única página: **"Olá, Mundo"**
-  ([`Components/Pages/Home.razor`](Components/Pages/Home.razor));
-- Configuração de execução local ([`Properties/launchSettings.json`](Properties/launchSettings.json))
-  e de SDK ([`global.json`](global.json));
+  ([`Components/Pages/Home.razor`](../Components/Pages/Home.razor));
+- Configuração de execução local ([`Properties/launchSettings.json`](../Properties/launchSettings.json))
+  e de SDK ([`global.json`](../global.json));
 - Documentação de build ([`BUILD.md`](BUILD.md)) e `.gitignore` para o ecossistema .NET.
 
 **Ainda não implementado:** autenticação, CRUD de tarefas, banco de dados, interatividade no
 cliente e páginas além da inicial. O build **já foi validado** (`dotnet build` sem erros/avisos) e a
 aplicação **roda localmente** (`dotnet run` respondendo HTTP 200 com a página "Olá, Mundo"). As
-pendências detalhadas estão na seção **"Limitações conhecidas"** do [`README.md`](README.md).
+pendências detalhadas estão na seção **"Limitações conhecidas"** do [`README.md`](../README.md).
 
 ---
 
@@ -65,18 +65,18 @@ todo-list/
 
 > **Nota de arquitetura (pendente):** a [`IDEA.md`](IDEA.md) pede frontend e backend separados.
 > Provavelmente será necessário dividir em dois projetos (ex.: `TodoList.Web` e `TodoList.Api`)
-> sob uma *solution* (`.sln`). Ver "Limitações conhecidas" no [`README.md`](README.md).
+> sob uma *solution* (`.sln`). Ver "Limitações conhecidas" no [`README.md`](../README.md).
 
 ---
 
 ## 4. Code Conventions
 
-As convenções de código do projeto estão centralizadas em [`.claude/`](.claude) e são de uso
-**obrigatório** na geração de código (ver [`CLAUDE.md`](CLAUDE.md)):
+As convenções de código do projeto estão centralizadas em [`.claude/`](../.claude) e são de uso
+**obrigatório** na geração de código (ver [`CLAUDE.md`](../CLAUDE.md)):
 
-- [`.claude/STYLEGUIDE.md`](.claude/STYLEGUIDE.md) — índice das convenções;
-- [`.claude/CONVENTIONS.md`](.claude/CONVENTIONS.md) — nomes, padrões, loops, memória, OOP;
-- [`.claude/DOCUMENTATION.md`](.claude/DOCUMENTATION.md) — documentação de funções (XML doc comments).
+- [`.claude/STYLEGUIDE.md`](../.claude/STYLEGUIDE.md) — índice das convenções;
+- [`.claude/CONVENTIONS.md`](../.claude/CONVENTIONS.md) — nomes, padrões, loops, memória, OOP;
+- [`.claude/DOCUMENTATION.md`](../.claude/DOCUMENTATION.md) — documentação de funções (XML doc comments).
 
 Resumo de nomes (padrão idiomático C#/.NET): `PascalCase` para métodos, propriedades, constantes
 e tipos; `camelCase` para variáveis locais e parâmetros; `_camelCase` para campos privados.
@@ -85,20 +85,20 @@ e tipos; `camelCase` para variáveis locais e parâmetros; `_camelCase` para cam
 
 ## 5. Error Handling
 
-O tratamento de erros é **por ambiente**, definido no [`Program.cs`](Program.cs):
+O tratamento de erros é **por ambiente**, definido no [`Program.cs`](../Program.cs):
 
 - Em **Development**, os erros detalhados ficam visíveis para facilitar a depuração;
 - Em **Production**, exceções não tratadas são redirecionadas para uma página amigável
   (`app.UseExceptionHandler("/Error")`) e o HSTS é ativado (`app.UseHsts()`).
 
 > A página `/Error` **ainda não foi criada** — será acionada apenas em produção. Pendência
-> registrada no [`README.md`](README.md).
+> registrada no [`README.md`](../README.md).
 
 ---
 
 ## 6. Dependencies
 
-- **Runtime/SDK:** .NET 8 (`net8.0`), SDK fixado em [`global.json`](global.json);
+- **Runtime/SDK:** .NET 8 (`net8.0`), SDK fixado em [`global.json`](../global.json);
 - **Framework:** ASP.NET Core / Blazor, via SDK `Microsoft.NET.Sdk.Web` (sem pacotes NuGet
   externos adicionados até o momento).
 
@@ -115,7 +115,7 @@ Instruções de instalação e execução estão no [`BUILD.md`](BUILD.md).
 
 - **Testes automatizados:** ainda **não há** projeto de testes.
 - **Qualidade em tempo de compilação:** o projeto usa `Nullable=enable` e
-  `TreatWarningsAsErrors=true` ([`TodoList.csproj`](TodoList.csproj)), de modo que qualquer aviso
+  `TreatWarningsAsErrors=true` ([`TodoList.csproj`](../TodoList.csproj)), de modo que qualquer aviso
   do compilador interrompe o build.
 - **Validação de build:** **realizada** — `dotnet build` conclui sem erros nem avisos, e `dotnet run`
   sobe a aplicação (HTTP 200 na página inicial). Ver [`BUILD.md`](BUILD.md).

@@ -2,9 +2,9 @@
 
 Esse repositório é destinado à elaboração de um projeto TO-DO list com sistema de login de usuários
 
-Os requisitos informados inicialmente para elaboração do projeto estão disponíveis em [`IDEA.md`](IDEA.md)
+Os requisitos informados inicialmente para elaboração do projeto estão disponíveis em [`IDEA.md`](docs/IDEA.md)
 
-Para instruções de instalação do ambiente e execução do projeto, veja [`BUILD.md`](BUILD.md).
+Para instruções de instalação do ambiente e execução do projeto, veja [`BUILD.md`](docs/BUILD.md).
 
 ---
 
@@ -31,7 +31,7 @@ Essa opção é "agressiva": no início do projeto ela pode travar o build por a
 
 ### 2. Arquitetura
 
-A [`IDEA.md`](IDEA.md) pede **Blazor (frontend)** e **.NET Web API (backend)** separados. Um único `.csproj` com o SDK `Microsoft.NET.Sdk.Web` funciona para começar, mas mais à frente provavelmente será necessário dividir em **dois projetos** (ex.: `TodoList.Web` e `TodoList.Api`) organizados dentro de uma **solution (`.sln`)**. Essa reestruturação está pendente para quando a arquitetura for definida.
+A [`IDEA.md`](docs/IDEA.md) pede **Blazor (frontend)** e **.NET Web API (backend)** separados. Um único `.csproj` com o SDK `Microsoft.NET.Sdk.Web` funciona para começar, mas mais à frente provavelmente será necessário dividir em **dois projetos** (ex.: `TodoList.Web` e `TodoList.Api`) organizados dentro de uma **solution (`.sln`)**. Essa reestruturação está pendente para quando a arquitetura for definida.
 
 ### 3. Página `/Error` ainda não criada
 
