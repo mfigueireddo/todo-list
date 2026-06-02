@@ -4,14 +4,21 @@ Passos para preparar o ambiente e rodar o projeto **TodoList** (Blazor + ASP.NET
 
 ---
 
-## Sobre "ambiente isolado" (por que não há `venv`)
+## Resumo rápido (TL;DR)
 
-`venv` é um recurso **do Python** e **não se aplica a projetos .NET/C#**. O isolamento aqui funciona de outra forma:
+```powershell
+# 1. Instalar o SDK (uma vez)
+winget install Microsoft.DotNet.SDK.8
 
-- **Dependências** são gerenciadas pelo **NuGet** e já ficam locais ao projeto (restauradas em `obj/` e `bin/`, além de um cache global do usuário). Não existe "ativar/desativar" um ambiente.
-- **A versão do SDK** é fixada pelo arquivo [`global.json`](global.json) na raiz. Qualquer comando `dotnet` executado dentro da pasta do projeto respeita essa versão, garantindo que todos usem o mesmo SDK.
+# 2. Confiar no certificado HTTPS (uma vez)
+dotnet dev-certs https --trust
 
-Ou seja: o "ambiente" do projeto = **.NET SDK instalado na máquina** + **`global.json`** (fixando a versão) + **`dotnet restore`** (baixando as dependências). Não há passo de criação/ativação de venv.
+# 3. Na raiz do projeto: restaurar e rodar
+dotnet restore
+dotnet run --launch-profile https
+```
+
+Depois, acesse <https://localhost:7150>.
 
 ---
 
@@ -20,7 +27,6 @@ Ou seja: o "ambiente" do projeto = **.NET SDK instalado na máquina** + **`globa
 | Item | Necessário quando | Como instalar |
 |---|---|---|
 | **.NET 8 SDK** | Agora (compilar/rodar) | `winget install Microsoft.DotNet.SDK.8` |
-| **Certificado HTTPS de dev** | Para rodar via HTTPS local | `dotnet dev-certs https --trust` |
 | **Microsoft SQL Server** | Futuro (quando houver banco de dados) | Pendente — ver `README.md` |
 
 ---
@@ -47,17 +53,7 @@ dotnet --list-sdks
 
 ---
 
-## 2. (Opcional) Confiar no certificado HTTPS de desenvolvimento
-
-Necessário apenas para rodar com o perfil `https` sem avisos do navegador. É feito **uma vez por máquina**:
-
-```powershell
-dotnet dev-certs https --trust
-```
-
----
-
-## 3. Restaurar as dependências
+## 2. Restaurar as dependências
 
 A partir da raiz do projeto (a pasta que contém `TodoList.csproj`):
 
@@ -65,11 +61,9 @@ A partir da raiz do projeto (a pasta que contém `TodoList.csproj`):
 dotnet restore
 ```
 
-> Este é o passo análogo a "instalar dependências" do venv. Em geral, `dotnet build` e `dotnet run` já fazem o restore automaticamente, mas rodá-lo explicitamente ajuda a separar erros de restauração de erros de compilação.
-
 ---
 
-## 4. Rodar o projeto
+## 3. Rodar o projeto
 
 A partir da raiz do projeto:
 
@@ -98,7 +92,7 @@ Para encerrar a aplicação, pressione `Ctrl + C` no terminal.
 
 ---
 
-## 5. Compilar sem rodar (build)
+## 4. Compilar sem rodar (build)
 
 Para apenas compilar e verificar erros/avisos (lembrando que o projeto usa `TreatWarningsAsErrors`, então qualquer aviso interrompe o build):
 
@@ -118,21 +112,3 @@ Control** do Windows 11 bloqueando o executável não assinado. O projeto já co
 `dotnet run` executa via o host `dotnet` (assinado pela Microsoft), que o SAC permite. Se o erro
 ainda aparecer, garanta que essa configuração está presente e refaça o build (`dotnet build`).
 Detalhes em "Limitações conhecidas" do [`README.md`](README.md).
-
----
-
-## Resumo rápido (TL;DR)
-
-```powershell
-# 1. Instalar o SDK (uma vez)
-winget install Microsoft.DotNet.SDK.8
-
-# 2. Confiar no certificado HTTPS (uma vez)
-dotnet dev-certs https --trust
-
-# 3. Na raiz do projeto: restaurar e rodar
-dotnet restore
-dotnet run --launch-profile https
-```
-
-Depois, acesse <https://localhost:7150>.
