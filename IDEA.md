@@ -89,3 +89,23 @@ Supondo que seja necessário implementar a deleção de conta: qual deve ser o c
 
 9. Quanto é dito que "O login não deve ser fixo, e sim checar se o usuário está registrado no banco de dados (tabela User).". 
 - Isso especifica que o usuário deverá ser checado no banco de dados a cada requisição e não apenas no "ponto de entrada" do website?
+
+### Respostas
+
+1. O projeto não precisa ser colocado no ar
+
+2. O criador da tarefa não é necessariamente o responsável, e não, uma tarefa não pode ter mais de um responsável
+
+3. Não é necessário implementar recuperação de senha, nem edição de conta
+
+4. No back são novas URLs, no front também são diferentes, porém podem ser modais se quiser
+
+5. Pelo que me lembro o admin pode tudo, mas o responsável da tarefa não pode excluir ima tarefa assim não, acho que só editar
+
+6. As unicas informações a serem mostradas são título da tarefa, data e o checkbox pra marcar ela como concluída, de resto aparece nos detalhes
+
+7. Pode criptografar a senha, é ideal
+
+8. Exatamente, usuário não pode alterar elas
+
+9. Não, basta checar ao logar, não precisa ficar checando o tempo todo
