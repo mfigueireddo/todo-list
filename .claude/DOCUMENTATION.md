@@ -101,6 +101,23 @@ Restrictions:
 - The save file format must remain backward-compatible with version 1.0 saves.
 ```
 
+### 8. Attributes
+- **When to include**: **Always, whenever a type or member is decorated with one or more attributes** (e.g., `[ApiController]`, `[Route]`, `[HttpGet]`, `[Authorize]`, `[FromBody]`, or any custom attribute). This item is mandatory in this repository for every attribute used.
+- **Purpose**: Make explicit what each attribute *implies* about the class/method, because attributes are not interpreted by the C# compiler — they are metadata read at runtime by a framework/SDK (ASP.NET Core, the serializer, etc.). Without this note, the behavior an attribute introduces is invisible from the code alone.
+- **Guideline**: List each attribute applied to the unit being documented and, for each, describe (a) **what it does** — the concrete behavior or contract it activates — and (b) **who interprets it** when relevant (the framework, the serializer, your own code). If an attribute takes arguments or special tokens (e.g., the `[controller]` token in a route template), explain how they are resolved. Document the attributes on the member where they appear: type-level attributes in the type's doc comment, member-level attributes in the member's doc comment.
+
+**Example:**
+```
+Attributes:
+- [ApiController]: marks the class as a REST API controller and enables ASP.NET Core
+  conventions (automatic model validation returning 400, parameter source inference,
+  ProblemDetails error responses). Read by the framework at runtime, not by the C# compiler.
+- [Route("[controller]")]: defines this controller's URL template. The [controller] token is
+  replaced by the routing layer with the class name minus the "Controller" suffix.
+- [HttpGet]: maps the action to HTTP GET requests; with no argument it inherits the controller's
+  route. It is this attribute — not the method name — that drives routing.
+```
+
 ## Quick Reference Template
 
 ```csharp
@@ -118,6 +135,9 @@ Restrictions:
 /// - Returns [value/type] when [condition].
 /// </returns>
 /// <remarks>
+/// Attributes:
+/// - [AttributeName]: [what it does and who interprets it] — required for every attribute used.
+///
 /// Assertives of Entrance:
 /// - [Precondition about parameters or system state]
 ///
@@ -135,7 +155,9 @@ Restrictions:
 |---|---|
 | Simple getter/setter | Description only (or omit entirely if trivial) |
 | Utility/helper method | Description + Parameters + Expected Returns |
-| Business logic method | All 7 items |
-| Public API method | All 7 items |
+| Business logic method | All 8 items |
+| Public API method | All 8 items |
 | Private internal method | Description + Assertives (entrance/departure) as needed |
 | Constructor | Description + Parameters + Assertives of Departure |
+
+> **Note:** The **Attributes** item is independent of complexity — whenever a type or member is decorated with attributes, document them, even on an otherwise trivial unit.
