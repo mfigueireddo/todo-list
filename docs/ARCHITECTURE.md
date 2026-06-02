@@ -14,9 +14,30 @@ conforme exigido pela especificação: [`DIAGRAMS.md`](DIAGRAMS.md).
 
 ---
 
+## Configurações de build comuns
+
+Propriedades usadas nos `.csproj` de **ambos** os projetos (`TodoList.Api` e `TodoList.Web`):
+
+| Especificação | Para que serve |
+|---|---|
+| `<TargetFramework>net8.0</TargetFramework>` | Define em qual versão do .NET o projeto será compilado e executado. `net8.0` é uma versão LTS (suporte de longo prazo), recomendada para projetos novos. |
+| `<Nullable>enable</Nullable>` | Ativa os *nullable reference types*. O compilador passa a distinguir tipos que podem ser nulos (`string?`) dos que não podem (`string`), gerando avisos quando há risco de `NullReferenceException`. Ajuda a previnir erros de null em tempo de compilação. |
+| `<ImplicitUsings>enable</ImplicitUsings>` | Adiciona automaticamente os *usings* mais comuns (`System`, `System.Collections.Generic`, `System.Linq`, etc.) em todos os arquivos, reduzindo código repetitivo no topo dos arquivos. |
+| `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` | Faz com que **todo** aviso (*warning*) do compilador seja tratado como erro, impedindo o build de concluir enquanto houver avisos. Força a correção de problemas potenciais (incluindo os de *nullability*) em vez de ignorá-los. |
+
+As propriedades específicas de cada projeto estão descritas nas seções de cada camada abaixo.
+
+---
+
 ## `TodoList.Api/` — Backend (.NET Web API)
 
 Projeto ASP.NET Core (SDK `Microsoft.NET.Sdk.Web`) que expõe a API consumida pelo frontend.
+
+Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Api` define
+`<UseAppHost>false</UseAppHost>`, que desativa a geração do executável nativo (`TodoList.Api.exe`).
+Sem ele, `dotnet run` executa a aplicação via o host `dotnet` (assinado pela Microsoft) em vez de um
+`.exe` recém-compilado e sem assinatura — necessário porque o **Smart App Control** do Windows 11
+bloqueia executáveis não assinados (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
 
 ### `Program.cs`
 - **Pattern**: Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core.
@@ -53,6 +74,10 @@ Controllers da Web API (endpoints HTTP).
 
 Projeto Blazor WebAssembly (SDK `Microsoft.NET.Sdk.BlazorWebAssembly`) que roda no navegador e
 consome a `TodoList.Api` por HTTP.
+
+Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Web`
+(WebAssembly) não gera apphost, portanto não usa a propriedade `<UseAppHost>` descrita na camada do
+`TodoList.Api`.
 
 ### `Program.cs`
 - **Pattern**: Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`).
