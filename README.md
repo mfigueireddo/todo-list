@@ -18,6 +18,22 @@ O arquivo [`TodoList.csproj`](TodoList.csproj) define as configurações de buil
 
 ---
 
+## Ponto de entrada (`Program.cs`)
+
+O arquivo [`Program.cs`](Program.cs) é o ponto de entrada da aplicação. Usa *top-level statements* (desde o .NET 6, sem a classe `Program` com `Main` explícita). Abaixo, o detalhamento de cada trecho:
+
+| Trecho | Para que serve |
+|---|---|
+| `var builder = WebApplication.CreateBuilder(args);` | Cria o *builder* da aplicação web, responsável por configurar serviços, configuração e *logging*. O registro de serviços (Razor Components, banco de dados, autenticação, etc.) será adicionado aqui conforme o projeto cresce. |
+| `var app = builder.Build();` | Constrói a instância da aplicação (`WebApplication`) a partir do *builder*, a partir da qual o *pipeline* de requisições é configurado. |
+| `if (!app.Environment.IsDevelopment()) { ... }` | Tratamento de erros por ambiente: em *Development* os erros detalhados ficam visíveis; em *Production* aplicamos o bloco abaixo. |
+| `app.UseExceptionHandler("/Error");` | Em produção, redireciona exceções não tratadas para uma página amigável (`/Error`) em vez de expor detalhes internos. |
+| `app.UseHsts();` | Em produção, envia o cabeçalho HSTS, reforçando o uso de HTTPS pelo navegador. |
+| `app.UseHttpsRedirection();` | Redireciona requisições HTTP para HTTPS. |
+| `app.Run();` | Inicia a aplicação e a mantém escutando por requisições. |
+
+---
+
 ## Limitações conhecidas
 
 ### 1. `TreatWarningsAsErrors`
@@ -27,3 +43,12 @@ Essa opção é "agressiva": no início do projeto ela pode travar o build por a
 ### 2. Arquitetura
 
 A [`IDEA.md`](IDEA.md) pede **Blazor (frontend)** e **.NET Web API (backend)** separados. Um único `.csproj` com o SDK `Microsoft.NET.Sdk.Web` funciona para começar, mas mais à frente provavelmente será necessário dividir em **dois projetos** (ex.: `TodoList.Web` e `TodoList.Api`) organizados dentro de uma **solution (`.sln`)**. Essa reestruturação está pendente para quando a arquitetura for definida.
+
+### 3. Arquivos ainda não criados (`/Error` e `launchSettings.json`)
+
+O [`Program.cs`](Program.cs) já referencia, no tratamento de erros por ambiente, alguns elementos que **ainda não existem**:
+
+- **Página `/Error`**: usada por `app.UseExceptionHandler("/Error")` apenas em produção. Como só é acionada em produção, não quebra o build, mas precisará ser criada.
+- **`Properties/launchSettings.json`**: define a variável `ASPNETCORE_ENVIRONMENT` (normalmente `Development`), que determina qual ramo do tratamento de erros é executado. Enquanto esse arquivo não existir, o ambiente é determinado pela variável de ambiente do sistema (ou assume `Production` por padrão).
+
+Ambos costumam ser gerados junto com o scaffold do projeto e estão pendentes para os próximos passos.
