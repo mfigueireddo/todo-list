@@ -41,7 +41,9 @@ pendências detalhadas estão na seção **"Limitações conhecidas"** do [`READ
 ## 3. Architecture
 
 Atualmente o projeto é um **único projeto web** (SDK `Microsoft.NET.Sdk.Web`), sem separação
-física entre frontend e backend. Estrutura de pastas:
+física entre frontend e backend. O detalhamento por componente está em
+[`ARCHITECTURE.md`](ARCHITECTURE.md) e os diagramas (mapa de componentes, classes e fluxos) em
+[`DIAGRAMS.md`](DIAGRAMS.md). Estrutura de pastas:
 
 ```
 todo-list/
