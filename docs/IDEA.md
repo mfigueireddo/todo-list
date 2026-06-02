@@ -3,7 +3,7 @@
 A ideia é, basicamente, criar uma TO-DO list com sistema de login de usuários.
 
 ### Tecnologias
-- Frontend: Blazor Web App (com uso OBRIGATÓRIO de springboot)
+- Frontend: Blazor Web App (com uso OBRIGATÓRIO de Bootstrap)
 - Backend: .NET Web API 
 - Banco de Dados: Microsoft SQL Server. 
 - OBS: disponibilizar como repositório público no GitHub
