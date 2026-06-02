@@ -26,3 +26,17 @@ Regras de uso:
 - As convenções de nomes seguem o padrão idiomático do C#/.NET: `PascalCase` para métodos,
   propriedades, constantes e tipos; `camelCase` para variáveis locais e parâmetros;
   `_camelCase` para campos privados.
+
+## Registro de lembretes no README (OBRIGATÓRIO)
+
+Sempre que gerar código neste repositório, **todo lembrete importante para a continuidade do
+projeto DEVE ser registrado no [`README.md`](README.md)**. Isso inclui, por exemplo: decisões
+adiadas, configurações provisórias, dependências ainda não criadas, riscos de segurança a
+revisitar e qualquer pendência que precise de atenção futura.
+
+- Registre o lembrete na seção **"Limitações conhecidas"** do `README.md` (ou em seção
+  equivalente, quando fizer mais sentido).
+- O registro deve ser feito **no mesmo momento** em que o código/decisão é gerado — não deixe
+  pendências importantes apenas na conversa, pois elas se perdem entre sessões.
+- Cada lembrete deve ser autoexplicativo: o que é, por que está assim e o que precisa ser
+  ajustado/feito no futuro.
