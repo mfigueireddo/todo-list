@@ -52,3 +52,10 @@ O [`Program.cs`](Program.cs) já referencia, no tratamento de erros por ambiente
 - **`Properties/launchSettings.json`**: define a variável `ASPNETCORE_ENVIRONMENT` (normalmente `Development`), que determina qual ramo do tratamento de erros é executado. Enquanto esse arquivo não existir, o ambiente é determinado pela variável de ambiente do sistema (ou assume `Production` por padrão).
 
 Ambos costumam ser gerados junto com o scaffold do projeto e estão pendentes para os próximos passos.
+
+### 4. Configuração em `appsettings.json`
+
+- **`AllowedHosts` está como `"*"`**: aceita requisições de **qualquer** host. É prático para desenvolvimento, mas em produção é recomendável restringir aos domínios reais da aplicação para mitigar ataques de *Host header*.
+- **`LogLevel.Default` está como `Trace`**: registra **todos** os logs, no nível mais verboso possível. Útil para depuração agora, mas excessivo (e potencialmente custoso/inseguro) em produção.
+
+> **Lembrete para o futuro:** o ASP.NET Core permite sobrescrever o `appsettings.json` por ambiente através de arquivos como `appsettings.Development.json` e `appsettings.Production.json` (o sufixo casa com `ASPNETCORE_ENVIRONMENT`). A ideia é manter no `appsettings.json` apenas o que é comum e mover as configurações específicas de cada ambiente para o arquivo correspondente — por exemplo, `Trace` e `AllowedHosts: "*"` ficariam no `Development.json`, enquanto produção teria níveis de log mais altos e hosts restritos. Essa separação está pendente.
