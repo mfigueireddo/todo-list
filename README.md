@@ -2,6 +2,8 @@ Esse repositório é destinado à elaboração de um projeto TO-DO list com sist
 
 Os requisitos informados inicialmente para elaboração do projeto estão disponíveis [aqui](IDEA.md)
 
+Para instruções de instalação do ambiente e execução do projeto, veja o [`BUILD.md`](BUILD.md).
+
 ---
 
 ## Configuração do projeto (`TodoList.csproj`)
@@ -92,3 +94,14 @@ O arquivo [`_Imports.razor`](_Imports.razor) concentra os *usings* habituais de 
 O Blazor está configurado apenas com `AddRazorComponents()` + `MapRazorComponents<App>()`, ou seja, **renderização estática no servidor (SSR)**, sem interatividade no cliente. É suficiente para o "Olá, Mundo" atual e evita dependências extras (como SignalR do *Interactive Server*).
 
 > **Lembrete para o futuro:** funcionalidades interativas (marcar o *checkbox* de uma tarefa, editar/deletar, filtrar a lista) exigirão habilitar um *render mode* interativo — ex.: `AddInteractiveServerComponents()` no `Program.cs` e `@rendermode InteractiveServer` nos componentes. Pendente até começarmos o CRUD.
+
+### 7. Segredos e *connection strings* (quando o banco entrar)
+
+Atualmente o [`appsettings.json`](appsettings.json) e o [`Properties/launchSettings.json`](Properties/launchSettings.json) são versionados normalmente, pois não contêm dados sensíveis. Isso **muda** quando integrarmos o Microsoft SQL Server: a *connection string* (que pode conter usuário/senha do banco) **não deve ser commitada** num repositório público.
+
+> **Lembrete para o futuro:** ao adicionar o banco, manter as credenciais fora do controle de versão. Opções comuns:
+> - **User Secrets** (`dotnet user-secrets`) para desenvolvimento — armazenado fora da pasta do projeto;
+> - **Variáveis de ambiente** (ex.: `ConnectionStrings__Default`) para produção;
+> - Se for usar `appsettings.Development.json`/`appsettings.Production.json` com segredos, adicioná-los ao [`.gitignore`](.gitignore).
+>
+> O `.gitignore` já ignora arquivos de banco locais (`*.mdf`, `*.ldf`, `*.ndf`), mas **não** ignora os `appsettings*.json` — essa decisão precisará ser revista conforme a estratégia de segredos escolhida.
