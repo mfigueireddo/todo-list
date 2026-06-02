@@ -40,3 +40,16 @@ revisitar e qualquer pendência que precise de atenção futura.
   pendências importantes apenas na conversa, pois elas se perdem entre sessões.
 - Cada lembrete deve ser autoexplicativo: o que é, por que está assim e o que precisa ser
   ajustado/feito no futuro.
+
+## Sincronização do OVERVIEW.md (OBRIGATÓRIO)
+
+O [`OVERVIEW.md`](OVERVIEW.md) é um retrato do estado atual do projeto e **deve ser atualizado
+como parte de cada nova feature ou mudança relevante** — não é um documento escrito uma vez só.
+
+- Sempre que uma alteração afetar o estado descrito no `OVERVIEW.md` (ex.: nova
+  funcionalidade, nova dependência, mudança de arquitetura, novos padrões, testes adicionados,
+  build validado), atualize as seções correspondentes **no mesmo momento** da mudança.
+- Mantenha a estrutura de seções definida em [`.claude/OVERVIEW.md`](.claude/OVERVIEW.md).
+- Distinção em relação ao `README.md`: o `OVERVIEW.md` descreve **o que já existe** (estado
+  atual); a seção "Limitações conhecidas" do `README.md` descreve **pendências e lembretes de
+  continuidade**. Os dois devem permanecer coerentes entre si.
