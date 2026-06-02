@@ -96,37 +96,37 @@ Restrictions:
 - Player data must be persisted in a local .txt file, not in a database,
   due to the project's offline-first requirement.
 - This function must not be called from a background thread, as it directly
-  updates Swing UI components which require the Event Dispatch Thread.
+  updates Blazor component state, which must run on the renderer's synchronization
+  context (use `InvokeAsync` when triggered from another thread).
 - The save file format must remain backward-compatible with version 1.0 saves.
 ```
 
 ## Quick Reference Template
 
-```
-/**
- * Objective: [Broader intent, if the name is not self-explanatory]
- *
- * Description:
- * 1. [Step one]
- * 2. [Step two]
- * 3. [Step three]
- *
- * Parameters:
- * - param_name: [Meaning, format, valid range, or special expectations]
- *
- * Expected Returns:
- * - Returns [value/type] when [condition].
- * - Returns [value/type] when [condition].
- *
- * Assertives of Entrance:
- * - [Precondition about parameters or system state]
- *
- * Assertives of Departure:
- * - [Postcondition about outputs or system state]
- *
- * Restrictions:
- * - [Business rule or technical constraint]
- */
+```csharp
+/// <summary>
+/// Objective: [Broader intent, if the name is not self-explanatory]
+///
+/// Description:
+/// 1. [Step one]
+/// 2. [Step two]
+/// 3. [Step three]
+/// </summary>
+/// <param name="param_name">[Meaning, format, valid range, or special expectations]</param>
+/// <returns>
+/// - Returns [value/type] when [condition].
+/// - Returns [value/type] when [condition].
+/// </returns>
+/// <remarks>
+/// Assertives of Entrance:
+/// - [Precondition about parameters or system state]
+///
+/// Assertives of Departure:
+/// - [Postcondition about outputs or system state]
+///
+/// Restrictions:
+/// - [Business rule or technical constraint]
+/// </remarks>
 ```
 
 ## When to Apply Full vs. Partial Documentation

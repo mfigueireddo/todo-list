@@ -4,17 +4,17 @@ This file defines how to document project architecture, including per-component 
 
 ---
 
-## Component Breakdown by Package/Folder
+## Component Breakdown by Namespace/Folder
 
-Document each package or top-level folder as a subsection. Within each subsection, document every meaningful file or class.
+Document each namespace or top-level folder as a subsection. Within each subsection, document every meaningful file or class.
 
-### Package Subsection Format
+### Namespace/Folder Subsection Format
 
 ```markdown
-### `package-or-folder-name/`
-Brief sentence on what this package is responsible for.
+### `Namespace.Or.Folder/`
+Brief sentence on what this namespace is responsible for.
 
-#### `FileName.java`
+#### `FileName.cs`
 - **Pattern**: Design pattern used (if applicable)
   - Examples: Singleton, Abstract base class, Enum, Utility class
 - **Purpose**: High-level description of what the component does
@@ -29,23 +29,23 @@ Brief sentence on what this package is responsible for.
 ### Example
 
 ```markdown
-### `ui/`
-Handles all Swing-based UI panels and the main application window.
+### `Components/`
+Handles all Blazor UI components and the main application layout.
 
-#### `GameWindow.java`
-- **Pattern**: Singleton
-- **Purpose**: Main game window (JFrame)
+#### `MainLayout.razor.cs`
+- **Pattern**: Singleton (registered as a service in the DI container)
+- **Purpose**: Main application layout (root render tree)
 - **Responsibilities**:
-  - Manage the application window lifecycle
-  - Handle panel switching
-  - Configure window properties
+  - Manage the application layout lifecycle
+  - Handle page/route switching
+  - Configure shared layout state
 
-#### `MenuPanel.java`
+#### `MenuComponentBase.cs`
 - **Pattern**: Abstract base class
-- **Purpose**: Base for all menu screens
+- **Purpose**: Base for all menu/navigation components
 - **Responsibilities**:
   - Render navigation buttons
-  - Delegate user actions to the controller
+  - Delegate user actions to the controller/service
 ```
 
 ---
@@ -58,7 +58,7 @@ Diagrams in README.md use [Mermaid](https://mermaid.js.org/), which renders nati
 
 Include a diagram whenever a relationship, flow, or structure is hard to convey in prose alone:
 
-- **Package/module structure** — how top-level folders relate to each other
+- **Namespace/module structure** — how top-level folders relate to each other
 - **Key class relationships** — inheritance, composition, or dependency between important classes
 - **Data or control flow** — the lifecycle of a request, event, or game loop step
 
@@ -68,13 +68,13 @@ Diagram every class. Every class must appear in at least one diagram.
 
 | Type | Mermaid keyword | Use for |
 |---|---|---|
-| Package/component map | `graph TD` | High-level overview of how packages depend on each other |
+| Namespace/component map | `graph TD` | High-level overview of how namespaces depend on each other |
 | Class relationships | `classDiagram` | Inheritance hierarchies or composition between important classes |
 | Sequence / flow | `sequenceDiagram` or `flowchart TD` | Step-by-step lifecycle of a key process |
 
-### Package/Component Map
+### Namespace/Component Map
 
-Show how the top-level packages depend on or communicate with each other. Use directional arrows to indicate dependency (`A --> B` means A depends on B).
+Show how the top-level namespaces depend on or communicate with each other. Use directional arrows to indicate dependency (`A --> B` means A depends on B).
 
 ```mermaid
 graph TD
@@ -90,7 +90,7 @@ graph TD
 ```
 
 Guidelines:
-- One node per top-level package or major subsystem
+- One node per top-level namespace or major subsystem
 - Arrow direction = dependency direction (caller → callee)
 - Always add a short label on every arrow: `UI -->|"dispatches events"| Controller`
 - Keep it flat — avoid nesting unless the project has a clear layered architecture
@@ -148,5 +148,5 @@ Guidelines:
 Diagrams must **not** go in README.md. Place all diagrams in a dedicated `DIAGRAMS.md` file at the project root.
 
 - Place the **package/component map** at the top of `DIAGRAMS.md`
-- Place **class diagrams** grouped by package, after the component map
+- Place **class diagrams** grouped by namespace, after the component map
 - Place **flow diagrams** in a dedicated "Key Flows" section at the end of `DIAGRAMS.md`

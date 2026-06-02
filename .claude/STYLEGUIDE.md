@@ -11,9 +11,8 @@ This guide has been split into focused documents. All those documents are in the
 | Task                                                                        | File to Consult                                                 |
 | --------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **Writing or reviewing code** (naming, patterns, loops, memory, OOP, etc.)  | [[Personal Coding Habits]]        |
-| **Documenting functions, methods, or code** (Javadoc, docstrings, comments) | [[Code Documentation Model]]      |
+| **Documenting functions, methods, or code** (XML doc comments, docstrings, comments) | [[Code Documentation Model]]      |
 | **Writing or updating a project overview document**                         | [[OVERVIEW]]        |
 | **Documenting architecture and component details** (package breakdowns, diagrams)  | [[ARCHITECTURE]]   |
-| **Creating, drafting, or working on issues** (GitHub Issues, user stories)  | [[Issue Creation Guidelines]]     |
 
 > **Note:** Always check the relevant file(s) before starting work. Multiple files may apply — for example, writing a new feature requires both the **Personal Coding Habits** file (for code style) and the **Code Documentation Model** file (for documenting the new code).

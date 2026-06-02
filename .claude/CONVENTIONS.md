@@ -3,22 +3,26 @@
 ## Naming Conventions
 
 ### Method Names
-- Use camelCase for all method names
-- Examples: `getGamePanel()`, `updatePlayer()`, `renderGraphics()`
+- Use PascalCase for all method names
+- Examples: `GetGamePanel()`, `UpdatePlayer()`, `RenderGraphics()`
 
 ### Variable and Field Names
-- Use snake_case for all variable and field names
-- Examples: `game_panel`, `player_position`, `enemy_count`
+- Use camelCase for local variables and method parameters
+  - Examples: `gamePanel`, `playerPosition`, `enemyCount`
+- Use `_camelCase` (leading underscore) for private and internal fields
+  - Examples: `_gamePanel`, `_playerPosition`, `_enemyCount`
+- Use PascalCase for public fields and properties
+  - Examples: `GamePanel`, `PlayerPosition`, `EnemyCount`
 
 ### Constants
-- Use UPPER_SNAKE_CASE for all constants (final static variables)
-- Examples: `MAX_HEALTH`, `DEFAULT_SPEED`, `MIN_WIDTH`
+- Use PascalCase for all constants (`const` and `static readonly` fields)
+- Examples: `MaxHealth`, `DefaultSpeed`, `MinWidth`
 
 ### Descriptive Names
 - Avoid abbreviations - use full, descriptive names
 - Examples:
-  - ✅ `enemy_health`, `maximum_velocity`
-  - ❌ `en_hlth`, `max_vel`
+  - ✅ `enemyHealth`, `maximumVelocity`
+  - ❌ `enHlth`, `maxVel`
 - Avoid single-letter names, even in loops
 - Examples:
   - ✅ `for (int row = 0; row < height; row++)`
@@ -28,13 +32,13 @@
 
 ## Singleton Pattern
 
-- When creating a singleton class, place the getInstance() method first in the class
-- Order: static instance field, getInstance() method, then constructor and other methods
+- When creating a singleton class, place the `Instance` accessor first in the class
+- Order: static instance field, `Instance` property, then constructor and other methods
 
 ## Variable Initialization
 
 - Initialize member variables at declaration, not in the constructor
-- Example: `private final JButton new_game = new JButton("New Game");`
+- Example: `private readonly Button _newGame = new("New Game");`
 - Keep constructors focused on setup and configuration logic
 
 ## Magic Numbers
@@ -43,10 +47,10 @@
 - Always create final variables with descriptive names for all numeric values
 - This includes: dimensions, sizes, margins, padding, thickness, colors, etc.
 - Examples:
-  - `final int buttons_width = 200;`
-  - `final int buttons_height = 40;`
-  - `final int buttons_vbox_border_thickness = 10;`
-  - `final int buttons_vbox_margin = 10;`
+  - `const int ButtonsWidth = 200;`
+  - `const int ButtonsHeight = 40;`
+  - `const int ButtonsBorderThickness = 10;`
+  - `const int ButtonsMargin = 10;`
 - Group related constants together in the code for clarity
 
 ## Exception Handling
@@ -133,7 +137,7 @@
 
 #### Debug Logging
 - **Never commit code with debug logs**
-- This includes functions like: `print()`, `printf()`, `console.log()`, `System.out.println()`, etc.
+- This includes functions like: `print()`, `printf()`, `console.log()`, `Console.WriteLine()`, `System.out.println()`, etc.
 - **Exception**: This rule can be ignored if the project explicitly uses the terminal/console for communication with the user
 
 #### Function Return Values
@@ -148,7 +152,7 @@
 - **Prefer compilation settings that treat warnings as errors**
 - Examples:
   - C/C++: Use `-Wpedantic` and `-Werror`
-  - Java: Use `-Xlint:all` and `-Werror`
+  - C#/.NET: Set `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`, enable `<Nullable>enable</Nullable>`, and raise the analysis level (`<AnalysisLevel>latest-Recommended</AnalysisLevel>`) in the `.csproj`
 - This ensures code quality and catches potential issues early
 
 #### Code Formatting
@@ -181,7 +185,7 @@
 - **Always use `this.` when accessing any class member (fields, methods, properties)**
 - Applies to all member accesses within a class, without exception
 - Examples:
-  - ✅ `this.player_health = 100;`
-  - ✅ `this.updatePlayer();`
-  - ❌ `player_health = 100;`
-  - ❌ `updatePlayer();`
+  - ✅ `this.PlayerHealth = 100;`
+  - ✅ `this.UpdatePlayer();`
+  - ❌ `PlayerHealth = 100;`
+  - ❌ `UpdatePlayer();`
