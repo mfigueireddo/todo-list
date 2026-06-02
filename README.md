@@ -1,8 +1,10 @@
+## Propósito
+
 Esse repositório é destinado à elaboração de um projeto TO-DO list com sistema de login de usuários
 
-Os requisitos informados inicialmente para elaboração do projeto estão disponíveis [aqui](IDEA.md)
+Os requisitos informados inicialmente para elaboração do projeto estão disponíveis em [`IDEA.md`](IDEA.md)
 
-Para instruções de instalação do ambiente e execução do projeto, veja o [`BUILD.md`](BUILD.md).
+Para instruções de instalação do ambiente e execução do projeto, veja [`BUILD.md`](BUILD.md).
 
 ---
 
@@ -18,40 +20,6 @@ O arquivo [`TodoList.csproj`](TodoList.csproj) define as configurações de buil
 | `<ImplicitUsings>enable</ImplicitUsings>` | Adiciona automaticamente os *usings* mais comuns (`System`, `System.Collections.Generic`, `System.Linq`, etc.) em todos os arquivos, reduzindo código repetitivo no topo dos arquivos. |
 | `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` | Faz com que **todo** aviso (*warning*) do compilador seja tratado como erro, impedindo o build de concluir enquanto houver avisos. Força a correção de problemas potenciais (incluindo os de *nullability*) em vez de ignorá-los. |
 | `<UseAppHost>false</UseAppHost>` | Desativa a geração do executável nativo (`TodoList.exe`). Sem ele, `dotnet run` executa a aplicação via o host `dotnet` (assinado pela Microsoft) em vez de um `.exe` recém-compilado e sem assinatura. Necessário porque o **Smart App Control** do Windows 11 bloqueia executáveis não assinados — ver "Limitações conhecidas". |
-
----
-
-## Ponto de entrada (`Program.cs`)
-
-O arquivo [`Program.cs`](Program.cs) é o ponto de entrada da aplicação. Usa *top-level statements* (desde o .NET 6, sem a classe `Program` com `Main` explícita). Abaixo, o detalhamento de cada trecho:
-
-| Trecho | Para que serve |
-|---|---|
-| `using TodoList.Components;` | Importa o namespace dos componentes Blazor (necessário para referenciar `App` em `MapRazorComponents<App>()`, já que o `Program.cs` fica no namespace global). |
-| `var builder = WebApplication.CreateBuilder(args);` | Cria o *builder* da aplicação web, responsável por configurar serviços, configuração e *logging*. |
-| `builder.Services.AddRazorComponents();` | Registra os serviços necessários para renderizar componentes Razor (Blazor) no servidor. |
-| `var app = builder.Build();` | Constrói a instância da aplicação (`WebApplication`) a partir do *builder*, a partir da qual o *pipeline* de requisições é configurado. |
-| `if (!app.Environment.IsDevelopment()) { ... }` | Tratamento de erros por ambiente: em *Development* os erros detalhados ficam visíveis; em *Production* aplicamos o bloco abaixo. |
-| `app.UseExceptionHandler("/Error");` | Em produção, redireciona exceções não tratadas para uma página amigável (`/Error`) em vez de expor detalhes internos. |
-| `app.UseHsts();` | Em produção, envia o cabeçalho HSTS, reforçando o uso de HTTPS pelo navegador. |
-| `app.UseHttpsRedirection();` | Redireciona requisições HTTP para HTTPS. |
-| `app.UseStaticFiles();` | Serve arquivos estáticos (a partir de `wwwroot`, quando existir). |
-| `app.UseAntiforgery();` | Adiciona a proteção *antiforgery* ao *pipeline*, exigida pelos Razor Components. |
-| `app.MapRazorComponents<App>();` | Mapeia o componente raiz (`App`) como ponto de entrada da renderização Blazor. |
-| `app.Run();` | Inicia a aplicação e a mantém escutando por requisições. |
-
----
-
-## Componentes (`Components/`)
-
-A pasta [`Components/`](Components/) contém a interface Blazor. Estrutura inicial mínima (apenas exibe "Olá, Mundo"):
-
-| Arquivo | Papel |
-|---|---|
-| [`App.razor`](Components/App.razor) | Componente raiz: documento HTML, `<head>`, `HeadOutlet`, o roteador (`Routes`) e o script `blazor.web.js`. |
-| [`Routes.razor`](Components/Routes.razor) | Roteador: resolve a URL para a página correspondente e aplica o layout padrão (`MainLayout`). |
-| [`Layout/MainLayout.razor`](Components/Layout/MainLayout.razor) | Layout base (`LayoutComponentBase`); renderiza o conteúdo da página em `@Body`. |
-| [`Pages/Home.razor`](Components/Pages/Home.razor) | Página em `/` que exibe **`Olá, Mundo`**. |
 
 ---
 
