@@ -27,6 +27,10 @@ graph TD
         Health["Controllers/HealthController"]
     end
 
+    subgraph Shared["TodoList.Shared (compilado em ambos)"]
+        Routes["Routes.cs"]
+    end
+
     IndexHtml -->|"monta #app e carrega o runtime"| WebProgram
     WebProgram -->|"registra como raiz"| App
     App -->|"aplica layout padrão"| Layout
@@ -34,6 +38,8 @@ graph TD
     Pages -->|"envolvida por"| Layout
     WebProgram -->|"HttpClient (HTTP/JSON)"| ApiProgram
     ApiProgram -->|"mapeia controllers"| Health
+    WebProgram -->|"BaseAddress = Routes.Api"| Routes
+    ApiProgram -->|"origens CORS = Routes.Web"| Routes
 ```
 
 ---
@@ -89,6 +95,30 @@ classDiagram
     }
 
     ControllerBase <|-- HealthController
+```
+
+### Rotas compartilhadas (`TodoList.Shared`)
+
+Classe estática que concentra as URLs base, agrupadas por serviço em duas classes estáticas aninhadas. Consumida tanto por `TodoList.Web` quanto por `TodoList.Api`.
+
+```mermaid
+classDiagram
+    class Routes {
+        <<static>>
+    }
+    class Api {
+        <<static>>
+        +const HttpsBaseUrl
+        +const HttpBaseUrl
+    }
+    class Web {
+        <<static>>
+        +const HttpsBaseUrl
+        +const HttpBaseUrl
+    }
+
+    Routes *-- Api : aninha
+    Routes *-- Web : aninha
 ```
 
 ---

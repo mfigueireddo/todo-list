@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TodoList.Api.Data;
+using TodoList.Shared;
 
 // Nome da política de CORS que libera o frontend Blazor WebAssembly (TodoList.Web).
 const string WebClientCorsPolicy = "WebClientCorsPolicy";
@@ -24,12 +25,12 @@ var connectionString = builder.Configuration.GetConnectionString(DatabaseConnect
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
 // CORS: o WASM standalone roda em outra origem (porta) e precisa de permissão explícita
-// para chamar esta API a partir do navegador. As origens casam com o launchSettings.json
-// do TodoList.Web.
+// para chamar esta API a partir do navegador. As origens vêm de Routes (TodoList.Shared),
+// que centraliza as URLs base e espelha as portas do launchSettings.json do TodoList.Web.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(WebClientCorsPolicy, policy =>
-        policy.WithOrigins("https://localhost:7150", "http://localhost:5150")
+        policy.WithOrigins(Routes.Web.HttpsBaseUrl, Routes.Web.HttpBaseUrl)
               .AllowAnyHeader()
               .AllowAnyMethod()
         )

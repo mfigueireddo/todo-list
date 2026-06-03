@@ -13,7 +13,10 @@ todo-list/
 ├── .gitignore                              # Padrões ignorados pelo Git
 ├── docs/                                   # Documentação (IDEA, ARCHITECTURE, KNOWN-ISSUES, ...)
 ├── tests/                                  # Reservada p/ projetos de teste (ainda vazia)
-└── src/                                    # Projetos da solution (frontend e backend)
+└── src/                                    # Projetos da solution (frontend, backend e código compartilhado)
+    ├── TodoList.Shared/                    # Biblioteca de classes compartilhada (referenciada por Api e Web)
+    │   ├── TodoList.Shared.csproj          # Projeto/build da lib compartilhada
+    │   └── Routes.cs                       # URLs base (origens) centralizadas, agrupadas por serviço (Api/Web)
     ├── TodoList.Api/                       # Backend — .NET Web API
     │   ├── TodoList.Api.csproj             # Projeto/build do backend (+ EF Core SQL Server)
     │   ├── Program.cs                      # Pipeline HTTP + CORS + registro do AppDbContext
@@ -40,7 +43,7 @@ todo-list/
 
 ## Configurações de build comuns
 
-Propriedades usadas nos `.csproj` de **ambos** os projetos (`TodoList.Api` e `TodoList.Web`):
+Propriedades usadas nos `.csproj` dos **três** projetos (`TodoList.Api`, `TodoList.Web` e `TodoList.Shared`):
 
 | Especificação | Para que serve |
 |---|---|
@@ -50,6 +53,35 @@ Propriedades usadas nos `.csproj` de **ambos** os projetos (`TodoList.Api` e `To
 | `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` | Faz com que **todo** aviso (*warning*) do compilador seja tratado como erro, impedindo o build de concluir enquanto houver avisos. Força a correção de problemas potenciais (incluindo os de *nullability*) em vez de ignorá-los. |
 
 As propriedades específicas de cada projeto estão descritas nas seções de cada camada abaixo.
+
+---
+
+## `TodoList.Shared/` — Código compartilhado (biblioteca de classes)
+
+Biblioteca de classes (SDK `Microsoft.NET.Sdk`, sem dependências de runtime) **referenciada por
+`TodoList.Api` e `TodoList.Web`** via `ProjectReference`. Existe para centralizar, em um único
+ponto visível aos dois lados, definições que de outra forma seriam duplicadas — hoje, as **URLs base
+(origens) de cada serviço**. É o projeto compartilhado cuja ausência estava registrada como
+pendência em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md); criado agora para as rotas, ele também passa a ser
+a casa natural de DTOs/contratos futuros.
+
+Além das [configurações de build comuns](#configurações-de-build-comuns), define
+`<RootNamespace>TodoList.Shared</RootNamespace>`. Por ser uma *class library*, não gera apphost nem
+usa `<UseAppHost>`.
+
+### `Routes.cs`
+Classe estática `Routes` que concentra as URLs base do projeto, **agrupadas por serviço (dono do
+endereço)**: `Routes.Api` (origens HTTPS/HTTP do backend) e `Routes.Web` (origens HTTPS/HTTP do
+frontend). Cada porta é declarada como `const` em um só lugar, eliminando literais "hard-coded"
+espalhados pelo código.
+- **Usage**: `TodoList.Web` usa `Routes.Api.HttpsBaseUrl` como `HttpClient.BaseAddress`; o
+  `TodoList.Api` usa `Routes.Web.HttpsBaseUrl`/`Routes.Web.HttpBaseUrl` como origens permitidas na
+  política de CORS.
+- **Restrição**: os valores são origens de **desenvolvimento** (localhost) e **espelham** as portas
+  do `Properties/launchSettings.json` de cada projeto — que, por ser JSON de binding do Kestrel/
+  DevServer, **não** consegue referenciar constantes de C# e permanece a fonte de verdade do
+  *binding*. A necessidade de manter os dois em sincronia e de parametrizar por ambiente está em
+  [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 ---
 
@@ -96,9 +128,7 @@ a integração está **apenas configurada** — não há entidades de usuário/t
 | `UserSecretsId` (no `.csproj`) | Habilita o **User Secrets** para guardar, fora do controle de versão, uma *connection string* com credenciais reais (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)). |
 
 ### `Program.cs`
-Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core. Além dos
-controllers e do CORS, lê a *connection string* `Default` da configuração e registra o
-`AppDbContext` (EF Core + SQL Server) no contêiner de injeção de dependência.
+Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core. Além dos controllers e do CORS, lê a *connection string* `Default` da configuração e registra o `AppDbContext` (EF Core + SQL Server) no contêiner de injeção de dependência. As origens liberadas no CORS vêm de `Routes.Web` (em [`TodoList.Shared`](#todolistshared--código-compartilhado-biblioteca-de-classes)), não de literais de porta.
 
 ### `TodoList.Api/Data/`
 Camada de acesso a dados (Entity Framework Core).
@@ -136,7 +166,7 @@ Além das [configurações de build comuns](#configurações-de-build-comuns), o
 Por ser WebAssembly, o `TodoList.Web` não gera apphost e, portanto, **não** usa a propriedade `<UseAppHost>` descrita na camada do `TodoList.Api`.
 
 ### `Program.cs`
-Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`) que inicializa o app Blazor no navegador e configura os serviços do cliente.
+Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`) que inicializa o app Blazor no navegador e configura os serviços do cliente. O `HttpClient` que aponta para o backend usa `Routes.Api.HttpsBaseUrl` (em [`TodoList.Shared`](#todolistshared--código-compartilhado-biblioteca-de-classes)) como `BaseAddress`, em vez de uma URL "hard-coded".
 - **Usage**: Carregado pela host page [`wwwroot/index.html`](../src/TodoList.Web/wwwroot/index.html) através do script `_framework/blazor.webassembly.js`.
 
 ### `TodoList.Web/wwwroot/`

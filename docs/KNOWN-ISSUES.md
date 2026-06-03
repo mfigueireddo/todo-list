@@ -71,35 +71,44 @@ instalado e em execução** na máquina de desenvolvimento — caso contrário o
 > (`Admin@ICAD!`) — provavelmente via *seed* de dados / `HasData` ou *seeding* na inicialização.
 > Considerar evoluir o *smoke test* para algo que também confirme o schema, quando ele existir.
 
-## 5. Sem projeto compartilhado (`Shared`) → risco de DTOs duplicados
-
-Optou-se por **dois projetos** (`TodoList.Api` e `TodoList.Web`), **sem** um projeto `Shared`. Como
-o WASM e a API são *assemblies* independentes, os **contratos trocados por HTTP** (DTOs de
-usuário/tarefa, o *enum* de dificuldade, etc.) tendem a ser **definidos duas vezes** — uma em cada
-lado.
-
-> **A revisitar no futuro:** se a duplicação começar a incomodar (divergência entre os dois lados,
-> retrabalho), criar um projeto `src/TodoList.Shared` (biblioteca de classes) referenciado por Api
-> e Web para centralizar os DTOs/contratos. Decisão adiada conscientemente para manter a estrutura
-> mínima agora.
-
-## 6. CORS liberado para a origem do WASM (restringir em produção)
+## 5. CORS liberado para a origem do WASM (restringir em produção)
 
 A API libera CORS explicitamente para as origens de desenvolvimento do WASM
 (`https://localhost:7150` e `http://localhost:5150`), na política `WebClientCorsPolicy` de
 [`src/TodoList.Api/Program.cs`](../src/TodoList.Api/Program.cs). Isso é necessário porque o WASM
 standalone roda em outra origem/porta e o navegador bloquearia as chamadas sem o cabeçalho CORS.
 
+As origens **não estão mais como literais** no `Program.cs`: vêm de `Routes.Web.HttpsBaseUrl` e
+`Routes.Web.HttpBaseUrl` (em [`TodoList.Shared`](../src/TodoList.Shared/Routes.cs)). Isso remove a
+duplicação de porta, mas **não** torna a política configurável por ambiente — `Routes` são `const`
+de compilação (ver item 7).
+
 > **A revisitar no futuro:** essas origens são de **desenvolvimento**. Em produção, ajustar a
-> política para as origens reais do frontend (idealmente via configuração, não *hard-coded*) e
-> evitar `AllowAnyHeader`/`AllowAnyMethod` mais amplos que o necessário.
+> política para as origens reais do frontend (idealmente via configuração, não *hard-coded* nem
+> `const` de compilação) e evitar `AllowAnyHeader`/`AllowAnyMethod` mais amplos que o necessário.
 
-## 7. `BaseAddress` do `HttpClient` fixo (hard-coded)
+## 7. Rotas/portas centralizadas em `Routes` (`const`) — ainda não configuráveis por ambiente
 
-O frontend aponta para a API com `BaseAddress = https://localhost:7180`, *hard-coded* em
-[`src/TodoList.Web/Program.cs`](../src/TodoList.Web/Program.cs). Funciona em desenvolvimento, mas
-não é configurável por ambiente.
+As URLs base do projeto foram **centralizadas** em [`src/TodoList.Shared/Routes.cs`](../src/TodoList.Shared/Routes.cs),
+agrupadas por serviço (`Routes.Api` e `Routes.Web`). Os literais de porta que estavam *hard-coded*
+no código foram substituídos por referências a essas constantes:
 
-> **A revisitar no futuro:** mover a URL da API para configuração do WASM (ex.:
-> `wwwroot/appsettings.json` lido via `builder.Configuration`), para não recompilar ao mudar de
-> ambiente. Manter coerência com as portas do item 3 e com o CORS do item 10.
+- `TodoList.Web/Program.cs` → `BaseAddress = new Uri(Routes.Api.HttpsBaseUrl)`;
+- `TodoList.Api/Program.cs` (CORS) → `Routes.Web.HttpsBaseUrl` / `Routes.Web.HttpBaseUrl`.
+
+Isso elimina a duplicação de porta **entre arquivos de código**, mas duas limitações permanecem:
+
+1. **`Routes` são `const` de tempo de compilação:** mudar uma porta ainda exige recompilar; não há
+   configuração por ambiente (dev/prod). Funciona em desenvolvimento, como antes.
+2. **`launchSettings.json` continua sendo fonte de verdade do *binding*:** as portas em que o
+   Kestrel (API) e o DevServer (WASM) realmente escutam são declaradas em cada
+   `Properties/launchSettings.json`. Esse JSON **não** consegue referenciar constantes de C#, então
+   os valores de `Routes.cs` apenas **espelham** os do `launchSettings.json` — os dois precisam ser
+   alterados juntos para não divergir.
+
+> **A revisitar no futuro:** mover as URLs para configuração lida em runtime (ex.: a URL da API no
+> `wwwroot/appsettings.json` do WASM via `builder.Configuration`; as origens de CORS na configuração
+> da API), para não recompilar ao mudar de ambiente. Avaliar derivar o `applicationUrl` do
+> `launchSettings.json` a partir de uma fonte única (ex.: variável de ambiente `ASPNETCORE_URLS`)
+> para eliminar também esse último ponto de duplicação. Manter coerência com as portas do item 3 e
+> com o CORS do item 6.
