@@ -53,12 +53,6 @@
   - `const int ButtonsMargin = 10;`
 - Group related constants together in the code for clarity
 
-## Exception Handling
-
-- Use exceptions ONLY for extreme cases when the program is at risk of improper behavior
-- Exceptions should be reserved for situations that cannot be handled through normal control flow
-- For expected conditions and validation, prefer explicit checks and error handling without exceptions
-
 ## General Programming Principles
 
 ### Memory Management and Performance

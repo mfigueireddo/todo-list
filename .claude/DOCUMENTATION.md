@@ -4,6 +4,27 @@ When documenting functions, methods, or any callable unit of code, follow the st
 
 Not every item is mandatory for every function — use **only the items that are relevant**. For example, a simple getter with a self-explanatory name may only need **Description** and **Expected Returns**, while a complex business-logic method should include all seven items.
 
+> **VERY IMPORTANT — blank line around tags:** Always leave a blank line **before and after** each block XML doc tag, so that every tag block is visually separated from the next. The blank line goes **outside** the tags (before the opening tag and after the closing tag), never inside:
+>
+> ```csharp
+> ///
+> /// <summary>
+> /// Description:
+> /// 1. ...
+> /// </summary>
+> ///
+> /// <returns>
+> /// - Returns ...
+> /// </returns>
+> ///
+> /// <remarks>
+> /// ...
+> /// </remarks>
+> ///
+> ```
+>
+> This applies to every block tag (`<summary>`, `<remarks>`, `<returns>`, etc.).
+
 ## Documentation Items
 
 ### 1. Objective

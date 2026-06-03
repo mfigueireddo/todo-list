@@ -30,12 +30,6 @@ Brief sentence describing what this component is/does.
 - **Usage**: How other components use this one (if applicable)
 ```
 
-> **Removed sections.** Do **not** document `Pattern`, `Purpose`, `Responsibilities`,
-> `Error Handling` or `Future Enhancement` per file/class — these sections were eliminated from the
-> component breakdown. Capture the essential "what it is/does" in the brief sentence under the
-> heading; keep planned work and known gaps in the project's known-issues document instead of a
-> `Future Enhancement` field.
-
 ### Example
 
 ```markdown
