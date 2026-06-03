@@ -1,52 +1,36 @@
 # ARCHITECTURE
 
-Documentação da arquitetura do projeto. A estrutura deste documento segue as instruções em
-[`.claude/ARCHITECTURE.md`](../.claude/ARCHITECTURE.md).
-
-Os diagramas (mapa de componentes, diagramas de classe e fluxos) ficam em um arquivo dedicado,
-conforme exigido pela especificação: [`DIAGRAMS.md`](DIAGRAMS.md).
-
-> **Estado atual:** o projeto está em *scaffolding*, porém já com **frontend e backend separados**.
-> É uma **solution** ([`TodoList.sln`](../TodoList.sln)) com dois projetos sob `src/`:
-> **`TodoList.Api`** (backend .NET Web API) e **`TodoList.Web`** (frontend Blazor WebAssembly). Ainda
-> não há autenticação, CRUD de tarefas nem banco de dados. Este documento descreve o que **já
-> existe**; pendências estão em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+Documentação da arquitetura do projeto. A estrutura deste documento segue as instruções em [`.claude/ARCHITECTURE.md`](../.claude/ARCHITECTURE.md).
 
 ---
 
-## Visão geral e estrutura de pastas
-
-O projeto está dividido em **dois projetos** sob uma *solution*, com **frontend e backend
-separados** conforme a [`IDEA.md`](IDEA.md): a `TodoList.Api` (backend, SDK `Microsoft.NET.Sdk.Web`)
-e o `TodoList.Web` (frontend, SDK `Microsoft.NET.Sdk.BlazorWebAssembly`). O WASM roda no navegador e
-chama a API por HTTP. O detalhamento por componente está nas seções abaixo e os diagramas (mapa de
-componentes, classes e fluxos) em [`DIAGRAMS.md`](DIAGRAMS.md). Estrutura de pastas:
+## Estrutura de pastas
 
 ```
 todo-list/
-├── TodoList.sln                     # Solution que reúne os projetos
-├── global.json                      # Fixa a versão do .NET SDK
-├── .gitignore
-├── docs/                            # Documentação (IDEA, ARCHITECTURE, KNOWN-ISSUES, ...)
-├── tests/                           # Reservada p/ projetos de teste (ainda vazia)
-└── src/
-    ├── TodoList.Api/                # Backend — .NET Web API
-    │   ├── TodoList.Api.csproj
-    │   ├── Program.cs               # Pipeline HTTP + CORS
-    │   ├── appsettings.json         # Configuração de servidor (logging, hosts)
-    │   ├── Controllers/
-    │   │   └── HealthController.cs   # GET /health (verificação de disponibilidade)
-    │   └── Properties/launchSettings.json
-    └── TodoList.Web/                # Frontend — Blazor WebAssembly
-        ├── TodoList.Web.csproj
-        ├── Program.cs               # Host do WASM + HttpClient p/ a API
-        ├── _Imports.razor           # Usings globais dos componentes Blazor
-        ├── wwwroot/index.html        # Host page estática (monta o #app)
-        ├── Components/
-        │   ├── App.razor            # Componente raiz / roteador
-        │   ├── Layout/MainLayout.razor
-        │   └── Pages/Home.razor      # Página "/" ("Olá, Mundo")
-        └── Properties/launchSettings.json
+├── TodoList.sln                            # Solution que reúne os projetos
+├── global.json                             # Fixa a versão do .NET SDK
+├── .gitignore                              # Padrões ignorados pelo Git
+├── docs/                                   # Documentação (IDEA, ARCHITECTURE, KNOWN-ISSUES, ...)
+├── tests/                                  # Reservada p/ projetos de teste (ainda vazia)
+└── src/                                    # Projetos da solution (frontend e backend)
+    ├── TodoList.Api/                       # Backend — .NET Web API
+    │   ├── TodoList.Api.csproj             # Projeto/build do backend
+    │   ├── Program.cs                      # Pipeline HTTP + CORS
+    │   ├── appsettings.json                # Configuração de servidor (logging, hosts)
+    │   ├── Controllers/                    # Controllers da Web API (endpoints HTTP)
+    │   │   └── HealthController.cs         # GET /health (verificação de disponibilidade)
+    │   └── Properties/launchSettings.json  # Perfis de execução (dotnet run)
+    └── TodoList.Web/                       # Frontend — Blazor WebAssembly
+        ├── TodoList.Web.csproj             # Projeto/build do frontend
+        ├── Program.cs                      # Host do WASM + HttpClient p/ a API
+        ├── _Imports.razor                  # Usings globais dos componentes Blazor
+        ├── wwwroot/index.html              # Host page estática (monta o #app)
+        ├── Components/                     # Componentes Blazor da aplicação
+        │   ├── App.razor                   # Componente raiz / roteador
+        │   ├── Layout/MainLayout.razor     # Layout compartilhado (moldura das páginas)
+        │   └── Pages/Home.razor            # Página "/" ("Olá, Mundo")
+        └── Properties/launchSettings.json  # Perfis de execução (dotnet run)
 ```
 
 ---
@@ -70,8 +54,7 @@ As propriedades específicas de cada projeto estão descritas nas seções de ca
 
 Projeto ASP.NET Core (SDK `Microsoft.NET.Sdk.Web`) que expõe a API consumida pelo frontend.
 
-Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Api` define as
-seguintes propriedades específicas:
+Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Api` define as seguintes propriedades específicas:
 
 | Especificação | Para que serve |
 |---|---|
@@ -85,62 +68,50 @@ Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Co
 Controllers da Web API (endpoints HTTP).
 
 #### `HealthController.cs`
-Endpoint de verificação de disponibilidade (`GET /health`), respondendo `200 OK` com
-`{ status, timeUtc }` sem tocar em dependências externas.
-- **Usage**: Usado na validação da separação frontend/backend e como *smoke test* de que a API está
-  no ar.
+Endpoint de verificação de disponibilidade (`GET /health`), respondendo `200 OK` com `{ status, timeUtc }` sem tocar em dependências externas.
+- **Usage**: Usado na validação da separação frontend/backend e como *smoke test* de que a API está no ar.
 
 ---
 
 ## `TodoList.Web/` — Frontend (Blazor WebAssembly)
 
-Projeto Blazor WebAssembly (SDK `Microsoft.NET.Sdk.BlazorWebAssembly`) que roda no navegador e
-consome a `TodoList.Api` por HTTP.
+Projeto Blazor WebAssembly (SDK `Microsoft.NET.Sdk.BlazorWebAssembly`) que roda no navegador e consome a `TodoList.Api` por HTTP.
 
-Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Web` define as
-seguintes propriedades específicas:
+Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Web` define as seguintes propriedades específicas:
 
 | Especificação | Para que serve |
 |---|---|
 | `<RootNamespace>TodoList.Web</RootNamespace>` | Define o *namespace* raiz padrão dos tipos do projeto, garantindo que o código gerado e os novos arquivos usem `TodoList.Web` independentemente da estrutura de pastas. |
 
-Por ser WebAssembly, o `TodoList.Web` não gera apphost e, portanto, **não** usa a propriedade
-`<UseAppHost>` descrita na camada do `TodoList.Api`.
+Por ser WebAssembly, o `TodoList.Web` não gera apphost e, portanto, **não** usa a propriedade `<UseAppHost>` descrita na camada do `TodoList.Api`.
 
 ### `Program.cs`
-Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`) que inicializa o app Blazor no
-navegador e configura os serviços do cliente.
-- **Usage**: Carregado pela host page [`wwwroot/index.html`](../src/TodoList.Web/wwwroot/index.html)
-  através do script `_framework/blazor.webassembly.js`.
+Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`) que inicializa o app Blazor no navegador e configura os serviços do cliente.
+- **Usage**: Carregado pela host page [`wwwroot/index.html`](../src/TodoList.Web/wwwroot/index.html) através do script `_framework/blazor.webassembly.js`.
 
 ### `TodoList.Web/wwwroot/`
 Conteúdo estático servido ao navegador.
 
 #### `index.html`
-Host page estática do Blazor WebAssembly: documento HTML que ancora o app (`#app`), declara
-`<base href="/">` e o `#blazor-error-ui`, e carrega o *script* `_framework/blazor.webassembly.js`.
+Host page estática do Blazor WebAssembly: documento HTML que ancora o app (`#app`), declara `<base href="/">` e o `#blazor-error-ui`, e carrega o *script* `_framework/blazor.webassembly.js`.
 
 ### `TodoList.Web/Components/`
 Componentes Blazor da aplicação.
 
 #### `App.razor`
-Componente raiz / roteador (envolve o `<Router>` do Blazor): varre o *assembly* em busca de
-componentes com `@page`, renderiza a página dentro do layout padrão (`Layout.MainLayout`), move o
-foco para o `<h1>` a cada navegação (`FocusOnNavigate`) e trata rota não encontrada (`<NotFound>`).
+Componente raiz / roteador (envolve o `<Router>` do Blazor): varre o *assembly* em busca de componentes com `@page`, renderiza a página dentro do layout padrão (`Layout.MainLayout`), move o foco para o `<h1>` a cada navegação (`FocusOnNavigate`) e trata rota não encontrada (`<NotFound>`).
 - **Usage**: Montado em `#app` por [`Program.cs`](../src/TodoList.Web/Program.cs).
 
 ### `TodoList.Web/Components/Layout/`
 Layouts compartilhados que envolvem o conteúdo das páginas.
 
 #### `MainLayout.razor`
-Layout (herda de `LayoutComponentBase`) que fornece a moldura visual comum a todas as páginas,
-renderizando o conteúdo da página atual através de `@Body` dentro de um elemento `<main>`.
+Layout (herda de `LayoutComponentBase`) que fornece a moldura visual comum a todas as páginas, renderizando o conteúdo da página atual através de `@Body` dentro de um elemento `<main>`.
 - **Usage**: Definido como `DefaultLayout` em `App.razor`.
 
 ### `TodoList.Web/Components/Pages/`
 Páginas roteáveis da aplicação (componentes com diretiva `@page`).
 
 #### `Home.razor`
-Página inicial roteável (`@page "/"`) que define o título da aba (`<PageTitle>`) e exibe o
-cabeçalho "Olá, Mundo".
+Página inicial roteável (`@page "/"`) que define o título da aba (`<PageTitle>`) e exibe o cabeçalho "Olá, Mundo".
 - **Usage**: Renderizada pelo `Router` quando a rota `/` é acessada.
