@@ -12,7 +12,6 @@ This guide has been split into focused documents. All those documents are in the
 | --------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **Writing or reviewing code** (naming, patterns, loops, memory, OOP, etc.)  | [[Personal Coding Habits]]        |
 | **Documenting functions, methods, or code** (XML doc comments, docstrings, comments) | [[Code Documentation Model]]      |
-| **Writing or updating a project overview document**                         | [[OVERVIEW]]        |
-| **Documenting architecture and component details** (package breakdowns, diagrams)  | [[ARCHITECTURE]]   |
+| **Documenting architecture and component details** (overview, package breakdowns, diagrams)  | [[ARCHITECTURE]]   |
 
 > **Note:** Always check the relevant file(s) before starting work. Multiple files may apply — for example, writing a new feature requires both the **Personal Coding Habits** file (for code style) and the **Code Documentation Model** file (for documenting the new code).

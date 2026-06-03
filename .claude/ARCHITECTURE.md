@@ -1,6 +1,17 @@
 # AI Instructions - Architecture Documentation
 
-This file defines how to document project architecture, including per-component breakdowns and diagrams.
+This file defines how to document project architecture, including the architecture overview, per-component breakdowns, and diagrams.
+
+---
+
+## Architecture Overview & Package Structure
+
+Open the document with a high-level explanation of the architecture before drilling into individual components:
+
+- **Architecture explanation** — describe how the project is partitioned (e.g., solution/projects, frontend vs. backend), which SDK/role each part has, and how the parts communicate (HTTP, in-process, etc.).
+- **Package/folder structure** — include a fenced tree of the repository's top-level layout, annotating each meaningful file/folder with a short trailing comment.
+
+Keep this section focused on *what already exists*; defer planned work and known gaps to the project's known-issues document.
 
 ---
 

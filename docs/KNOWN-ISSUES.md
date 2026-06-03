@@ -3,7 +3,7 @@
 Este documento reúne as **limitações conhecidas, decisões adiadas e lembretes de continuidade**
 do projeto: configurações provisórias, dependências ainda não criadas, riscos de segurança a
 revisitar e pendências que precisam de atenção futura. Descreve **pendências** — o estado atual
-do que já existe fica no [`OVERVIEW.md`](OVERVIEW.md).
+do que já existe fica no [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## 1. `TreatWarningsAsErrors`
 
@@ -14,7 +14,7 @@ Essa opção é "agressiva": no início do projeto ela pode travar o build por a
 > **Resolvido.** A separação pedida pela [`IDEA.md`](IDEA.md) foi feita: o repositório agora tem
 > uma **solution** (`TodoList.sln`) com **dois projetos** sob `src/` — `TodoList.Api` (backend, .NET
 > Web API) e `TodoList.Web` (frontend, Blazor WebAssembly). Há também a pasta `tests/` reservada
-> para projetos de teste. O estado atual está descrito no [`OVERVIEW.md`](OVERVIEW.md) e no
+> para projetos de teste. O estado atual está descrito no
 > [`ARCHITECTURE.md`](ARCHITECTURE.md). Os itens 9–11 abaixo registram os lembretes que essa
 > reestruturação deixou em aberto.
 

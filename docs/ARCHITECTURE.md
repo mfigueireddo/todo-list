@@ -6,11 +6,48 @@ Documentação da arquitetura do projeto. A estrutura deste documento segue as i
 Os diagramas (mapa de componentes, diagramas de classe e fluxos) ficam em um arquivo dedicado,
 conforme exigido pela especificação: [`DIAGRAMS.md`](DIAGRAMS.md).
 
-> **Estado atual:** o projeto está em *scaffolding*, porém já com **frontend e backend separados**
-> (ver [`OVERVIEW.md`](OVERVIEW.md)). É uma **solution** ([`TodoList.sln`](../TodoList.sln)) com dois
-> projetos sob `src/`: **`TodoList.Api`** (backend .NET Web API) e **`TodoList.Web`** (frontend
-> Blazor WebAssembly). Ainda não há autenticação, CRUD de tarefas nem banco de dados. Este documento
-> descreve o que **já existe**; pendências estão em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+> **Estado atual:** o projeto está em *scaffolding*, porém já com **frontend e backend separados**.
+> É uma **solution** ([`TodoList.sln`](../TodoList.sln)) com dois projetos sob `src/`:
+> **`TodoList.Api`** (backend .NET Web API) e **`TodoList.Web`** (frontend Blazor WebAssembly). Ainda
+> não há autenticação, CRUD de tarefas nem banco de dados. Este documento descreve o que **já
+> existe**; pendências estão em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+
+---
+
+## Visão geral e estrutura de pastas
+
+O projeto está dividido em **dois projetos** sob uma *solution*, com **frontend e backend
+separados** conforme a [`IDEA.md`](IDEA.md): a `TodoList.Api` (backend, SDK `Microsoft.NET.Sdk.Web`)
+e o `TodoList.Web` (frontend, SDK `Microsoft.NET.Sdk.BlazorWebAssembly`). O WASM roda no navegador e
+chama a API por HTTP. O detalhamento por componente está nas seções abaixo e os diagramas (mapa de
+componentes, classes e fluxos) em [`DIAGRAMS.md`](DIAGRAMS.md). Estrutura de pastas:
+
+```
+todo-list/
+├── TodoList.sln                     # Solution que reúne os projetos
+├── global.json                      # Fixa a versão do .NET SDK
+├── .gitignore
+├── docs/                            # Documentação (IDEA, ARCHITECTURE, KNOWN-ISSUES, ...)
+├── tests/                           # Reservada p/ projetos de teste (ainda vazia)
+└── src/
+    ├── TodoList.Api/                # Backend — .NET Web API
+    │   ├── TodoList.Api.csproj
+    │   ├── Program.cs               # Pipeline HTTP + CORS
+    │   ├── appsettings.json         # Configuração de servidor (logging, hosts)
+    │   ├── Controllers/
+    │   │   └── HealthController.cs   # GET /health (verificação de disponibilidade)
+    │   └── Properties/launchSettings.json
+    └── TodoList.Web/                # Frontend — Blazor WebAssembly
+        ├── TodoList.Web.csproj
+        ├── Program.cs               # Host do WASM + HttpClient p/ a API
+        ├── _Imports.razor           # Usings globais dos componentes Blazor
+        ├── wwwroot/index.html        # Host page estática (monta o #app)
+        ├── Components/
+        │   ├── App.razor            # Componente raiz / roteador
+        │   ├── Layout/MainLayout.razor
+        │   └── Pages/Home.razor      # Página "/" ("Olá, Mundo")
+        └── Properties/launchSettings.json
+```
 
 ---
 

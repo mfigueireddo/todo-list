@@ -22,7 +22,7 @@ O `TodoList.Web` roda no navegador e consome o `TodoList.Api` por HTTP.
 
 A pasta `tests/` está reservada para projetos de teste. 
 
-A árvore de pastas completa está no [`docs/OVERVIEW.md`](docs/OVERVIEW.md) e o detalhamento por componente no [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+A árvore de pastas completa e o detalhamento por componente estão no [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
 

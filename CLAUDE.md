@@ -15,8 +15,7 @@ especificações em `.claude/`. Consulte os arquivos relevantes **antes** de esc
 | Ponto de entrada / índice das convenções | [`.claude/STYLEGUIDE.md`](.claude/STYLEGUIDE.md) |
 | Escrever/revisar código (nomes, padrões, loops, memória, OOP) | [`.claude/CONVENTIONS.md`](.claude/CONVENTIONS.md) |
 | Documentar funções/métodos (XML doc comments) | [`.claude/DOCUMENTATION.md`](.claude/DOCUMENTATION.md) |
-| Documento de visão geral do projeto | [`.claude/OVERVIEW.md`](.claude/OVERVIEW.md) |
-| Documentar arquitetura e componentes (diagramas) | [`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md) |
+| Documentar arquitetura e componentes (visão geral, estrutura, diagramas) | [`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md) |
 
 Regras de uso:
 - Antes de gerar código, verifique **todos** os arquivos aplicáveis — múltiplos podem se aplicar
@@ -41,15 +40,16 @@ segurança a revisitar e qualquer pendência que precise de atenção futura.
 - Cada lembrete deve ser autoexplicativo: o que é, por que está assim e o que precisa ser
   ajustado/feito no futuro.
 
-## Sincronização do OVERVIEW.md (OBRIGATÓRIO)
+## Sincronização do ARCHITECTURE.md (OBRIGATÓRIO)
 
-O [`OVERVIEW.md`](docs/OVERVIEW.md) é um retrato do estado atual do projeto e **deve ser atualizado
-como parte de cada nova feature ou mudança relevante** — não é um documento escrito uma vez só.
+O [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) é um retrato do estado atual da arquitetura do projeto e
+**deve ser atualizado como parte de cada nova feature ou mudança relevante** — não é um documento
+escrito uma vez só.
 
-- Sempre que uma alteração afetar o estado descrito no `OVERVIEW.md` (ex.: nova
-  funcionalidade, nova dependência, mudança de arquitetura, novos padrões, testes adicionados,
-  build validado), atualize as seções correspondentes **no mesmo momento** da mudança.
-- Mantenha a estrutura de seções definida em [`.claude/OVERVIEW.md`](.claude/OVERVIEW.md).
-- Distinção em relação ao `KNOWN-ISSUES.md`: o `OVERVIEW.md` descreve **o que já existe** (estado
+- Sempre que uma alteração afetar o estado descrito no `ARCHITECTURE.md` (ex.: nova funcionalidade,
+  nova dependência, mudança de arquitetura, novos componentes, novos padrões), atualize as seções
+  correspondentes **no mesmo momento** da mudança.
+- Mantenha a estrutura de seções definida em [`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md).
+- Distinção em relação ao `KNOWN-ISSUES.md`: o `ARCHITECTURE.md` descreve **o que já existe** (estado
   atual); o `docs/KNOWN-ISSUES.md` descreve **pendências e lembretes de continuidade**. Os dois
   devem permanecer coerentes entre si.
