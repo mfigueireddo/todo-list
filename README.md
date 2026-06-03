@@ -6,8 +6,7 @@ Esse repositório é destinado à elaboração de um projeto TO-DO list com sist
 
 ## Estrutura da solution
 
-O repositório é uma **solution .NET** ([`TodoList.sln`](TodoList.sln)) com **frontend e backend
-separados**, em dois projetos sob `src/`:
+O repositório é uma **solution .NET** ([`TodoList.sln`](TodoList.sln)) com **frontend e backend separados**, em dois projetos sob `src/`:
 
 | Projeto | Papel | SDK |
 |---|---|---|

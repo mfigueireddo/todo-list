@@ -154,6 +154,56 @@
 - **Configure the IDE's TAB behavior to use 4 spaces**
 - Maintain consistency across all files in the project
 
+#### Line Wrapping (Markdown files and code comments)
+- **Never hard-wrap a line at an arbitrary column width.** Let the editor soft-wrap long text.
+- This applies to **both Markdown files** (`.md`) **and code comments** (C# `//` and `///` XML doc comments).
+- **Only start a new line in one of these three situations:**
+  - A sentence just ended (a `.`).
+  - You are starting a new bullet point (`-`).
+  - You are starting a new enumerated item (`1.`, `2.`, etc.).
+- **Never split a single sentence across multiple lines.** A colon (`:`), a dash (`—`), or simply running out of "width" are **not** reasons to break.
+- ❌ Wrong — the sentence is broken across lines for no reason:
+  ```
+  `DbContext` do EF Core que representa a sessão com o SQL Server. **Deliberadamente vazio** (sem
+  `DbSet`) nesta etapa: serve para configurar/validar a conectividade e como base para as entidades e
+  o ASP.NET Core Identity que virão depois.
+  - **Usage**: Injetado por requisição (scoped) nos controllers que acessam o banco — hoje, o
+    `DatabaseHealthController`.
+  ```
+- ✅ Correct — break only after a sentence-ending `.` and before a bullet; each sentence stays on one line:
+  ```
+  `DbContext` do EF Core que representa a sessão com o SQL Server.
+  **Deliberadamente vazio** (sem `DbSet`) nesta etapa: serve para configurar/validar a conectividade e como base para as entidades e o ASP.NET Core Identity que virão depois.
+  - **Usage**: Injetado por requisição (scoped) nos controllers que acessam o banco — hoje, o `DatabaseHealthController`.
+  ```
+
+#### Multi-line Expression Indentation (C#)
+When a C# expression must span multiple lines, follow these rules:
+- When you break the line **right after an opening parenthesis** `(`, put the matching **closing `)` on its own line**, indented to align with **the line that opened the call** (the statement/operator holding the opening function), **not** with the column of the `(`.
+- Put the statement terminator **`;` on its own line**, aligned with the **first token of the statement** (e.g., the `var` of the declaration).
+- In a **fluent method chain**, align every chained `.Method()` call with the **first** method call in the chain (align at the `.`).
+- Canonical example — wrapped call with `??`/`throw`, hanging `)` aligned with the opener and hanging `;` aligned with `var`:
+  ```csharp
+  var connectionString = builder.Configuration.GetConnectionString(DatabaseConnectionName)
+      ?? throw new InvalidOperationException(
+          $"A connection string '{DatabaseConnectionName}' não foi configurada. " +
+          "Defina-a em appsettings.json (ConnectionStrings) ou via user-secrets/variáveis de ambiente."
+      )
+  ;
+  ```
+- Canonical example — fluent chain inside a lambda; chained methods aligned with the first method (`.WithOrigins`):
+  ```csharp
+  builder.Services.AddCors(options =>
+  {
+      options.AddPolicy(WebClientCorsPolicy, policy =>
+          policy.WithOrigins(Routes.Web.HttpsBaseUrl, Routes.Web.HttpBaseUrl)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+          )
+      ;
+  });
+  ```
+
 #### Macro Usage
 - **Avoid using macros as conditions or flags**
 - Macro flags exponentially increase the test cases necessary to cover the whole system's behavior

@@ -7,8 +7,8 @@ Os requisitos do projeto estão em [`IDEA.md`](docs/IDEA.md).
 
 ## Especificações de geração de código (OBRIGATÓRIO)
 
-Todo código gerado neste repositório — a partir de qualquer prompt — **deve seguir** as
-especificações em `.claude/`. Consulte os arquivos relevantes **antes** de escrever ou revisar código:
+Todo código gerado neste repositório — a partir de qualquer prompt — **deve seguir** as especificações em `.claude/`.
+Consulte os arquivos relevantes **antes** de escrever ou revisar código:
 
 | Tarefa | Arquivo |
 |---|---|
@@ -18,63 +18,41 @@ especificações em `.claude/`. Consulte os arquivos relevantes **antes** de esc
 | Documentar arquitetura e componentes (visão geral, estrutura, diagramas) | [`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md) |
 
 Regras de uso:
-- Antes de gerar código, verifique **todos** os arquivos aplicáveis — múltiplos podem se aplicar
-  (ex.: uma nova feature exige `CONVENTIONS.md` para o estilo **e** `DOCUMENTATION.md` para a documentação).
-- Em caso de conflito entre uma instrução pontual do prompt e estas especificações, siga o prompt,
-  mas avise explicitamente qual convenção está sendo quebrada e por quê.
-- As convenções de nomes seguem o padrão idiomático do C#/.NET: `PascalCase` para métodos,
-  propriedades, constantes e tipos; `camelCase` para variáveis locais e parâmetros;
-  `_camelCase` para campos privados.
+- Antes de gerar código, verifique **todos** os arquivos aplicáveis — múltiplos podem se aplicar (ex.: uma nova feature exige `CONVENTIONS.md` para o estilo **e** `DOCUMENTATION.md` para a documentação).
+- Em caso de conflito entre uma instrução pontual do prompt e estas especificações, siga o prompt, mas avise explicitamente qual convenção está sendo quebrada e por quê.
+- As convenções de nomes seguem o padrão idiomático do C#/.NET: `PascalCase` para métodos, propriedades, constantes e tipos; `camelCase` para variáveis locais e parâmetros; `_camelCase` para campos privados.
 
 ## Segurança: nada sensível no repositório público (OBRIGATÓRIO)
 
-Este repositório é **público no GitHub** (ver [`IDEA.md`](docs/IDEA.md)). Antes de gerar ou alterar
-qualquer arquivo, **revise se todo o conteúdo pode ser exposto publicamente** — uma vez commitado, o
-histórico do Git preserva o dado mesmo que ele seja removido depois.
+Este repositório é **público no GitHub** (ver [`IDEA.md`](docs/IDEA.md)).
+Antes de gerar ou alterar qualquer arquivo, **revise se todo o conteúdo pode ser exposto publicamente** — uma vez commitado, o histórico do Git preserva o dado mesmo que ele seja removido depois.
 
 **Nunca** versionar (commitar) dados sensíveis, entre eles:
-- Senhas, *connection strings* com usuário/senha, chaves de API, *tokens*, *secrets* de
-  autenticação, certificados ou chaves privadas;
+- Senhas, *connection strings* com usuário/senha, chaves de API, *tokens*, *secrets* de autenticação, certificados ou chaves privadas;
 - Dados pessoais reais ou qualquer credencial de produção.
 
 Regras de uso:
-- Uma *connection string* só pode ser versionada se **não** contiver credenciais — por exemplo,
-  LocalDB com `Trusted_Connection=True` (identidade do Windows). Com usuário/senha, mantê-la fora do
-  controle de versão via **User Secrets** (dev) ou **variáveis de ambiente** (produção). Isso é
-  coerente com o item de *connection strings* em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
-- O `UserSecretsId` no `.csproj` é apenas um **identificador** (não um segredo) e pode ser
-  versionado; o arquivo de *secrets* fica fora do repositório.
-- Ao adicionar um novo arquivo de configuração que possa conter segredos
-  (ex.: `appsettings.Development.json`/`appsettings.Production.json`), garantir que ele esteja no
-  [`.gitignore`](.gitignore) **antes** do primeiro commit.
-- Se uma alteração precisar de um valor sensível para funcionar, **não** o inclua no código/commit:
-  use um *placeholder* e registre em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) como o valor real
-  deve ser fornecido.
+- Uma *connection string* só pode ser versionada se **não** contiver credenciais — por exemplo, LocalDB com `Trusted_Connection=True` (identidade do Windows).
+  Com usuário/senha, mantê-la fora do controle de versão via **User Secrets** (dev) ou **variáveis de ambiente** (produção).
+  Isso é coerente com o item de *connection strings* em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
+- O `UserSecretsId` no `.csproj` é apenas um **identificador** (não um segredo) e pode ser versionado; o arquivo de *secrets* fica fora do repositório.
+- Ao adicionar um novo arquivo de configuração que possa conter segredos (ex.: `appsettings.Development.json`/`appsettings.Production.json`), garantir que ele esteja no [`.gitignore`](.gitignore) **antes** do primeiro commit.
+- Se uma alteração precisar de um valor sensível para funcionar, **não** o inclua no código/commit: use um *placeholder* e registre em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) como o valor real deve ser fornecido.
 
 ## Registro de lembretes em KNOWN-ISSUES.md (OBRIGATÓRIO)
 
-Sempre que gerar código neste repositório, **todo lembrete importante para a continuidade do
-projeto DEVE ser registrado em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md)**. Isso inclui, por
-exemplo: decisões adiadas, configurações provisórias, dependências ainda não criadas, riscos de
-segurança a revisitar e qualquer pendência que precise de atenção futura.
+Sempre que gerar código neste repositório, **todo lembrete importante para a continuidade do projeto DEVE ser registrado em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md)**.
+Isso inclui, por exemplo: decisões adiadas, configurações provisórias, dependências ainda não criadas, riscos de segurança a revisitar e qualquer pendência que precise de atenção futura.
 
-- Registre o lembrete em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) (na seção
-  "Limitações conhecidas").
-- O registro deve ser feito **no mesmo momento** em que o código/decisão é gerado — não deixe
-  pendências importantes apenas na conversa, pois elas se perdem entre sessões.
-- Cada lembrete deve ser autoexplicativo: o que é, por que está assim e o que precisa ser
-  ajustado/feito no futuro.
+- Registre o lembrete em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) (na seção "Limitações conhecidas").
+- O registro deve ser feito **no mesmo momento** em que o código/decisão é gerado — não deixe pendências importantes apenas na conversa, pois elas se perdem entre sessões.
+- Cada lembrete deve ser autoexplicativo: o que é, por que está assim e o que precisa ser ajustado/feito no futuro.
 
 ## Sincronização do ARCHITECTURE.md (OBRIGATÓRIO)
 
-O [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) é um retrato do estado atual da arquitetura do projeto e
-**deve ser atualizado como parte de cada nova feature ou mudança relevante** — não é um documento
-escrito uma vez só.
+O [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) é um retrato do estado atual da arquitetura do projeto e **deve ser atualizado como parte de cada nova feature ou mudança relevante** — não é um documento escrito uma vez só.
 
-- Sempre que uma alteração afetar o estado descrito no `ARCHITECTURE.md` (ex.: nova funcionalidade,
-  nova dependência, mudança de arquitetura, novos componentes, novos padrões), atualize as seções
-  correspondentes **no mesmo momento** da mudança.
+- Sempre que uma alteração afetar o estado descrito no `ARCHITECTURE.md` (ex.: nova funcionalidade, nova dependência, mudança de arquitetura, novos componentes, novos padrões), atualize as seções correspondentes **no mesmo momento** da mudança.
 - Mantenha a estrutura de seções definida em [`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md).
-- Distinção em relação ao `KNOWN-ISSUES.md`: o `ARCHITECTURE.md` descreve **o que já existe** (estado
-  atual); o `docs/KNOWN-ISSUES.md` descreve **pendências e lembretes de continuidade**. Os dois
-  devem permanecer coerentes entre si.
+- Distinção em relação ao `KNOWN-ISSUES.md`: o `ARCHITECTURE.md` descreve **o que já existe** (estado atual); o `docs/KNOWN-ISSUES.md` descreve **pendências e lembretes de continuidade**.
+  Os dois devem permanecer coerentes entre si.

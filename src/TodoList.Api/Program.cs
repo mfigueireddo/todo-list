@@ -13,8 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Registra os controllers da Web API.
 builder.Services.AddControllers();
 
-// Lê a connection string da configuração (appsettings.json) 
-// e registra o AppDbContext com o provider do SQL Server.
+// Lê a connection string da configuração (appsettings.json) e registra o AppDbContext com o provider do SQL Server.
 var connectionString = builder.Configuration.GetConnectionString(DatabaseConnectionName)
     ?? throw new InvalidOperationException(
         $"A connection string '{DatabaseConnectionName}' não foi configurada. " +
@@ -24,9 +23,8 @@ var connectionString = builder.Configuration.GetConnectionString(DatabaseConnect
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-// CORS: o WASM standalone roda em outra origem (porta) e precisa de permissão explícita
-// para chamar esta API a partir do navegador. As origens vêm de Routes (TodoList.Shared),
-// que centraliza as URLs base e espelha as portas do launchSettings.json do TodoList.Web.
+// CORS: o WASM standalone roda em outra origem (porta) e precisa de permissão explícita para chamar esta API a partir do navegador.
+// As origens vêm de Routes (TodoList.Shared), que centraliza as URLs base e espelha as portas do launchSettings.json do TodoList.Web.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(WebClientCorsPolicy, policy =>

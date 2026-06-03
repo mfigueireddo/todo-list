@@ -4,23 +4,16 @@ namespace TodoList.Api.Controllers;
 
 ///
 /// <summary>
-/// Objective: Expor um endpoint de verificação de disponibilidade (health check) da Web API,
-/// usado para confirmar que o serviço subiu e responde — inclusive durante a validação da
-/// separação frontend/backend, antes de existirem os controllers de usuários e tarefas.
+/// Objective: Expor um endpoint de verificação de disponibilidade (health check) da Web API, usado para confirmar que o serviço subiu e responde — inclusive durante a validação da separação frontend/backend, antes de existirem os controllers de usuários e tarefas.
 /// </summary>
 ///
 /// <remarks>
 /// Attributes:
-/// - [ApiController]: marca a classe como controller de API REST e ativa convenções do
-///   ASP.NET Core — validação automática do modelo (retorna 400 quando a entrada é inválida,
-///   sem checar ModelState manualmente), inferência da origem dos parâmetros (body/query/route
-///   sem exigir [FromBody]/[FromQuery]), respostas de erro padronizadas em ProblemDetails e
-///   exigência de roteamento por atributo. O atributo é lido pelo framework em tempo de
-///   execução (via reflection), não interpretado pelo compilador C#.
-/// - [Route("[controller]")]: define o template de URL deste controller. O token [controller] é
-///   substituído pelo roteamento do ASP.NET Core pelo nome da classe sem o sufixo "Controller" —
-///   aqui, HealthController resolve para a rota "/Health". Renomear a classe ajusta a rota
-///   automaticamente.
+/// - [ApiController]: marca a classe como controller de API REST e ativa convenções do ASP.NET Core — validação automática do modelo (retorna 400 quando a entrada é inválida, sem checar ModelState manualmente), inferência da origem dos parâmetros (body/query/route sem exigir [FromBody]/[FromQuery]), respostas de erro padronizadas em ProblemDetails e exigência de roteamento por atributo.
+///   O atributo é lido pelo framework em tempo de execução (via reflection), não interpretado pelo compilador C#.
+/// - [Route("[controller]")]: define o template de URL deste controller.
+///   O token [controller] é substituído pelo roteamento do ASP.NET Core pelo nome da classe sem o sufixo "Controller" — aqui, HealthController resolve para a rota "/Health".
+///   Renomear a classe ajusta a rota automaticamente.
 /// </remarks>
 ///
 [ApiController]
@@ -40,10 +33,9 @@ public sealed class HealthController : ControllerBase
     ///
     /// <remarks>
     /// Attributes:
-    /// - [HttpGet]: mapeia este método (action) para requisições HTTP GET. Sem argumento, herda
-    ///   a rota do controller, respondendo em GET "/Health"; um argumento (ex.: [HttpGet("status")])
-    ///   seria anexado à rota base. É este atributo — e não o nome do método — que define o
-    ///   roteamento; o nome "Get" é apenas convenção idiomática.
+    /// - [HttpGet]: mapeia este método (action) para requisições HTTP GET.
+    ///   Sem argumento, herda a rota do controller, respondendo em GET "/Health"; um argumento (ex.: [HttpGet("status")]) seria anexado à rota base.
+    ///   É este atributo — e não o nome do método — que define o roteamento; o nome "Get" é apenas convenção idiomática.
     /// </remarks>
     ///
     [HttpGet]

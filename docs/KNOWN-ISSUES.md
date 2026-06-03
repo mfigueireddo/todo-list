@@ -1,9 +1,7 @@
 # Limitações conhecidas
 
-Este documento reúne as **limitações conhecidas, decisões adiadas e lembretes de continuidade**
-do projeto: configurações provisórias, dependências ainda não criadas, riscos de segurança a
-revisitar e pendências que precisam de atenção futura. Descreve **pendências** — o estado atual
-do que já existe fica no [`ARCHITECTURE.md`](ARCHITECTURE.md).
+Este documento reúne as **limitações conhecidas, decisões adiadas e lembretes de continuidade** do projeto: configurações provisórias, dependências ainda não criadas, riscos de segurança a revisitar e pendências que precisam de atenção futura.
+Descreve **pendências** — o estado atual do que já existe fica no [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## 1. `TreatWarningsAsErrors`
 
@@ -11,8 +9,8 @@ Essa opção é "agressiva": no início do projeto ela pode travar o build por a
 
 ## 2. Configuração em `appsettings.json` (agora na API)
 
-O [`appsettings.json`](../src/TodoList.Api/appsettings.json) passou a pertencer ao **TodoList.Api**
-(é configuração de servidor; o WASM não a consome). Observações:
+O [`appsettings.json`](../src/TodoList.Api/appsettings.json) passou a pertencer ao **TodoList.Api** (é configuração de servidor; o WASM não a consome).
+Observações:
 
 - **`AllowedHosts` está como `"*"`**: aceita requisições de **qualquer** host. É prático para desenvolvimento, mas em produção é recomendável restringir aos domínios reais da aplicação para mitigar ataques de *Host header*.
 - **`LogLevel.Default` está como `Trace`**: registra **todos** os logs, no nível mais verboso possível. Útil para depuração agora, mas excessivo (e potencialmente custoso/inseguro) em produção.
@@ -21,31 +19,22 @@ O [`appsettings.json`](../src/TodoList.Api/appsettings.json) passou a pertencer 
 
 ## 3. Modo de renderização (agora WebAssembly)
 
-O frontend foi convertido de **SSR estático** para **Blazor WebAssembly standalone**: o app é
-compilado para WebAssembly e roda inteiramente no navegador, consumindo a `TodoList.Api` por HTTP.
-Isso já habilita a **interatividade no cliente** (marcar *checkbox*, editar/deletar, filtrar) sem
-SignalR.
+O frontend foi convertido de **SSR estático** para **Blazor WebAssembly standalone**: o app é compilado para WebAssembly e roda inteiramente no navegador, consumindo a `TodoList.Api` por HTTP.
+Isso já habilita a **interatividade no cliente** (marcar *checkbox*, editar/deletar, filtrar) sem SignalR.
 
-> **Lembrete para o futuro:** o WASM standalone é servido como **arquivos estáticos**. Em
-> desenvolvimento, o `Microsoft.AspNetCore.Components.WebAssembly.DevServer` cuida disso via
-> `dotnet run`; em produção será preciso publicar o conteúdo de `wwwroot` em um host de estáticos
-> (ou hospedar atrás da própria API/um servidor web). Decisão de hospedagem pendente.
+> **Lembrete para o futuro:** o WASM standalone é servido como **arquivos estáticos**.
+> Em desenvolvimento, o `Microsoft.AspNetCore.Components.WebAssembly.DevServer` cuida disso via `dotnet run`; em produção será preciso publicar o conteúdo de `wwwroot` em um host de estáticos (ou hospedar atrás da própria API/um servidor web).
+> Decisão de hospedagem pendente.
 
 ## 4. Segredos e *connection strings* do banco
 
-O Microsoft SQL Server já foi integrado (EF Core, no **TodoList.Api**). A *connection string*
-`ConnectionStrings:Default` em [`appsettings.json`](../src/TodoList.Api/appsettings.json) aponta para
-o **LocalDB** com `Trusted_Connection=True` — ou seja, **não contém credenciais** (usa a identidade
-do Windows), por isso é segura para versionar **enquanto for LocalDB/Integrated Security**.
+O Microsoft SQL Server já foi integrado (EF Core, no **TodoList.Api**).
+A *connection string* `ConnectionStrings:Default` em [`appsettings.json`](../src/TodoList.Api/appsettings.json) aponta para o **LocalDB** com `Trusted_Connection=True` — ou seja, **não contém credenciais** (usa a identidade do Windows), por isso é segura para versionar **enquanto for LocalDB/Integrated Security**.
 
-O risco volta a existir assim que a aplicação apontar para um **servidor real com usuário/senha**
-(ou para o servidor de produção): essa *connection string* **não deve ser commitada** num
-repositório público.
+O risco volta a existir assim que a aplicação apontar para um **servidor real com usuário/senha** (ou para o servidor de produção): essa *connection string* **não deve ser commitada** num repositório público.
 
-> **Lembrete para o futuro:** ao usar um servidor com credenciais, manter a *connection string* fora
-> do controle de versão. O **User Secrets** já está habilitado no projeto (há `UserSecretsId` no
-> [`.csproj`](../src/TodoList.Api/TodoList.Api.csproj)); basta rodar, no `TodoList.Api`:
-> `dotnet user-secrets set "ConnectionStrings:Default" "<connection string com credenciais>"`.
+> **Lembrete para o futuro:** ao usar um servidor com credenciais, manter a *connection string* fora do controle de versão.
+> O **User Secrets** já está habilitado no projeto (há `UserSecretsId` no [`.csproj`](../src/TodoList.Api/TodoList.Api.csproj)); basta rodar, no `TodoList.Api`: `dotnet user-secrets set "ConnectionStrings:Default" "<connection string com credenciais>"`.
 > Opções por ambiente:
 > - **User Secrets** (`dotnet user-secrets`) para desenvolvimento — armazenado fora da pasta do projeto;
 > - **Variáveis de ambiente** (ex.: `ConnectionStrings__Default`) para produção;
@@ -55,60 +44,41 @@ repositório público.
 
 ## 8. Banco apenas configurado: sem schema, *migrations* nem `AppDbContext` populado
 
-A integração atual com o SQL Server é só de **conectividade**: o [`AppDbContext`](../src/TodoList.Api/Data/AppDbContext.cs)
-está **vazio** (sem nenhum `DbSet`), não há entidades de usuário/tarefa e **nenhuma *migration*
-foi criada** — portanto o banco `TodoList` ainda não tem tabelas. O *smoke test*
-`GET /databasehealth` usa `CanConnectAsync()`, que apenas verifica se o servidor é alcançável; ele
-**não** valida schema e pode retornar `200 OK` mesmo com o banco vazio.
+A integração atual com o SQL Server é só de **conectividade**: o [`AppDbContext`](../src/TodoList.Api/Data/AppDbContext.cs) está **vazio** (sem nenhum `DbSet`), não há entidades de usuário/tarefa e **nenhuma *migration* foi criada** — portanto o banco `TodoList` ainda não tem tabelas.
+O *smoke test* `GET /databasehealth` usa `CanConnectAsync()`, que apenas verifica se o servidor é alcançável; ele **não** valida schema e pode retornar `200 OK` mesmo com o banco vazio.
 
-Além disso, o *default* aponta para o **LocalDB** (`(localdb)\MSSQLLocalDB`), que **precisa estar
-instalado e em execução** na máquina de desenvolvimento — caso contrário o endpoint responde `503`
-(comportamento esperado, não um bug).
+Além disso, o *default* aponta para o **LocalDB** (`(localdb)\MSSQLLocalDB`), que **precisa estar instalado e em execução** na máquina de desenvolvimento — caso contrário o endpoint responde `503` (comportamento esperado, não um bug).
 
-> **A fazer no futuro:** ao modelar usuário/tarefa, criar as entidades + `DbSet` no `AppDbContext`,
-> adicionar *migrations* (`dotnet ef migrations add ...`) e aplicar o schema (`dotnet ef database
-> update`). Lembrar também do requisito do [`IDEA.md`](IDEA.md) de **semear** o usuário `admin`
-> (`Admin@ICAD!`) — provavelmente via *seed* de dados / `HasData` ou *seeding* na inicialização.
+> **A fazer no futuro:** ao modelar usuário/tarefa, criar as entidades + `DbSet` no `AppDbContext`, adicionar *migrations* (`dotnet ef migrations add ...`) e aplicar o schema (`dotnet ef database update`).
+> Lembrar também do requisito do [`IDEA.md`](IDEA.md) de **semear** o usuário `admin` (`Admin@ICAD!`) — provavelmente via *seed* de dados / `HasData` ou *seeding* na inicialização.
 > Considerar evoluir o *smoke test* para algo que também confirme o schema, quando ele existir.
 
 ## 5. CORS liberado para a origem do WASM (restringir em produção)
 
-A API libera CORS explicitamente para as origens de desenvolvimento do WASM
-(`https://localhost:7150` e `http://localhost:5150`), na política `WebClientCorsPolicy` de
-[`src/TodoList.Api/Program.cs`](../src/TodoList.Api/Program.cs). Isso é necessário porque o WASM
-standalone roda em outra origem/porta e o navegador bloquearia as chamadas sem o cabeçalho CORS.
+A API libera CORS explicitamente para as origens de desenvolvimento do WASM (`https://localhost:7150` e `http://localhost:5150`), na política `WebClientCorsPolicy` de [`src/TodoList.Api/Program.cs`](../src/TodoList.Api/Program.cs).
+Isso é necessário porque o WASM standalone roda em outra origem/porta e o navegador bloquearia as chamadas sem o cabeçalho CORS.
 
-As origens **não estão mais como literais** no `Program.cs`: vêm de `Routes.Web.HttpsBaseUrl` e
-`Routes.Web.HttpBaseUrl` (em [`TodoList.Shared`](../src/TodoList.Shared/Routes.cs)). Isso remove a
-duplicação de porta, mas **não** torna a política configurável por ambiente — `Routes` são `const`
-de compilação (ver item 7).
+As origens **não estão mais como literais** no `Program.cs`: vêm de `Routes.Web.HttpsBaseUrl` e `Routes.Web.HttpBaseUrl` (em [`TodoList.Shared`](../src/TodoList.Shared/Routes.cs)).
+Isso remove a duplicação de porta, mas **não** torna a política configurável por ambiente — `Routes` são `const` de compilação (ver item 7).
 
-> **A revisitar no futuro:** essas origens são de **desenvolvimento**. Em produção, ajustar a
-> política para as origens reais do frontend (idealmente via configuração, não *hard-coded* nem
-> `const` de compilação) e evitar `AllowAnyHeader`/`AllowAnyMethod` mais amplos que o necessário.
+> **A revisitar no futuro:** essas origens são de **desenvolvimento**.
+> Em produção, ajustar a política para as origens reais do frontend (idealmente via configuração, não *hard-coded* nem `const` de compilação) e evitar `AllowAnyHeader`/`AllowAnyMethod` mais amplos que o necessário.
 
 ## 7. Rotas/portas centralizadas em `Routes` (`const`) — ainda não configuráveis por ambiente
 
-As URLs base do projeto foram **centralizadas** em [`src/TodoList.Shared/Routes.cs`](../src/TodoList.Shared/Routes.cs),
-agrupadas por serviço (`Routes.Api` e `Routes.Web`). Os literais de porta que estavam *hard-coded*
-no código foram substituídos por referências a essas constantes:
+As URLs base do projeto foram **centralizadas** em [`src/TodoList.Shared/Routes.cs`](../src/TodoList.Shared/Routes.cs), agrupadas por serviço (`Routes.Api` e `Routes.Web`).
+Os literais de porta que estavam *hard-coded* no código foram substituídos por referências a essas constantes:
 
 - `TodoList.Web/Program.cs` → `BaseAddress = new Uri(Routes.Api.HttpsBaseUrl)`;
 - `TodoList.Api/Program.cs` (CORS) → `Routes.Web.HttpsBaseUrl` / `Routes.Web.HttpBaseUrl`.
 
 Isso elimina a duplicação de porta **entre arquivos de código**, mas duas limitações permanecem:
 
-1. **`Routes` são `const` de tempo de compilação:** mudar uma porta ainda exige recompilar; não há
-   configuração por ambiente (dev/prod). Funciona em desenvolvimento, como antes.
-2. **`launchSettings.json` continua sendo fonte de verdade do *binding*:** as portas em que o
-   Kestrel (API) e o DevServer (WASM) realmente escutam são declaradas em cada
-   `Properties/launchSettings.json`. Esse JSON **não** consegue referenciar constantes de C#, então
-   os valores de `Routes.cs` apenas **espelham** os do `launchSettings.json` — os dois precisam ser
-   alterados juntos para não divergir.
+1. **`Routes` são `const` de tempo de compilação:** mudar uma porta ainda exige recompilar; não há configuração por ambiente (dev/prod).
+   Funciona em desenvolvimento, como antes.
+2. **`launchSettings.json` continua sendo fonte de verdade do *binding*:** as portas em que o Kestrel (API) e o DevServer (WASM) realmente escutam são declaradas em cada `Properties/launchSettings.json`.
+   Esse JSON **não** consegue referenciar constantes de C#, então os valores de `Routes.cs` apenas **espelham** os do `launchSettings.json` — os dois precisam ser alterados juntos para não divergir.
 
-> **A revisitar no futuro:** mover as URLs para configuração lida em runtime (ex.: a URL da API no
-> `wwwroot/appsettings.json` do WASM via `builder.Configuration`; as origens de CORS na configuração
-> da API), para não recompilar ao mudar de ambiente. Avaliar derivar o `applicationUrl` do
-> `launchSettings.json` a partir de uma fonte única (ex.: variável de ambiente `ASPNETCORE_URLS`)
-> para eliminar também esse último ponto de duplicação. Manter coerência com as portas do item 3 e
-> com o CORS do item 6.
+> **A revisitar no futuro:** mover as URLs para configuração lida em runtime (ex.: a URL da API no `wwwroot/appsettings.json` do WASM via `builder.Configuration`; as origens de CORS na configuração da API), para não recompilar ao mudar de ambiente.
+> Avaliar derivar o `applicationUrl` do `launchSettings.json` a partir de uma fonte única (ex.: variável de ambiente `ASPNETCORE_URLS`) para eliminar também esse último ponto de duplicação.
+> Manter coerência com as portas do item 3 e com o CORS do item 6.

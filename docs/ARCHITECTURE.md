@@ -58,30 +58,19 @@ As propriedades específicas de cada projeto estão descritas nas seções de ca
 
 ## `TodoList.Shared/` — Código compartilhado (biblioteca de classes)
 
-Biblioteca de classes (SDK `Microsoft.NET.Sdk`, sem dependências de runtime) **referenciada por
-`TodoList.Api` e `TodoList.Web`** via `ProjectReference`. Existe para centralizar, em um único
-ponto visível aos dois lados, definições que de outra forma seriam duplicadas — hoje, as **URLs base
-(origens) de cada serviço**. É o projeto compartilhado cuja ausência estava registrada como
-pendência em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md); criado agora para as rotas, ele também passa a ser
-a casa natural de DTOs/contratos futuros.
+Biblioteca de classes (SDK `Microsoft.NET.Sdk`, sem dependências de runtime) **referenciada por `TodoList.Api` e `TodoList.Web`** via `ProjectReference`.
+Existe para centralizar, em um único ponto visível aos dois lados, definições que de outra forma seriam duplicadas — hoje, as **URLs base (origens) de cada serviço**.
+Projeto compartilhado criado agora para as rotas, ele também passa a ser a casa natural de DTOs/contratos futuros.
 
-Além das [configurações de build comuns](#configurações-de-build-comuns), define
-`<RootNamespace>TodoList.Shared</RootNamespace>`. Por ser uma *class library*, não gera apphost nem
-usa `<UseAppHost>`.
+Além das [configurações de build comuns](#configurações-de-build-comuns), define `<RootNamespace>TodoList.Shared</RootNamespace>`.
+Por ser uma *class library*, não gera apphost nem usa `<UseAppHost>`.
 
 ### `Routes.cs`
-Classe estática `Routes` que concentra as URLs base do projeto, **agrupadas por serviço (dono do
-endereço)**: `Routes.Api` (origens HTTPS/HTTP do backend) e `Routes.Web` (origens HTTPS/HTTP do
-frontend). Cada porta é declarada como `const` em um só lugar, eliminando literais "hard-coded"
-espalhados pelo código.
-- **Usage**: `TodoList.Web` usa `Routes.Api.HttpsBaseUrl` como `HttpClient.BaseAddress`; o
-  `TodoList.Api` usa `Routes.Web.HttpsBaseUrl`/`Routes.Web.HttpBaseUrl` como origens permitidas na
-  política de CORS.
-- **Restrição**: os valores são origens de **desenvolvimento** (localhost) e **espelham** as portas
-  do `Properties/launchSettings.json` de cada projeto — que, por ser JSON de binding do Kestrel/
-  DevServer, **não** consegue referenciar constantes de C# e permanece a fonte de verdade do
-  *binding*. A necessidade de manter os dois em sincronia e de parametrizar por ambiente está em
-  [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+Classe estática `Routes` que concentra as URLs base do projeto, **agrupadas por serviço (dono do endereço)**: `Routes.Api` (origens HTTPS/HTTP do backend) e `Routes.Web` (origens HTTPS/HTTP do frontend).
+Cada porta é declarada como `const` em um só lugar, eliminando literais "hard-coded" espalhados pelo código.
+- **Usage**: `TodoList.Web` usa `Routes.Api.HttpsBaseUrl` como `HttpClient.BaseAddress`; o `TodoList.Api` usa `Routes.Web.HttpsBaseUrl`/`Routes.Web.HttpBaseUrl` como origens permitidas na política de CORS.
+- **Restrição**: os valores são origens de **desenvolvimento** (localhost) e **espelham** as portas do `Properties/launchSettings.json` de cada projeto — que, por ser JSON de binding do Kestrel/DevServer, **não** consegue referenciar constantes de C# e permanece a fonte de verdade do *binding*.
+  A necessidade de manter os dois em sincronia e de parametrizar por ambiente está em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 ---
 
@@ -98,10 +87,8 @@ Além das [configurações de build comuns](#configurações-de-build-comuns), o
 
 ### Configuração da aplicação (`appsettings.json`)
 
-Arquivo de **configuração do servidor** do `TodoList.Api`, carregado pelo ASP.NET Core na
-inicialização e lido via `builder.Configuration`. As decisões atuais são voltadas para
-**desenvolvimento**; o endurecimento para produção (separação por ambiente, hosts restritos, logs
-menos verbosos) está registrado como pendência em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+Arquivo de **configuração do servidor** do `TodoList.Api`, carregado pelo ASP.NET Core na inicialização e lido via `builder.Configuration`.
+As decisões atuais são voltadas para **desenvolvimento**; o endurecimento para produção (separação por ambiente, hosts restritos, logs menos verbosos) está registrado como pendência em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 | Chave | Valor atual | Decisão / motivo |
 |---|---|---|
@@ -109,16 +96,13 @@ menos verbosos) está registrado como pendência em [`KNOWN-ISSUES.md`](KNOWN-IS
 | `AllowedHosts` | `"*"` | Aceita requisições de **qualquer** host (validação do cabeçalho `Host`). Prático em desenvolvimento, mas em produção deve ser restrito aos domínios reais da aplicação para mitigar ataques de *Host header*. |
 | `ConnectionStrings:Default` | `Server=(localdb)\MSSQLLocalDB;Database=TodoList;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True` | *Connection string* do SQL Server lida em `Program.cs`. Aponta para o **LocalDB** com `Trusted_Connection=True` (autenticação integrada do Windows), portanto **sem usuário/senha** — segura para versionar enquanto for LocalDB. `MultipleActiveResultSets=true` permite múltiplos *result sets* ativos na mesma conexão; `TrustServerCertificate=True` aceita o certificado TLS sem validar a cadeia (adequado para LocalDB/dev). Uso detalhado em [Integração com banco de dados](#integração-com-banco-de-dados-entity-framework-core--sql-server). |
 
-> **Coerência com a estratégia de segredos:** o `appsettings.json` é **versionado** porque hoje não
-> contém dados sensíveis. Isso muda se a *connection string* passar a conter credenciais reais —
-> nesse caso ela deve sair do controle de versão e ir para **User Secrets** (dev) ou **variáveis de
-> ambiente** (produção), conforme [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+> **Coerência com a estratégia de segredos:** o `appsettings.json` é **versionado** porque hoje não contém dados sensíveis.
+> Isso muda se a *connection string* passar a conter credenciais reais — nesse caso ela deve sair do controle de versão e ir para **User Secrets** (dev) ou **variáveis de ambiente** (produção), conforme [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
 ### Integração com banco de dados (Entity Framework Core + SQL Server)
 
-O acesso ao **Microsoft SQL Server** é feito via **Entity Framework Core 8** (pacote
-`Microsoft.EntityFrameworkCore.SqlServer`, fixado em `8.0.27` para builds reprodutíveis). Nesta etapa
-a integração está **apenas configurada** — não há entidades de usuário/tarefa nem *migrations*.
+O acesso ao **Microsoft SQL Server** é feito via **Entity Framework Core 8** (pacote `Microsoft.EntityFrameworkCore.SqlServer`, fixado em `8.0.27` para builds reprodutíveis).
+Nesta etapa a integração está **apenas configurada** — não há entidades de usuário/tarefa nem *migrations*.
 
 | Peça | Para que serve |
 |---|---|
@@ -134,11 +118,9 @@ Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Co
 Camada de acesso a dados (Entity Framework Core).
 
 #### `AppDbContext.cs`
-`DbContext` do EF Core que representa a sessão com o SQL Server. **Deliberadamente vazio** (sem
-`DbSet`) nesta etapa: serve para configurar/validar a conectividade e como base para as entidades e
-o ASP.NET Core Identity que virão depois.
-- **Usage**: Injetado por requisição (scoped) nos controllers que acessam o banco — hoje, o
-  `DatabaseHealthController`.
+`DbContext` do EF Core que representa a sessão com o SQL Server.
+**Deliberadamente vazio** (sem `DbSet`) nesta etapa: serve para configurar/validar a conectividade e como base para as entidades e o ASP.NET Core Identity que virão depois.
+- **Usage**: Injetado por requisição (scoped) nos controllers que acessam o banco — hoje, o `DatabaseHealthController`.
 
 ### `TodoList.Api/Controllers/`
 Controllers da Web API (endpoints HTTP).

@@ -71,8 +71,8 @@ dotnet restore TodoList.sln
 
 ## 3. Rodar o projeto
 
-O frontend (WASM) e o backend (API) são processos separados — rode cada um em **seu próprio
-terminal**. A partir da raiz do repositório:
+O frontend (WASM) e o backend (API) são processos separados — rode cada um em **seu próprio terminal**.
+A partir da raiz do repositório:
 
 ```powershell
 # Terminal 1 — Backend (API)

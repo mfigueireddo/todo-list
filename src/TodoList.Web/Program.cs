@@ -10,8 +10,8 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// HttpClient apontando para a Web API (backend TodoList.Api). A URL vem de Routes (TodoList.Shared),
-// que centraliza as origens; corresponde ao perfil HTTPS do TodoList.Api (ver launchSettings.json da API).
+// HttpClient apontando para a Web API (backend TodoList.Api).
+// A URL vem de Routes (TodoList.Shared), que centraliza as origens; corresponde ao perfil HTTPS do TodoList.Api (ver launchSettings.json da API).
 builder.Services.AddScoped(_ => new HttpClient
 {
     BaseAddress = new Uri(Routes.Api.HttpsBaseUrl)
