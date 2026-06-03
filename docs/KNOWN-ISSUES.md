@@ -31,17 +31,45 @@ SignalR.
 > `dotnet run`; em produção será preciso publicar o conteúdo de `wwwroot` em um host de estáticos
 > (ou hospedar atrás da própria API/um servidor web). Decisão de hospedagem pendente.
 
-## 4. Segredos e *connection strings* (quando o banco entrar)
+## 4. Segredos e *connection strings* do banco
 
-Atualmente o [`appsettings.json`](../src/TodoList.Api/appsettings.json) e os
-`Properties/launchSettings.json` de cada projeto são versionados normalmente, pois não contêm dados sensíveis. Isso **muda** quando integrarmos o Microsoft SQL Server (no **TodoList.Api**): a *connection string* (que pode conter usuário/senha do banco) **não deve ser commitada** num repositório público.
+O Microsoft SQL Server já foi integrado (EF Core, no **TodoList.Api**). A *connection string*
+`ConnectionStrings:Default` em [`appsettings.json`](../src/TodoList.Api/appsettings.json) aponta para
+o **LocalDB** com `Trusted_Connection=True` — ou seja, **não contém credenciais** (usa a identidade
+do Windows), por isso é segura para versionar **enquanto for LocalDB/Integrated Security**.
 
-> **Lembrete para o futuro:** ao adicionar o banco, manter as credenciais fora do controle de versão. Opções comuns:
+O risco volta a existir assim que a aplicação apontar para um **servidor real com usuário/senha**
+(ou para o servidor de produção): essa *connection string* **não deve ser commitada** num
+repositório público.
+
+> **Lembrete para o futuro:** ao usar um servidor com credenciais, manter a *connection string* fora
+> do controle de versão. O **User Secrets** já está habilitado no projeto (há `UserSecretsId` no
+> [`.csproj`](../src/TodoList.Api/TodoList.Api.csproj)); basta rodar, no `TodoList.Api`:
+> `dotnet user-secrets set "ConnectionStrings:Default" "<connection string com credenciais>"`.
+> Opções por ambiente:
 > - **User Secrets** (`dotnet user-secrets`) para desenvolvimento — armazenado fora da pasta do projeto;
 > - **Variáveis de ambiente** (ex.: `ConnectionStrings__Default`) para produção;
 > - Se for usar `appsettings.Development.json`/`appsettings.Production.json` com segredos, adicioná-los ao [`.gitignore`](../.gitignore).
 >
 > O `.gitignore` já ignora arquivos de banco locais (`*.mdf`, `*.ldf`, `*.ndf`), mas **não** ignora os `appsettings*.json` — essa decisão precisará ser revista conforme a estratégia de segredos escolhida.
+
+## 8. Banco apenas configurado: sem schema, *migrations* nem `AppDbContext` populado
+
+A integração atual com o SQL Server é só de **conectividade**: o [`AppDbContext`](../src/TodoList.Api/Data/AppDbContext.cs)
+está **vazio** (sem nenhum `DbSet`), não há entidades de usuário/tarefa e **nenhuma *migration*
+foi criada** — portanto o banco `TodoList` ainda não tem tabelas. O *smoke test*
+`GET /databasehealth` usa `CanConnectAsync()`, que apenas verifica se o servidor é alcançável; ele
+**não** valida schema e pode retornar `200 OK` mesmo com o banco vazio.
+
+Além disso, o *default* aponta para o **LocalDB** (`(localdb)\MSSQLLocalDB`), que **precisa estar
+instalado e em execução** na máquina de desenvolvimento — caso contrário o endpoint responde `503`
+(comportamento esperado, não um bug).
+
+> **A fazer no futuro:** ao modelar usuário/tarefa, criar as entidades + `DbSet` no `AppDbContext`,
+> adicionar *migrations* (`dotnet ef migrations add ...`) e aplicar o schema (`dotnet ef database
+> update`). Lembrar também do requisito do [`IDEA.md`](IDEA.md) de **semear** o usuário `admin`
+> (`Admin@ICAD!`) — provavelmente via *seed* de dados / `HasData` ou *seeding* na inicialização.
+> Considerar evoluir o *smoke test* para algo que também confirme o schema, quando ele existir.
 
 ## 5. Sem projeto compartilhado (`Shared`) → risco de DTOs duplicados
 

@@ -15,11 +15,14 @@ todo-list/
 ├── tests/                                  # Reservada p/ projetos de teste (ainda vazia)
 └── src/                                    # Projetos da solution (frontend e backend)
     ├── TodoList.Api/                       # Backend — .NET Web API
-    │   ├── TodoList.Api.csproj             # Projeto/build do backend
-    │   ├── Program.cs                      # Pipeline HTTP + CORS
-    │   ├── appsettings.json                # Configuração de servidor (logging, hosts)
+    │   ├── TodoList.Api.csproj             # Projeto/build do backend (+ EF Core SQL Server)
+    │   ├── Program.cs                      # Pipeline HTTP + CORS + registro do AppDbContext
+    │   ├── appsettings.json                # Configuração de servidor (logging, hosts, connection string)
+    │   ├── Data/                           # Acesso a dados (EF Core)
+    │   │   └── AppDbContext.cs             # DbContext (vazio por ora) — sessão com o SQL Server
     │   ├── Controllers/                    # Controllers da Web API (endpoints HTTP)
-    │   │   └── HealthController.cs         # GET /health (verificação de disponibilidade)
+    │   │   ├── HealthController.cs         # GET /health (verificação de disponibilidade da API)
+    │   │   └── DatabaseHealthController.cs # GET /databasehealth (smoke test de conexão com o banco)
     │   └── Properties/launchSettings.json  # Perfis de execução (dotnet run)
     └── TodoList.Web/                       # Frontend — Blazor WebAssembly
         ├── TodoList.Web.csproj             # Projeto/build do frontend
@@ -61,8 +64,33 @@ Além das [configurações de build comuns](#configurações-de-build-comuns), o
 | `<UseAppHost>false</UseAppHost>` | Desativa a geração do executável nativo (`TodoList.Api.exe`). Sem ele, `dotnet run` executa a aplicação via o host `dotnet` (assinado pela Microsoft) em vez de um `.exe` recém-compilado e sem assinatura — necessário porque o **Smart App Control** do Windows 11 bloqueia executáveis não assinados (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)). |
 | `<RootNamespace>TodoList.Api</RootNamespace>` | Define o *namespace* raiz padrão dos tipos do projeto, garantindo que o código gerado e os novos arquivos usem `TodoList.Api` independentemente da estrutura de pastas. |
 
+### Integração com banco de dados (Entity Framework Core + SQL Server)
+
+O acesso ao **Microsoft SQL Server** é feito via **Entity Framework Core 8** (pacote
+`Microsoft.EntityFrameworkCore.SqlServer`, fixado em `8.0.27` para builds reprodutíveis). Nesta etapa
+a integração está **apenas configurada** — não há entidades de usuário/tarefa nem *migrations*.
+
+| Peça | Para que serve |
+|---|---|
+| `Microsoft.EntityFrameworkCore.SqlServer` | Provider do EF Core para o SQL Server. Versão alinhada ao `net8.0` (LTS). |
+| `ConnectionStrings:Default` (em `appsettings.json`) | *Connection string* lida em `Program.cs`. Aponta por padrão para o **LocalDB** (`(localdb)\MSSQLLocalDB`) com `Trusted_Connection` — sem credenciais, seguro para versionar. |
+| `AddDbContext<AppDbContext>(...)` (em `Program.cs`) | Registra o `AppDbContext` (escopo por requisição) com o provider `UseSqlServer`. Falha cedo, com mensagem clara, se a *connection string* `Default` não estiver configurada. |
+| `UserSecretsId` (no `.csproj`) | Habilita o **User Secrets** para guardar, fora do controle de versão, uma *connection string* com credenciais reais (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)). |
+
 ### `Program.cs`
-Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core.
+Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core. Além dos
+controllers e do CORS, lê a *connection string* `Default` da configuração e registra o
+`AppDbContext` (EF Core + SQL Server) no contêiner de injeção de dependência.
+
+### `TodoList.Api/Data/`
+Camada de acesso a dados (Entity Framework Core).
+
+#### `AppDbContext.cs`
+`DbContext` do EF Core que representa a sessão com o SQL Server. **Deliberadamente vazio** (sem
+`DbSet`) nesta etapa: serve para configurar/validar a conectividade e como base para as entidades e
+o ASP.NET Core Identity que virão depois.
+- **Usage**: Injetado por requisição (scoped) nos controllers que acessam o banco — hoje, o
+  `DatabaseHealthController`.
 
 ### `TodoList.Api/Controllers/`
 Controllers da Web API (endpoints HTTP).
@@ -70,6 +98,10 @@ Controllers da Web API (endpoints HTTP).
 #### `HealthController.cs`
 Endpoint de verificação de disponibilidade (`GET /health`), respondendo `200 OK` com `{ status, timeUtc }` sem tocar em dependências externas.
 - **Usage**: Usado na validação da separação frontend/backend e como *smoke test* de que a API está no ar.
+
+#### `DatabaseHealthController.cs`
+*Smoke test* da integração com o banco (`GET /databasehealth`): usa `AppDbContext.Database.CanConnectAsync()` para testar a conexão, respondendo `200 OK` com `{ status = "ok", timeUtc }` quando o banco é alcançado e `503 Service Unavailable` com `{ status = "unavailable", timeUtc }` quando não é. Não lê nem grava dados de negócio.
+- **Usage**: Análogo do `HealthController`, porém tocando o SQL Server; confirma que a API consegue conectar ao banco com a *connection string* configurada.
 
 ---
 
