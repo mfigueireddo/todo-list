@@ -16,8 +16,6 @@ separados**, em dois projetos sob `src/`:
 
 O `TodoList.Web` roda no navegador e consome o `TodoList.Api` por HTTP. 
 
-A pasta `tests/` está reservada para projetos de teste. 
-
 A árvore de pastas completa e o detalhamento por componente estão no [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
@@ -33,10 +31,3 @@ Os documentos do projeto estão na pasta [`docs/`](docs):
 | [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Estado atual da arquitetura: visão geral, estrutura de pastas e componentes. |
 | [`DIAGRAMS.md`](docs/DIAGRAMS.md) | Diagramas da arquitetura (componentes, classes e fluxos) em Mermaid. |
 | [`KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) | Limitações conhecidas, decisões adiadas e lembretes de continuidade. |
-
----
-
-## Limitações conhecidas
-
-As limitações conhecidas, decisões adiadas e lembretes de continuidade do projeto estão
-documentados em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).

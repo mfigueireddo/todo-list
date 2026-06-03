@@ -2,7 +2,7 @@
 
 Diagramas da arquitetura do projeto, em [Mermaid](https://mermaid.js.org/). 
 
-A organização deste arquivo segue as instruções em [`.claude/ARCHITECTURE.md`](../.claude/ARCHITECTURE.md): primeiro o mapa de componentes, depois os diagramas de classe e, por fim, os fluxos.
+A organização deste arquivo segue as instruções em [`.claude/ARCHITECTURE.md`](../.claude/ARCHITECTURE.md).
 
 O detalhamento textual de cada componente fica em [`ARCHITECTURE.md`](ARCHITECTURE.md).
 

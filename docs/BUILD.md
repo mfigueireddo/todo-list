@@ -1,6 +1,6 @@
 # BUILD.md
 
-Passos para preparar o ambiente e rodar o projeto **TodoList**.
+Passos para preparar o ambiente e rodar localmente o projeto **TodoList**.
 
 ---
 
@@ -96,8 +96,6 @@ Perfis e portas ficam no `Properties/launchSettings.json` de cada projeto:
 Abra o **frontend** no navegador — a página inicial deve exibir **"Olá, Mundo"**. 
 
 A **API** pode ser verificada em <https://localhost:7180/health> (responde `200 OK`).
-
-> As origens do frontend estão liberadas no CORS da API e a `BaseAddress` do `HttpClient` do frontend aponta para a porta da API. Ao trocar portas, ajuste ambos — ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md) itens 10 e 11.
 
 Para encerrar cada processo, pressione `Ctrl + C` no respectivo terminal.
 
