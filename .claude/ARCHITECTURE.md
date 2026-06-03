@@ -26,16 +26,15 @@ Document each namespace or top-level folder as a subsection. Within each subsect
 Brief sentence on what this namespace is responsible for.
 
 #### `FileName.cs`
-- **Pattern**: Design pattern used (if applicable)
-  - Examples: Singleton, Abstract base class, Enum, Utility class
-- **Purpose**: High-level description of what the component does
-- **Responsibilities**:
-  - Responsibility one
-  - Responsibility two
-- **Error Handling**: How this component handles errors (if applicable)
+Brief sentence describing what this component is/does.
 - **Usage**: How other components use this one (if applicable)
-- **Future Enhancement**: Planned improvements (if applicable)
 ```
+
+> **Removed sections.** Do **not** document `Pattern`, `Purpose`, `Responsibilities`,
+> `Error Handling` or `Future Enhancement` per file/class — these sections were eliminated from the
+> component breakdown. Capture the essential "what it is/does" in the brief sentence under the
+> heading; keep planned work and known gaps in the project's known-issues document instead of a
+> `Future Enhancement` field.
 
 ### Example
 
@@ -44,19 +43,12 @@ Brief sentence on what this namespace is responsible for.
 Handles all Blazor UI components and the main application layout.
 
 #### `MainLayout.razor.cs`
-- **Pattern**: Singleton (registered as a service in the DI container)
-- **Purpose**: Main application layout (root render tree)
-- **Responsibilities**:
-  - Manage the application layout lifecycle
-  - Handle page/route switching
-  - Configure shared layout state
+Main application layout (root render tree): manages the layout lifecycle, handles page/route
+switching and configures shared layout state.
 
 #### `MenuComponentBase.cs`
-- **Pattern**: Abstract base class
-- **Purpose**: Base for all menu/navigation components
-- **Responsibilities**:
-  - Render navigation buttons
-  - Delegate user actions to the controller/service
+Base for all menu/navigation components: renders navigation buttons and delegates user actions to
+the controller/service.
 ```
 
 ---

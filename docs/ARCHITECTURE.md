@@ -79,33 +79,16 @@ seguintes propriedades específicas:
 | `<RootNamespace>TodoList.Api</RootNamespace>` | Define o *namespace* raiz padrão dos tipos do projeto, garantindo que o código gerado e os novos arquivos usem `TodoList.Api` independentemente da estrutura de pastas. |
 
 ### `Program.cs`
-- **Pattern**: Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core.
-- **Purpose**: Construir o host web, registrar os controllers e a política de CORS, e configurar o
-  *pipeline* de requisições HTTP.
-- **Responsibilities**:
-  - Registrar os controllers (`AddControllers`) e a política de CORS `WebClientCorsPolicy`, que
-    libera as origens de desenvolvimento do `TodoList.Web` (`https://localhost:7150` e
-    `http://localhost:5150`).
-  - Montar o *pipeline* HTTP: HSTS em produção, redirecionamento HTTPS, CORS e mapeamento dos
-    controllers (`MapControllers`).
-- **Error Handling**: Em produção ativa o HSTS (`UseHsts`); em desenvolvimento mantém erros
-  detalhados. A estratégia de respostas de erro padronizadas está pendente
-  ([`KNOWN-ISSUES.md`](KNOWN-ISSUES.md) item 3).
-- **Future Enhancement**: Registrar autenticação/autorização e o acesso a dados (Microsoft SQL
-  Server, via EF Core) à medida que as funcionalidades da [`IDEA.md`](IDEA.md) forem implementadas.
+Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core.
 
 ### `TodoList.Api/Controllers/`
 Controllers da Web API (endpoints HTTP).
 
 #### `HealthController.cs`
-- **Pattern**: Controller de API (`[ApiController]`, herda de `ControllerBase`).
-- **Purpose**: Endpoint de verificação de disponibilidade (`GET /health`).
-- **Responsibilities**:
-  - Responder `200 OK` com `{ status, timeUtc }` sem tocar em dependências externas, confirmando
-    que a API subiu.
+Endpoint de verificação de disponibilidade (`GET /health`), respondendo `200 OK` com
+`{ status, timeUtc }` sem tocar em dependências externas.
 - **Usage**: Usado na validação da separação frontend/backend e como *smoke test* de que a API está
   no ar.
-- **Future Enhancement**: Será acompanhado pelos controllers reais de usuários e tarefas.
 
 ---
 
@@ -125,62 +108,39 @@ Por ser WebAssembly, o `TodoList.Web` não gera apphost e, portanto, **não** us
 `<UseAppHost>` descrita na camada do `TodoList.Api`.
 
 ### `Program.cs`
-- **Pattern**: Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`).
-- **Purpose**: Inicializar o app Blazor no navegador e configurar os serviços do cliente.
-- **Responsibilities**:
-  - Registrar o componente raiz `App` no elemento `#app` e o `HeadOutlet` (para `<PageTitle>`).
-  - Registrar um `HttpClient` com `BaseAddress` apontando para a `TodoList.Api`
-    (`https://localhost:7180`).
+Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`) que inicializa o app Blazor no
+navegador e configura os serviços do cliente.
 - **Usage**: Carregado pela host page [`wwwroot/index.html`](../src/TodoList.Web/wwwroot/index.html)
   através do script `_framework/blazor.webassembly.js`.
-- **Future Enhancement**: Tornar a URL da API configurável por ambiente
-  ([`KNOWN-ISSUES.md`](KNOWN-ISSUES.md) item 11).
 
 ### `TodoList.Web/wwwroot/`
 Conteúdo estático servido ao navegador.
 
 #### `index.html`
-- **Pattern**: Host page estática do Blazor WebAssembly.
-- **Purpose**: Documento HTML que ancora o app (`#app`) e carrega o runtime do Blazor.
-- **Responsibilities**:
-  - Declarar `<base href="/">`, o ponto de montagem `#app` e o `#blazor-error-ui`.
-  - Carregar o *script* `_framework/blazor.webassembly.js`.
+Host page estática do Blazor WebAssembly: documento HTML que ancora o app (`#app`), declara
+`<base href="/">` e o `#blazor-error-ui`, e carrega o *script* `_framework/blazor.webassembly.js`.
 
 ### `TodoList.Web/Components/`
 Componentes Blazor da aplicação.
 
 #### `App.razor`
-- **Pattern**: Componente raiz / roteador (envolve o `<Router>` do Blazor).
-- **Purpose**: Resolver a rota da requisição para o componente de página correspondente.
-- **Responsibilities**:
-  - Varrer o *assembly* em busca de componentes com `@page` e renderizar a página dentro do layout
-    padrão (`Layout.MainLayout`).
-  - Mover o foco para o `<h1>` a cada navegação (`FocusOnNavigate`) e tratar rota não encontrada
-    (`<NotFound>`).
+Componente raiz / roteador (envolve o `<Router>` do Blazor): varre o *assembly* em busca de
+componentes com `@page`, renderiza a página dentro do layout padrão (`Layout.MainLayout`), move o
+foco para o `<h1>` a cada navegação (`FocusOnNavigate`) e trata rota não encontrada (`<NotFound>`).
 - **Usage**: Montado em `#app` por [`Program.cs`](../src/TodoList.Web/Program.cs).
-- **Future Enhancement**: Adicionar guarda de autenticação para impedir acesso de usuários
-  deslogados às páginas protegidas.
 
 ### `TodoList.Web/Components/Layout/`
 Layouts compartilhados que envolvem o conteúdo das páginas.
 
 #### `MainLayout.razor`
-- **Pattern**: Layout (herda de `LayoutComponentBase`).
-- **Purpose**: Fornecer a moldura visual comum a todas as páginas.
-- **Responsibilities**:
-  - Renderizar o conteúdo da página atual através de `@Body` dentro de um elemento `<main>`.
+Layout (herda de `LayoutComponentBase`) que fornece a moldura visual comum a todas as páginas,
+renderizando o conteúdo da página atual através de `@Body` dentro de um elemento `<main>`.
 - **Usage**: Definido como `DefaultLayout` em `App.razor`.
-- **Future Enhancement**: Acrescentar a *navbar* exigida pela [`IDEA.md`](IDEA.md) (logo/nome do
-  site e botões "Lista de Tarefas", "Adicionar Nova Tarefa" e "Logout" em vermelho).
 
 ### `TodoList.Web/Components/Pages/`
 Páginas roteáveis da aplicação (componentes com diretiva `@page`).
 
 #### `Home.razor`
-- **Pattern**: Página roteável (`@page "/"`).
-- **Purpose**: Página inicial da aplicação.
-- **Responsibilities**:
-  - Definir o título da aba (`<PageTitle>`) e exibir o cabeçalho "Olá, Mundo".
+Página inicial roteável (`@page "/"`) que define o título da aba (`<PageTitle>`) e exibe o
+cabeçalho "Olá, Mundo".
 - **Usage**: Renderizada pelo `Router` quando a rota `/` é acessada.
-- **Future Enhancement**: Será substituída/complementada pelas páginas de login, cadastro,
-  listagem de tarefas e adição de tarefas previstas na [`IDEA.md`](IDEA.md).
