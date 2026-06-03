@@ -70,11 +70,13 @@ As propriedades específicas de cada projeto estão descritas nas seções de ca
 
 Projeto ASP.NET Core (SDK `Microsoft.NET.Sdk.Web`) que expõe a API consumida pelo frontend.
 
-Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Api` define
-`<UseAppHost>false</UseAppHost>`, que desativa a geração do executável nativo (`TodoList.Api.exe`).
-Sem ele, `dotnet run` executa a aplicação via o host `dotnet` (assinado pela Microsoft) em vez de um
-`.exe` recém-compilado e sem assinatura — necessário porque o **Smart App Control** do Windows 11
-bloqueia executáveis não assinados (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Api` define as
+seguintes propriedades específicas:
+
+| Especificação | Para que serve |
+|---|---|
+| `<UseAppHost>false</UseAppHost>` | Desativa a geração do executável nativo (`TodoList.Api.exe`). Sem ele, `dotnet run` executa a aplicação via o host `dotnet` (assinado pela Microsoft) em vez de um `.exe` recém-compilado e sem assinatura — necessário porque o **Smart App Control** do Windows 11 bloqueia executáveis não assinados (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)). |
+| `<RootNamespace>TodoList.Api</RootNamespace>` | Define o *namespace* raiz padrão dos tipos do projeto, garantindo que o código gerado e os novos arquivos usem `TodoList.Api` independentemente da estrutura de pastas. |
 
 ### `Program.cs`
 - **Pattern**: Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core.
@@ -112,9 +114,15 @@ Controllers da Web API (endpoints HTTP).
 Projeto Blazor WebAssembly (SDK `Microsoft.NET.Sdk.BlazorWebAssembly`) que roda no navegador e
 consome a `TodoList.Api` por HTTP.
 
-Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Web`
-(WebAssembly) não gera apphost, portanto não usa a propriedade `<UseAppHost>` descrita na camada do
-`TodoList.Api`.
+Além das [configurações de build comuns](#configurações-de-build-comuns), o `TodoList.Web` define as
+seguintes propriedades específicas:
+
+| Especificação | Para que serve |
+|---|---|
+| `<RootNamespace>TodoList.Web</RootNamespace>` | Define o *namespace* raiz padrão dos tipos do projeto, garantindo que o código gerado e os novos arquivos usem `TodoList.Web` independentemente da estrutura de pastas. |
+
+Por ser WebAssembly, o `TodoList.Web` não gera apphost e, portanto, **não** usa a propriedade
+`<UseAppHost>` descrita na camada do `TodoList.Api`.
 
 ### `Program.cs`
 - **Pattern**: Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`).
