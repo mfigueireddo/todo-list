@@ -64,6 +64,24 @@ Além das [configurações de build comuns](#configurações-de-build-comuns), o
 | `<UseAppHost>false</UseAppHost>` | Desativa a geração do executável nativo (`TodoList.Api.exe`). Sem ele, `dotnet run` executa a aplicação via o host `dotnet` (assinado pela Microsoft) em vez de um `.exe` recém-compilado e sem assinatura — necessário porque o **Smart App Control** do Windows 11 bloqueia executáveis não assinados (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)). |
 | `<RootNamespace>TodoList.Api</RootNamespace>` | Define o *namespace* raiz padrão dos tipos do projeto, garantindo que o código gerado e os novos arquivos usem `TodoList.Api` independentemente da estrutura de pastas. |
 
+### Configuração da aplicação (`appsettings.json`)
+
+Arquivo de **configuração do servidor** do `TodoList.Api`, carregado pelo ASP.NET Core na
+inicialização e lido via `builder.Configuration`. As decisões atuais são voltadas para
+**desenvolvimento**; o endurecimento para produção (separação por ambiente, hosts restritos, logs
+menos verbosos) está registrado como pendência em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+
+| Chave | Valor atual | Decisão / motivo |
+|---|---|---|
+| `Logging:LogLevel:Default` | `"Trace"` | Nível de log **mais verboso** possível — registra todos os eventos, do mais detalhado ao mais grave. Escolhido para facilitar a depuração nesta fase inicial. É excessivo (e potencialmente custoso/inseguro) em produção; a separação por ambiente via `appsettings.Development.json`/`appsettings.Production.json` está pendente. |
+| `AllowedHosts` | `"*"` | Aceita requisições de **qualquer** host (validação do cabeçalho `Host`). Prático em desenvolvimento, mas em produção deve ser restrito aos domínios reais da aplicação para mitigar ataques de *Host header*. |
+| `ConnectionStrings:Default` | `Server=(localdb)\MSSQLLocalDB;Database=TodoList;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True` | *Connection string* do SQL Server lida em `Program.cs`. Aponta para o **LocalDB** com `Trusted_Connection=True` (autenticação integrada do Windows), portanto **sem usuário/senha** — segura para versionar enquanto for LocalDB. `MultipleActiveResultSets=true` permite múltiplos *result sets* ativos na mesma conexão; `TrustServerCertificate=True` aceita o certificado TLS sem validar a cadeia (adequado para LocalDB/dev). Uso detalhado em [Integração com banco de dados](#integração-com-banco-de-dados-entity-framework-core--sql-server). |
+
+> **Coerência com a estratégia de segredos:** o `appsettings.json` é **versionado** porque hoje não
+> contém dados sensíveis. Isso muda se a *connection string* passar a conter credenciais reais —
+> nesse caso ela deve sair do controle de versão e ir para **User Secrets** (dev) ou **variáveis de
+> ambiente** (produção), conforme [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+
 ### Integração com banco de dados (Entity Framework Core + SQL Server)
 
 O acesso ao **Microsoft SQL Server** é feito via **Entity Framework Core 8** (pacote

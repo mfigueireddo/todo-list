@@ -47,6 +47,35 @@ the controller/service.
 
 ---
 
+## Configuration Files
+
+Document each meaningful configuration file (e.g., `appsettings.json`, `launchSettings.json`) that carries **decisions** worth explaining. The goal is not to list every key, but to make explicit the *why* behind each value and its implications.
+
+For each such file, add a subsection containing a short intro (what the file is, when/how it is loaded) followed by a table that, for every relevant key, captures:
+
+- **Key** — the configuration path (e.g., `Logging:LogLevel:Default`).
+- **Current value** — what it is set to today.
+- **Decision / rationale** — why this value was chosen, what it enables, and any trade-off or environment caveat (e.g., "dev-only; restrict in production").
+
+### Configuration File Subsection Format
+
+```markdown
+### Application configuration (`appsettings.json`)
+
+One or two sentences: what the file is and how it is loaded.
+
+| Key | Current value | Decision / rationale |
+|---|---|---|
+| `Some:Setting` | `"value"` | Why it is set this way, what it enables, and any production caveat. |
+```
+
+Guidelines:
+- Keep it to *what exists today*; defer pending hardening or planned changes to the known-issues document and cross-reference it.
+- For sensitive or environment-specific values (connection strings, secrets), note how they should be handled per environment and link to the relevant known-issues entry instead of committing the secret.
+- Cross-link related sections (e.g., a connection string documented here but consumed in `Program.cs`).
+
+---
+
 ## Project Diagrams
 
 Diagrams in README.md use [Mermaid](https://mermaid.js.org/), which renders natively on GitHub and most markdown viewers. Always wrap diagrams in a fenced code block tagged `mermaid`.
