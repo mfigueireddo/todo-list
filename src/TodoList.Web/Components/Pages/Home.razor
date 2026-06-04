@@ -1,5 +1,26 @@
 @page "/"
+@inject NavigationManager Navigation
 
-<PageTitle>Olá, Mundo</PageTitle>
+@*
+    Página inicial. Não tem conteúdo próprio: apenas redireciona o usuário para a
+    lista de tarefas (/tarefas), que é a tela principal do sistema (docs/IDEA.md).
+*@
 
-<h1>Olá, Mundo</h1>
+@code {
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Ao inicializar a página, redireciona imediatamente para a lista de tarefas.
+    /// </summary>
+    ///
+    /// <remarks>
+    /// Restrições:
+    /// - Quando a feature de login existir, 
+    /// a raiz deverá redirecionar conforme o estado de autenticação (ver docs/KNOWN-ISSUES.md).
+    /// </remarks>
+    ///
+    protected override void OnInitialized()
+    {
+        this.Navigation.NavigateTo("tarefas");
+    }
+}

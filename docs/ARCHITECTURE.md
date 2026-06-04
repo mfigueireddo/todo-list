@@ -50,7 +50,7 @@ todo-list/
         │   ├── App.razor                   # Componente raiz / roteador
         │   ├── Layout/MainLayout.razor     # Layout + navbar (Lista, Adicionar, Logout)
         │   └── Pages/                      # Páginas roteáveis
-        │       ├── Home.razor              # Página "/" ("Olá, Mundo")
+        │       ├── Home.razor              # Página "/" — redireciona para "/tarefas"
         │       └── Tasks/                  # Páginas do CRUD de tarefas
         │           ├── TaskList.razor      # "/tarefas" — lista (accordion + filtro)
         │           ├── TaskCreate.razor    # "/tarefas/nova" — cadastro
@@ -253,5 +253,5 @@ Página `/tarefas/{id}/editar`: carrega a tarefa (`GET /tasks/{id}`), preenche o
 Páginas roteáveis da aplicação (componentes com diretiva `@page`).
 
 #### `Home.razor`
-Página inicial roteável (`@page "/"`) que define o título da aba (`<PageTitle>`) e exibe o cabeçalho "Olá, Mundo".
-- **Usage**: Renderizada pelo `Router` quando a rota `/` é acessada.
+Página inicial roteável (`@page "/"`) sem conteúdo próprio: ao inicializar, redireciona o usuário para a lista de tarefas (`/tarefas`), tela principal do sistema.
+- **Usage**: Renderizada pelo `Router` quando a rota `/` é acessada; encaminha imediatamente para `/tarefas` via `NavigationManager`.
