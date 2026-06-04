@@ -1,0 +1,109 @@
+@page "/tarefas/nova"
+@inject TaskApiClient TaskApi
+@inject NavigationManager Navigation
+
+@*
+    Página de cadastro de uma nova tarefa (docs/IDEA.md). Formulário com título, descrição,
+    data de entrega e dificuldade. O campo de responsável fica desabilitado por enquanto,
+    pois o sistema de usuários ainda não existe (ver docs/KNOWN-ISSUES.md).
+*@
+
+<PageTitle>Adicionar Nova Tarefa</PageTitle>
+
+<h1 class="h3 mb-3">Adicionar Nova Tarefa</h1>
+
+@if (_errorMessage is not null)
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+<EditForm Model="_model" OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label" for="title">Título</label>
+        <InputText id="title" class="form-control" @bind-Value="_model.Title" />
+        <ValidationMessage For="() => _model.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="description">Descrição</label>
+        <InputTextArea id="description" class="form-control" rows="4" @bind-Value="_model.Description" />
+        <ValidationMessage For="() => _model.Description" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="dueDate">Data de entrega</label>
+        <InputDate id="dueDate" class="form-control" @bind-Value="_model.DueDate" />
+        <ValidationMessage For="() => _model.DueDate" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="difficulty">Dificuldade</label>
+        <InputSelect id="difficulty" class="form-select" @bind-Value="_model.Difficulty">
+            @foreach (Difficulty difficulty in Enum.GetValues<Difficulty>())
+            {
+                <option value="@difficulty">@DifficultyDisplay.GetLabel(difficulty)</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="responsible">Responsável</label>
+        <input id="responsible" class="form-control" disabled
+               placeholder="Disponível após a implementação do login de usuários" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@_isSaving">Salvar</button>
+    <a class="btn btn-secondary" href="tarefas">Cancelar</a>
+</EditForm>
+
+@code {
+    /// <summary>Modelo vinculado ao formulário de criação. Inicia com data de entrega = hoje (data válida por padrão).</summary>
+    private CreateTaskRequest _model = new()
+    {
+        DueDate = DateOnly.FromDateTime(DateTime.Today)
+    };
+
+    /// <summary>Indica que a criação está em andamento (evita envios duplicados).</summary>
+    private bool _isSaving;
+
+    /// <summary>Mensagem de erro retornada pela API (ex.: data inválida); nula quando não há erro.</summary>
+    private string? _errorMessage;
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Envia o modelo para a API criar a tarefa.
+    /// 2. Em sucesso, navega para a lista; em erro de validação do servidor, exibe a mensagem.
+    /// </summary>
+    ///
+    /// <remarks>
+    /// Restrições:
+    /// - As validações de obrigatoriedade/tamanho já são checadas no cliente (DataAnnotationsValidator) e novamente no servidor; a regra de data não-passada é validada apenas no servidor.
+    /// </remarks>
+    ///
+    private async Task SubmitAsync()
+    {
+        this._isSaving = true;
+        this._errorMessage = null;
+
+        try
+        {
+            this._errorMessage = await this.TaskApi.CreateAsync(this._model);
+
+            if (this._errorMessage is null)
+            {
+                this.Navigation.NavigateTo("tarefas");
+            }
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível salvar a tarefa: {exception.Message}";
+        }
+        finally
+        {
+            this._isSaving = false;
+        }
+    }
+}

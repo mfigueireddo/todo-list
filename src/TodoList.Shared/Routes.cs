@@ -32,6 +32,14 @@ public static class Routes
 
         /// <summary>Origem HTTP da Web API (perfil `http` do launchSettings).</summary>
         public const string HttpBaseUrl = "http://localhost:5180";
+
+        ///
+        /// <summary>
+        /// Caminho relativo (sem barra inicial) do recurso de tarefas na Web API.
+        /// Fonte única do caminho: usado no atributo [Route(...)] do TasksController (backend) e na montagem das URLs das chamadas HttpClient (frontend), evitando o literal "tasks" duplicado entre os dois lados.
+        /// </summary>
+        ///
+        public const string Tasks = "tasks";
     }
 
     ///

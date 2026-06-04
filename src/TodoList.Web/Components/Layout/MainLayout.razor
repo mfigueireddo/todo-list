@@ -1,5 +1,43 @@
 @inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
-<main>
+@*
+    Layout raiz de todas as páginas. Fornece a navbar fixa exigida pelo projeto (docs/IDEA.md):
+    nome do site + navegação para a lista e o cadastro de tarefas + botão de Logout (vermelho).
+    O conteúdo da página atual é renderizado em @Body.
+*@
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="tarefas">✓ TodoList</a>
+
+        <div class="navbar-nav me-auto">
+            <NavLink class="nav-link" href="tarefas" Match="NavLinkMatch.All">Lista de Tarefas</NavLink>
+            <NavLink class="nav-link" href="tarefas/nova">Adicionar Nova Tarefa</NavLink>
+        </div>
+
+        <button type="button" class="btn btn-danger" @onclick="Logout">Logout</button>
+    </div>
+</nav>
+
+<main class="container py-4">
     @Body
 </main>
+
+@code {
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Placeholder do logout: por ora apenas redireciona para a raiz, pois o sistema de login ainda não existe.
+    /// </summary>
+    ///
+    /// <remarks>
+    /// Restrições:
+    /// - Comportamento provisório: quando a feature de login existir, deve encerrar a sessão e redirecionar para a página de login (ver docs/KNOWN-ISSUES.md).
+    /// </remarks>
+    ///
+    private void Logout()
+    {
+        this.Navigation.NavigateTo("");
+    }
+}

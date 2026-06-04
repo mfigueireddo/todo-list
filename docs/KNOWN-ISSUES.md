@@ -42,16 +42,42 @@ O risco volta a existir assim que a aplicação apontar para um **servidor real 
 >
 > O `.gitignore` já ignora arquivos de banco locais (`*.mdf`, `*.ldf`, `*.ndf`), mas **não** ignora os `appsettings*.json` — essa decisão precisará ser revista conforme a estratégia de segredos escolhida.
 
-## 8. Banco apenas configurado: sem schema, *migrations* nem `AppDbContext` populado
+## 8. Banco: tabela `Tasks` criada; usuários e *seed* do admin ainda pendentes
 
-A integração atual com o SQL Server é só de **conectividade**: o [`AppDbContext`](../src/TodoList.Api/Data/AppDbContext.cs) está **vazio** (sem nenhum `DbSet`), não há entidades de usuário/tarefa e **nenhuma *migration* foi criada** — portanto o banco `TodoList` ainda não tem tabelas.
-O *smoke test* `GET /databasehealth` usa `CanConnectAsync()`, que apenas verifica se o servidor é alcançável; ele **não** valida schema e pode retornar `200 OK` mesmo com o banco vazio.
+A entidade `TaskItem` já está modelada e o [`AppDbContext`](../src/TodoList.Api/Data/AppDbContext.cs) expõe `DbSet<TaskItem> Tasks`. A *migration* [`AddTasks`](../src/TodoList.Api/Data/Migrations) cria a tabela `Tasks`.
+Ainda **não** existem entidade de usuário, ASP.NET Core Identity nem o *seed* do admin.
 
-Além disso, o *default* aponta para o **LocalDB** (`(localdb)\MSSQLLocalDB`), que **precisa estar instalado e em execução** na máquina de desenvolvimento — caso contrário o endpoint responde `503` (comportamento esperado, não um bug).
+O *default* aponta para o **LocalDB** (`(localdb)\MSSQLLocalDB`), que **precisa estar instalado e em execução** na máquina de desenvolvimento. Sem ele, tanto `dotnet ef database update` quanto o `GET /databasehealth` falham (este responde `503` — comportamento esperado, não um bug).
 
-> **A fazer no futuro:** ao modelar usuário/tarefa, criar as entidades + `DbSet` no `AppDbContext`, adicionar *migrations* (`dotnet ef migrations add ...`) e aplicar o schema (`dotnet ef database update`).
-> Lembrar também do requisito do [`IDEA.md`](IDEA.md) de **semear** o usuário `admin` (`Admin@ICAD!`) — provavelmente via *seed* de dados / `HasData` ou *seeding* na inicialização.
-> Considerar evoluir o *smoke test* para algo que também confirme o schema, quando ele existir.
+> **A fazer agora (para rodar o CRUD localmente):** com o LocalDB disponível, restaurar a ferramenta (`dotnet tool restore`) e aplicar o schema em `src/TodoList.Api`: `dotnet ef database update`.
+> **A fazer no futuro:** ao implementar o login, modelar o usuário (provavelmente Identity), adicionar a *migration* correspondente e **semear** o usuário `admin` (`Admin@ICAD!`) exigido pelo [`IDEA.md`](IDEA.md) — via `HasData`/*seeding* na inicialização.
+> Considerar evoluir o *smoke test* para também confirmar o schema.
+
+## 9. Responsável e criador da tarefa adiados (colunas sem FK)
+
+O CRUD de tarefas referencia usuários em dois campos — **responsável** e **criador** — mas o sistema de usuários ainda não existe.
+Decisão (aprovada): nesta etapa `TaskItem.ResponsibleUserId` e `TaskItem.CreatedByUserId` são colunas `Guid?` **anuláveis e sem chave estrangeira**; o seletor de responsável nos formulários fica **desabilitado** e o valor permanece nulo; na lista, o responsável aparece como "Não atribuído".
+
+> **A revisitar com o login:** ligar esses campos à tabela de usuários real (FK), **reconciliando o tipo da chave** (ex.: se for ASP.NET Core Identity, a chave padrão é `string`, não `Guid` — pode exigir migration para ajustar a coluna).
+> Implementar a regra do [`IDEA.md`](IDEA.md): o criador é definido pelo usuário logado e **não** é necessariamente o responsável; um usuário comum pode se autoatribuir como responsável caso a tarefa não tenha um.
+
+## 10. Autorização do CRUD ainda não aplicada
+
+Como não há login, **nenhuma regra de permissão do [`IDEA.md`](IDEA.md) está em vigor**: hoje qualquer chamada pode criar, editar e **excluir** tarefas, e as páginas não são protegidas para usuários deslogados.
+
+> **A revisitar com o login:** aplicar as regras — APENAS o admin exclui; o responsável apenas visualiza/edita; o usuário comum só visualiza e pode se autoatribuir. Proteger as páginas (redirecionar deslogado para o login) e o botão **Logout** (hoje um placeholder em [`MainLayout.razor`](../src/TodoList.Web/Components/Layout/MainLayout.razor) que só redireciona à raiz) para encerrar a sessão e ir à página de login.
+
+## 11. Validação da data de entrega usa a data local do servidor
+
+A regra "a data de entrega não pode ser anterior à data atual" é validada no `TasksController` comparando com `DateOnly.FromDateTime(DateTime.Today)` — ou seja, o **fuso/horário do servidor**. Cliente e servidor em fusos diferentes podem divergir na virada do dia.
+
+> **A revisitar se necessário:** definir explicitamente o fuso de referência (ex.: UTC ou o fuso do usuário) caso a aplicação passe a rodar em ambientes com fusos distintos.
+
+## 12. Bootstrap carregado via CDN
+
+O [`index.html`](../src/TodoList.Web/wwwroot/index.html) carrega o **Bootstrap 5** (CSS + bundle JS) do **CDN jsDelivr**. Simples, mas cria **dependência de rede**: sem internet, o layout/accordion não funcionam.
+
+> **A revisitar se necessário:** para uso offline ou builds autocontidos, baixar o Bootstrap para `wwwroot` (ou via LibMan/npm) e referenciá-lo localmente.
 
 ## 5. CORS liberado para a origem do WASM (restringir em produção)
 

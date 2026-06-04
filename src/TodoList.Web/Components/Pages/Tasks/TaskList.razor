@@ -1,0 +1,262 @@
+@page "/tarefas"
+@inject TaskApiClient TaskApi
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+
+@*
+    Página de listagem de tarefas (docs/IDEA.md). Mostra um accordion por tarefa:
+    no cabeçalho ficam título, data e o checkbox de concluída; ao expandir, aparecem
+    descrição, responsável e a dificuldade como tag colorida. Há filtro por nome e os
+    botões de editar e excluir por tarefa.
+*@
+
+<PageTitle>Lista de Tarefas</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Lista de Tarefas</h1>
+    <a class="btn btn-primary" href="tarefas/nova">Adicionar Nova Tarefa</a>
+</div>
+
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Pesquisar pelo nome da tarefa..."
+           @bind="_searchTerm" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
+    <button class="btn btn-outline-secondary" type="button" @onclick="ApplyFilterAsync">Pesquisar</button>
+</div>
+
+@if (_errorMessage is not null)
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p class="text-muted">Carregando tarefas...</p>
+}
+else if (_tasks.Count == 0)
+{
+    <p class="text-muted">Nenhuma tarefa encontrada.</p>
+}
+else
+{
+    <div class="accordion" id="tasksAccordion">
+        @foreach (TaskDto task in _tasks)
+        {
+            string bodyId = $"task-body-{task.Id}";
+
+            <div class="accordion-item">
+                <div class="accordion-header d-flex align-items-center gap-2 pe-2">
+                    <input class="form-check-input ms-3 mt-0" type="checkbox" checked="@task.IsCompleted"
+                           @onchange="() => ToggleCompletedAsync(task)" title="Marcar como concluída" />
+
+                    <button class="accordion-button collapsed flex-grow-1" type="button"
+                            data-bs-toggle="collapse" data-bs-target="@($"#{bodyId}")">
+                        <span class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                            <strong>@task.Title</strong>
+                            <span class="ms-2 text-muted">@task.DueDate.ToString("dd/MM/yyyy")</span>
+                        </span>
+                    </button>
+
+                    <button class="btn btn-sm btn-outline-secondary" type="button"
+                            @onclick="() => EditTask(task.Id)">Editar</button>
+                    <button class="btn btn-sm btn-outline-danger" type="button"
+                            @onclick="() => DeleteTaskAsync(task)">Excluir</button>
+                </div>
+
+                <div id="@bodyId" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Descrição:</strong> @(string.IsNullOrWhiteSpace(task.Description) ? "—" : task.Description)</p>
+                        <p class="mb-1">
+                            <strong>Dificuldade:</strong>
+                            <span class="badge @DifficultyDisplay.GetBadgeCssClass(task.Difficulty)">
+                                @DifficultyDisplay.GetLabel(task.Difficulty)
+                            </span>
+                        </p>
+                        <p class="mb-1"><strong>Responsável:</strong> @ResponsibleLabel(task)</p>
+                        <p class="mb-0"><strong>Concluída:</strong> @(task.IsCompleted ? "Sim" : "Não")</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>Tarefas atualmente exibidas (já filtradas pelo servidor quando há busca).</summary>
+    private List<TaskDto> _tasks = new();
+
+    /// <summary>Texto do filtro por nome, vinculado ao campo de busca.</summary>
+    private string _searchTerm = string.Empty;
+
+    /// <summary>Indica que a listagem está sendo carregada (mostra estado de "Carregando").</summary>
+    private bool _isLoading = true;
+
+    /// <summary>Mensagem de erro a exibir quando uma operação falha; nula quando não há erro.</summary>
+    private string? _errorMessage;
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Ao inicializar a página, carrega a lista completa de tarefas.
+    /// </summary>
+    ///
+    protected override async Task OnInitializedAsync()
+    {
+        await this.LoadTasksAsync();
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Busca as tarefas na API aplicando o filtro atual e atualiza o estado da página.
+    /// 2. Captura falhas de comunicação para exibi-las ao usuário.
+    /// </summary>
+    ///
+    /// <remarks>
+    /// Assertivas de Saída:
+    /// Ao término, <c>_isLoading</c> é falso e <c>_tasks</c> reflete o resultado da API (ou ficou inalterado, com <c>_errorMessage</c> preenchido, em caso de falha).
+    /// </remarks>
+    ///
+    private async Task LoadTasksAsync()
+    {
+        this._isLoading = true;
+        this._errorMessage = null;
+
+        try
+        {
+            IReadOnlyList<TaskDto> result = await this.TaskApi.GetAllAsync(this._searchTerm);
+            this._tasks = result.ToList();
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível carregar as tarefas: {exception.Message}";
+        }
+        finally
+        {
+            this._isLoading = false;
+        }
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Reaplica o filtro a partir do texto digitado, recarregando a lista pela API.
+    /// </summary>
+    ///
+    private async Task ApplyFilterAsync()
+    {
+        await this.LoadTasksAsync();
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Dispara a busca quando o usuário pressiona Enter no campo de filtro.
+    /// </summary>
+    ///
+    /// <param name="args">Dados do evento de teclado; usado para identificar a tecla Enter.</param>
+    ///
+    private async Task OnSearchKeyUp(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await this.LoadTasksAsync();
+        }
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Alterna o estado de conclusão de uma tarefa e persiste a mudança via PUT na API.
+    /// 2. Recarrega a lista para refletir o novo estado.
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa cujo checkbox foi alterado.</param>
+    ///
+    /// <remarks>
+    /// Restrições:
+    /// - Reutiliza o endpoint de edição (PUT /tasks/{id}) enviando os mesmos dados da tarefa, apenas com a conclusão invertida.
+    /// </remarks>
+    ///
+    private async Task ToggleCompletedAsync(TaskDto task)
+    {
+        UpdateTaskRequest request = new()
+        {
+            Title = task.Title,
+            Description = task.Description,
+            DueDate = task.DueDate,
+            Difficulty = task.Difficulty,
+            ResponsibleUserId = task.ResponsibleUserId,
+            IsCompleted = !task.IsCompleted
+        };
+
+        string? error = await this.TaskApi.UpdateAsync(task.Id, request);
+
+        if (error is not null)
+        {
+            this._errorMessage = error;
+            return;
+        }
+
+        await this.LoadTasksAsync();
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Navega para a página de edição da tarefa selecionada.
+    /// </summary>
+    ///
+    /// <param name="id">Identificador da tarefa a editar.</param>
+    ///
+    private void EditTask(Guid id)
+    {
+        this.Navigation.NavigateTo($"tarefas/{id}/editar");
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Pede confirmação ao usuário e, se confirmada, exclui a tarefa via DELETE na API.
+    /// 2. Recarrega a lista após a exclusão.
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa a ser excluída.</param>
+    ///
+    private async Task DeleteTaskAsync(TaskDto task)
+    {
+        bool confirmed = await this.JsRuntime.InvokeAsync<bool>("confirm", $"Excluir a tarefa \"{task.Title}\"?");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        try
+        {
+            await this.TaskApi.DeleteAsync(task.Id);
+            await this.LoadTasksAsync();
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível excluir a tarefa: {exception.Message}";
+        }
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Produz o rótulo do responsável para exibição.
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa cujo responsável será rotulado.</param>
+    ///
+    /// <returns>
+    /// - Retorna o identificador do responsável quando há um.
+    /// - Retorna "Não atribuído" enquanto o sistema de usuários não existe (responsável sempre nulo).
+    /// </returns>
+    ///
+    private static string ResponsibleLabel(TaskDto task)
+    {
+        return task.ResponsibleUserId is null ? "Não atribuído" : task.ResponsibleUserId.ToString()!;
+    }
+}
