@@ -6,7 +6,9 @@ namespace TodoList.Api.Controllers;
 
 ///
 /// <summary>
-/// Expor um endpoint de verificação de disponibilidade (health check) do banco de dados, usado como smoke test da integração com o Microsoft SQL Server — confirma que a Web API consegue abrir uma conexão com o banco a partir da connection string configurada.
+/// Expor um endpoint de verificação de disponibilidade (health check) do banco de dados, 
+/// usado como smoke test da integração com o Microsoft SQL Server — 
+/// confirma que a Web API consegue abrir uma conexão com o banco a partir da connection string configurada.
 ///
 /// Não lê nem grava dados de negócio: apenas testa a conectividade.
 /// </summary>
@@ -14,10 +16,13 @@ namespace TodoList.Api.Controllers;
 /// <remarks>
 /// Atributos:
 ///
-/// - [ApiController]: marca a classe como controller de API REST e ativa convenções do ASP.NET Core — validação automática do modelo, inferência da origem dos parâmetros, respostas de erro padronizadas em ProblemDetails e exigência de roteamento por atributo.
+/// - [ApiController]: marca a classe como controller de API REST e ativa convenções do ASP.NET Core — 
+/// validação automática do modelo, inferência da origem dos parâmetros, 
+/// respostas de erro padronizadas em ProblemDetails e exigência de roteamento por atributo.
 ///
 /// - [Route("[controller]")]: define o template de URL deste controller.
-///   O token [controller] é substituído pelo roteamento do ASP.NET Core pelo nome da classe sem o sufixo "Controller" — aqui, DatabaseHealthController resolve para a rota "/DatabaseHealth".
+///   O token [controller] é substituído pelo roteamento do ASP.NET Core pelo nome da classe sem o sufixo "Controller" — 
+/// aqui, DatabaseHealthController resolve para a rota "/DatabaseHealth".
 /// </remarks>
 ///
 [ApiController]
@@ -29,7 +34,8 @@ public sealed class DatabaseHealthController : ControllerBase
 
     ///
     /// <summary>
-    /// Recebe o <c>AppDbContext</c> resolvido pela injeção de dependência (registrado em <c>Program.cs</c> via <c>AddDbContext</c>) e o guarda para uso na verificação.
+    /// Recebe o <c>AppDbContext</c> resolvido pela injeção de dependência (registrado em <c>Program.cs</c> via <c>AddDbContext</c>) 
+    /// e o guarda para uso na verificação.
     /// </summary>
     ///
     /// <param name="dbContext">
@@ -50,7 +56,8 @@ public sealed class DatabaseHealthController : ControllerBase
 
     ///
     /// <summary>
-    /// 1. Tenta abrir uma conexão com o banco através de <c>Database.CanConnectAsync</c>, que faz um teste de conectividade leve (não cria tabelas nem lê dados de negócio).
+    /// 1. Tenta abrir uma conexão com o banco através de <c>Database.CanConnectAsync</c>, 
+    /// que faz um teste de conectividade leve (não cria tabelas nem lê dados de negócio).
     ///
     /// 2. Traduz o resultado em uma resposta HTTP: disponível (200) ou indisponível (503).
     /// </summary>
@@ -67,7 +74,8 @@ public sealed class DatabaseHealthController : ControllerBase
     /// Sem argumento, herda a rota do controller, respondendo em GET "/DatabaseHealth".
     ///
     /// Restrições:
-    /// É um smoke test de conectividade: usa <c>CanConnectAsync</c> de propósito (em vez de uma query de negócio) para não depender de nenhum schema/tabela, que ainda não existem.
+    /// É um smoke test de conectividade: usa <c>CanConnectAsync</c> de propósito (em vez de uma query de negócio)
+    /// para não depender de nenhum schema/tabela, que ainda não existem.
     /// </remarks>
     ///
     [HttpGet]

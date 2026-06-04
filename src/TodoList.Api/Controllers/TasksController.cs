@@ -68,6 +68,7 @@ public sealed class TasksController : ControllerBase
     /// <summary>
     /// Descrição:
     /// 1. Lê todas as tarefas do banco, aplicando um filtro opcional por título quando <paramref name="search"/> é informado.
+    /// 
     /// 2. Ordena por data de entrega e projeta cada tarefa em <see cref="TaskDto"/>.
     /// </summary>
     ///
@@ -83,6 +84,7 @@ public sealed class TasksController : ControllerBase
     /// <remarks>
     /// Atributos:
     /// - [HttpGet]: mapeia este método para GET na rota do controller (GET "/tasks").
+    /// 
     /// - [FromQuery] (em <paramref name="search"/>): indica que o valor vem da query string da URL (ex.: "/tasks?search=relatorio").
     /// </remarks>
     ///
@@ -111,6 +113,7 @@ public sealed class TasksController : ControllerBase
     /// <summary>
     /// Descrição:
     /// 1. Busca uma tarefa pelo seu identificador.
+    /// 
     /// 2. Projeta a tarefa encontrada em <see cref="TaskDto"/> ou sinaliza ausência.
     /// </summary>
     ///
@@ -118,6 +121,7 @@ public sealed class TasksController : ControllerBase
     ///
     /// <returns>
     /// - Retorna HTTP 200 com o <see cref="TaskDto"/> quando a tarefa existe.
+    /// 
     /// - Retorna HTTP 404 (Not Found) quando nenhuma tarefa possui o <paramref name="id"/> informado.
     /// </returns>
     ///
@@ -146,7 +150,9 @@ public sealed class TasksController : ControllerBase
     /// <summary>
     /// Descrição:
     /// 1. Valida que a data de entrega não é anterior à data atual.
+    /// 
     /// 2. Cria uma nova tarefa a partir do <paramref name="request"/>, com identificador gerado e conclusão iniciando em falsa.
+    /// 
     /// 3. Persiste a tarefa e responde com o recurso criado.
     /// </summary>
     ///
@@ -158,12 +164,14 @@ public sealed class TasksController : ControllerBase
     ///
     /// <returns>
     /// - Retorna HTTP 201 (Created), com cabeçalho Location apontando para a tarefa, e o <see cref="TaskDto"/> criado.
+    /// 
     /// - Retorna HTTP 400 (Bad Request) quando a data de entrega é anterior à data atual.
     /// </returns>
     ///
     /// <remarks>
     /// Atributos:
     /// - [HttpPost]: mapeia para POST "/tasks".
+    /// ]
     /// - [FromBody] (em <paramref name="request"/>): indica que o objeto vem do corpo JSON da requisição (inferido pelo [ApiController]).
     ///
     /// Restrições:
@@ -201,8 +209,10 @@ public sealed class TasksController : ControllerBase
     /// <summary>
     /// Descrição:
     /// 1. Valida que a data de entrega não é anterior à data atual.
+    /// 
     /// 2. Carrega a tarefa existente e sobrescreve seus campos editáveis com os do <paramref name="request"/> 
     /// (incluindo o estado de conclusão).
+    /// 
     /// 3. Persiste as alterações.
     /// </summary>
     ///
@@ -211,13 +221,16 @@ public sealed class TasksController : ControllerBase
     ///
     /// <returns>
     /// - Retorna HTTP 204 (No Content) quando a edição é aplicada com sucesso.
+    /// 
     /// - Retorna HTTP 404 (Not Found) quando não existe tarefa com o <paramref name="id"/> informado.
+    /// 
     /// - Retorna HTTP 400 (Bad Request) quando a data de entrega é anterior à data atual.
     /// </returns>
     ///
     /// <remarks>
     /// Atributos:
     /// - [HttpPut("{id:guid}")]: mapeia para PUT "/tasks/{id}", restringindo a rota a GUIDs.
+    /// 
     /// - [FromBody] (em <paramref name="request"/>): o objeto vem do corpo JSON da requisição.
     ///
     /// Restrições:
@@ -256,6 +269,7 @@ public sealed class TasksController : ControllerBase
     /// <summary>
     /// Descrição:
     /// 1. Busca a tarefa pelo identificador.
+    /// 
     /// 2. Remove-a do banco quando encontrada.
     /// </summary>
     ///
@@ -263,6 +277,7 @@ public sealed class TasksController : ControllerBase
     ///
     /// <returns>
     /// - Retorna HTTP 204 (No Content) quando a exclusão ocorre.
+    /// 
     /// - Retorna HTTP 404 (Not Found) quando não existe tarefa com o <paramref name="id"/> informado.
     /// </returns>
     ///
@@ -295,6 +310,7 @@ public sealed class TasksController : ControllerBase
     /// <summary>
     /// Descrição:
     /// 1. Verifica se a data de entrega informada é igual ou posterior à data atual do servidor.
+    /// 
     /// 2. Quando inválida, registra a mensagem no <c>ModelState</c> para que a resposta de erro a inclua.
     /// </summary>
     ///
@@ -302,6 +318,7 @@ public sealed class TasksController : ControllerBase
     ///
     /// <returns>
     /// - Retorna <c>true</c> quando a data é hoje ou no futuro.
+    /// 
     /// - Retorna <c>false</c> quando a data é anterior a hoje, tendo adicionado o erro correspondente ao <c>ModelState</c>.
     /// </returns>
     ///
@@ -343,6 +360,7 @@ public sealed class TasksController : ControllerBase
     /// <remarks>
     /// Restrições:
     /// - É <c>static</c> de propósito: a conversão não depende do estado do controller.
+    /// 
     /// - É aplicada SEMPRE em memória (sobre entidades já materializadas), 
     /// nunca dentro de uma projeção LINQ ainda no banco: o EF Core não traduz chamadas de método arbitrárias para SQL.
     /// </remarks>

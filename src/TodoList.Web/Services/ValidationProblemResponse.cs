@@ -8,8 +8,9 @@ namespace TodoList.Web.Services;
 ///
 /// Descrição:
 /// 1. Mapeia apenas os campos necessários do JSON: o título geral e o dicionário de erros por campo.
-/// 2. A desserialização é case-insensitive (padrão do HttpClient/JSON da Web), e
-/// ntão "title"/"errors" do JSON casam com estas propriedades.
+/// 
+/// 2. A desserialização é case-insensitive (padrão do HttpClient/JSON da Web), 
+/// então "title"/"errors" do JSON casam com estas propriedades.
 /// </summary>
 ///
 public sealed class ValidationProblemResponse
@@ -24,11 +25,13 @@ public sealed class ValidationProblemResponse
     /// <summary>
     /// Descrição:
     /// 1. Concatena todas as mensagens de erro de todos os campos em um único texto exibível.
+    /// 
     /// 2. Se não houver mensagens detalhadas, recai no título geral.
     /// </summary>
     ///
     /// <returns>
     /// - Retorna as mensagens de validação unidas por espaço quando há erros por campo.
+    /// 
     /// - Retorna o <see cref="Title"/> quando não há detalhes por campo.
     /// </returns>
     ///

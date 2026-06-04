@@ -10,6 +10,7 @@ namespace TodoList.Api.Data.Entities;
 ///
 /// Descrição:
 /// 1. Reúne os campos de negócio de uma tarefa (título, descrição, data de entrega, dificuldade e conclusão).
+/// 
 /// 2. Guarda referências a usuários (responsável e criador) como identificadores ANULÁVEIS, 
 /// ainda sem relacionamento/FK, pois o sistema de usuários será criado depois.
 /// </summary>
@@ -18,8 +19,10 @@ namespace TodoList.Api.Data.Entities;
 /// Restrições:
 /// - O nome é "TaskItem", e não "Task", de propósito: evita colisão com System.Threading.Tasks.Task, 
 /// onipresente no código assíncrono da API.
+/// 
 /// - O mapeamento (obrigatoriedade, tamanhos, conversão do enum, valor padrão) 
 /// é configurado em AppDbContext.OnModelCreating, não por anotações nesta classe.
+/// 
 /// - <see cref="ResponsibleUserId"/> e <see cref="CreatedByUserId"/> são provisoriamente 
 /// apenas colunas anuláveis SEM chave estrangeira: a ligação com a tabela de usuários (e a definição do tipo da chave) 
 /// virá na feature de login (ver docs/KNOWN-ISSUES.md).

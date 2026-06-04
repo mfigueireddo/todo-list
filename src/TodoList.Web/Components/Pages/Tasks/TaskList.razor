@@ -108,12 +108,14 @@ else
     /// <summary>
     /// Descrição:
     /// 1. Busca as tarefas na API aplicando o filtro atual e atualiza o estado da página.
+    ///
     /// 2. Captura falhas de comunicação para exibi-las ao usuário.
     /// </summary>
     ///
     /// <remarks>
     /// Assertivas de Saída:
-    /// Ao término, <c>_isLoading</c> é falso e <c>_tasks</c> reflete o resultado da API (ou ficou inalterado, com <c>_errorMessage</c> preenchido, em caso de falha).
+    /// Ao término, <c>_isLoading</c> é falso e <c>_tasks</c> reflete o resultado da API 
+    /// (ou ficou inalterado, com <c>_errorMessage</c> preenchido, em caso de falha).
     /// </remarks>
     ///
     private async Task LoadTasksAsync()
@@ -167,6 +169,7 @@ else
     /// <summary>
     /// Descrição:
     /// 1. Alterna o estado de conclusão de uma tarefa e persiste a mudança via PUT na API.
+    ///
     /// 2. Recarrega a lista para refletir o novo estado.
     /// </summary>
     ///
@@ -217,6 +220,7 @@ else
     /// <summary>
     /// Descrição:
     /// 1. Pede confirmação ao usuário e, se confirmada, exclui a tarefa via DELETE na API.
+    ///
     /// 2. Recarrega a lista após a exclusão.
     /// </summary>
     ///
@@ -252,6 +256,7 @@ else
     ///
     /// <returns>
     /// - Retorna o identificador do responsável quando há um.
+    ///
     /// - Retorna "Não atribuído" enquanto o sistema de usuários não existe (responsável sempre nulo).
     /// </returns>
     ///

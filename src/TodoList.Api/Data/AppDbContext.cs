@@ -6,7 +6,7 @@ namespace TodoList.Api.Data;
 
 ///
 /// <summary>
-/// Objective: Representar a sessão do Entity Framework Core com o Microsoft SQL Server — 
+/// Objetivo: Representar a sessão do Entity Framework Core com o Microsoft SQL Server — 
 /// a porta única pela qual a Web API conversa com o banco.
 ///
 /// Modela atualmente a entidade de tarefa (<see cref="Tasks"/>). 
@@ -15,7 +15,7 @@ namespace TodoList.Api.Data;
 /// </summary>
 ///
 /// <remarks>
-/// Restrictions:
+/// Restrições:
 ///
 /// - O <c>DbContext</c> NÃO é thread-safe e tem tempo de vida curto (scoped): 
 /// é registrado por requisição em <c>Program.cs</c> via <c>AddDbContext</c>; 
@@ -49,7 +49,7 @@ public sealed class AppDbContext : DbContext
     /// </param>
     ///
     /// <remarks>
-    /// Assertives of Departure:
+    /// Assertivas de saída:
     /// A instância fica pronta para uso, vinculada ao provider e à connection string fornecidos nas <paramref name="options"/>.
     /// Nenhuma conexão com o banco é aberta neste momento — 
     /// o EF Core conecta de forma tardia (lazy), apenas quando uma operação real é executada.
@@ -63,6 +63,7 @@ public sealed class AppDbContext : DbContext
     /// <summary>
     /// Descrição:
     /// 1. Configura o mapeamento objeto-relacional da entidade <see cref="TaskItem"/> para a tabela "Tasks".
+    /// 
     /// 2. Define o título como obrigatório com tamanho máximo, limita a descrição, 
     /// persiste a dificuldade como texto legível e dá valor padrão à conclusão.
     /// </summary>
@@ -81,6 +82,7 @@ public sealed class AppDbContext : DbContext
     /// Restrições:
     /// - A dificuldade é gravada como STRING (HasConversion&lt;string&gt;) em vez do índice numérico do enum,
     /// para manter o dado legível no banco e robusto a reordenações futuras do enum.
+    /// 
     /// - Os identificadores de responsável/criador permanecem como colunas anuláveis
     ///  SEM chave estrangeira nesta etapa (sem tabela de usuários — ver docs/KNOWN-ISSUES.md).
     /// </remarks>
