@@ -13,11 +13,19 @@ winget install Microsoft.DotNet.SDK.8
 # 2. Confiar no certificado HTTPS (uma vez)
 dotnet dev-certs https --trust
 
-# 3. Na raiz do repositório: restaurar e compilar a solution
+# 3. Instalar o SQL Server LocalDB (uma vez — ver seção 3.1) e iniciar a instância
+#    LocalDB não tem pacote winget próprio: instale via SqlLocalDB.msi (seção 3.1)
+sqllocaldb start MSSQLLocalDB
+
+# 4. Na raiz do repositório: restaurar e compilar a solution
 dotnet restore TodoList.sln
 dotnet build TodoList.sln
 
-# 4. Rodar backend e frontend em DOIS terminais separados
+# 5. Aplicar o schema do banco (cria o banco TodoList e a tabela Tasks)
+dotnet tool restore
+dotnet ef database update --project src/TodoList.Api
+
+# 6. Rodar backend e frontend em DOIS terminais separados
 dotnet run --project src/TodoList.Api --launch-profile https   # API
 dotnet run --project src/TodoList.Web --launch-profile https   # Frontend
 ```
@@ -33,7 +41,7 @@ A **API** fica em <https://localhost:7180> (ex.: <https://localhost:7180/health>
 | Item | Como instalar |
 |---|---|
 | **.NET 8 SDK** | `winget install Microsoft.DotNet.SDK.8` |
-| **Microsoft SQL Server** | Pendente — ver `KNOWN-ISSUES.md` |
+| **SQL Server LocalDB** | `SqlLocalDB.msi` do SQL Server Express (ver seção 3.1) |
 
 ---
 
@@ -69,7 +77,62 @@ dotnet restore TodoList.sln
 
 ---
 
-## 3. Rodar o projeto
+## 3. Configurar o banco de dados
+
+O backend usa **Microsoft SQL Server** via EF Core. Por padrão a aplicação aponta para o **SQL Server LocalDB** — uma edição leve do SQL Server para desenvolvimento — através da *connection string* `ConnectionStrings:Default` em [`src/TodoList.Api/appsettings.json`](../src/TodoList.Api/appsettings.json):
+
+```
+Server=(localdb)\MSSQLLocalDB;Database=TodoList;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True
+```
+
+Como usa `Trusted_Connection=True` (identidade do Windows), **não contém credenciais** e é segura para versionar enquanto for LocalDB.
+
+### 3.1. Instalar o LocalDB
+
+O LocalDB **não** possui pacote `winget` próprio — ele é distribuído com o **SQL Server Express**, via o instalador `SqlLocalDB.msi`:
+
+1. Acesse <https://www.microsoft.com/sql-server/sql-server-downloads> e baixe o instalador **Express**.
+2. Execute-o e escolha a opção **Download Media** → **LocalDB**, que baixa o `SqlLocalDB.msi`.
+3. Execute o `SqlLocalDB.msi` (Next → Next → Finish).
+
+Feche e reabra o terminal para recarregar o `PATH` e confirme a instalação:
+
+```powershell
+sqllocaldb info
+```
+
+### 3.2. Iniciar a instância
+
+```powershell
+sqllocaldb create MSSQLLocalDB   # cria a instância padrão (se ainda não existir)
+sqllocaldb start  MSSQLLocalDB   # inicia
+sqllocaldb info   MSSQLLocalDB   # confirma que está "Running"
+```
+
+### 3.3. Aplicar o schema (migrations)
+
+A ferramenta `dotnet-ef` já está fixada em [`.config/dotnet-tools.json`](../.config/dotnet-tools.json). A partir da raiz do repositório:
+
+```powershell
+dotnet tool restore                              # restaura o dotnet-ef
+dotnet ef database update --project src/TodoList.Api
+```
+
+Isso cria o banco `TodoList` e a tabela `Tasks`. Para confirmar, suba a API (seção 4) e acesse <https://localhost:7180/databasehealth> — deve responder `200 OK` (sem o banco disponível, responde `503`).
+
+### 3.4. Usar outro SQL Server (opcional)
+
+Para apontar para um SQL Server com **usuário/senha** (instância normal, Express ou Docker), **não** edite o `appsettings.json` — o repositório é público. Use **User Secrets** (já habilitado no [`.csproj`](../src/TodoList.Api/TodoList.Api.csproj)):
+
+```powershell
+dotnet user-secrets set "ConnectionStrings:Default" "<connection string com credenciais>" --project src/TodoList.Api
+```
+
+Em seguida, rode novamente o passo 3.3. Mais detalhes sobre a estratégia de segredos em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+
+---
+
+## 4. Rodar o projeto
 
 O frontend (WASM) e o backend (API) são processos separados — rode cada um em **seu próprio terminal**.
 A partir da raiz do repositório:
@@ -101,7 +164,7 @@ Para encerrar cada processo, pressione `Ctrl + C` no respectivo terminal.
 
 ---
 
-## 4. Compilar sem rodar (build)
+## 5. Compilar sem rodar (build)
 
 Para apenas compilar a solution e verificar erros/avisos (lembrando que os projetos usam `TreatWarningsAsErrors`, então qualquer aviso interrompe o build):
 
