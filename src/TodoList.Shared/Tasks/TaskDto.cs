@@ -2,18 +2,21 @@ namespace TodoList.Shared.Tasks;
 
 ///
 /// <summary>
-/// Objetivo: Transportar os dados de uma tarefa do backend (TodoList.Api) para o frontend (TodoList.Web) — a projeção pública e segura da entidade TaskItem, sem detalhes de persistência do EF Core.
+/// Objetivo: Transportar os dados de uma tarefa do backend (TodoList.Api) para o frontend (TodoList.Web) — 
+/// a projeção pública e segura da entidade TaskItem, sem detalhes de persistência do EF Core.
 ///
 /// Descrição:
 /// 1. Espelha os campos exibíveis de uma tarefa (cabeçalho da lista e detalhes do accordion).
-/// 2. É serializado para JSON na resposta dos endpoints de leitura (GET /tasks e GET /tasks/{id}) e desserializado pelo HttpClient da Web.
+/// 2. É serializado para JSON na resposta dos endpoints de leitura (GET /tasks e GET /tasks/{id}) 
+/// e desserializado pelo HttpClient da Web.
 /// </summary>
 ///
 /// <remarks>
 /// Restrições:
 /// - É um contrato compartilhado: alterar um campo aqui afeta API e Web simultaneamente (ambos compilam contra este tipo).
 /// - NÃO é a entidade de banco: a entidade TaskItem vive apenas em TodoList.Api. Este DTO é a forma trafegada pela rede.
-/// - <see cref="ResponsibleUserId"/> é anulável e, nesta etapa, sempre nulo: o sistema de usuários ainda não existe (ver docs/KNOWN-ISSUES.md).
+/// - <see cref="ResponsibleUserId"/> é anulável e, nesta etapa, sempre nulo: 
+/// o sistema de usuários ainda não existe (ver docs/KNOWN-ISSUES.md).
 /// </remarks>
 ///
 public sealed class TaskDto
