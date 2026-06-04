@@ -29,6 +29,9 @@ Cada tema traz uma explicação geral e um exemplo tirado do **próprio código*
 - [Atributos](#atributos)
 - [Propriedades (get; set;)](#propriedades-get-set)
 - [Validação de modelo (Data Annotations e ModelState)](#validação-de-modelo-data-annotations-e-modelstate)
+- [Operadores `?`, `??` e derivados (null-safety)](#operadores---e-derivados-null-safety)
+- [Lambda (funções anônimas)](#lambda-funções-anônimas)
+- [Membros com corpo de expressão](#membros-com-corpo-de-expressão)
 
 ---
 
@@ -240,7 +243,7 @@ A dependência está no `.csproj` da API, fixada para builds reprodutíveis:
 <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.27" />
 ```
 
-Nesta etapa a integração está **apenas configurada** (sem entidades nem *migrations*): existe para validar a conectividade — ver o [smoke test](#smoke-test).
+A integração já modela a entidade de tarefa (`TaskItem`), com [`DbSet`](#dbset) e *migrations* gerando a tabela `Tasks` — além dos *health checks* que validam a conectividade (ver o [smoke test](#smoke-test)).
 
 ---
 
@@ -267,9 +270,9 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(conn
 
 Um **`DbContext`** é a classe central do EF Core: representa uma **sessão com o banco** e é a porta única pela qual a aplicação lê e grava dados.
 Ele expõe os [`DbSet`](#dbset), rastreia mudanças nos objetos e traduz operações em SQL.
-O `AppDbContext` é a **subclasse do projeto** — onde, no futuro, as entidades (usuário, tarefa) serão declaradas.
+O `AppDbContext` é a **subclasse do projeto** — onde as entidades são declaradas (hoje, a tarefa; a de usuário chega na feature de login).
 
-**No projeto** o `AppDbContext` está **deliberadamente vazio** nesta fase (sem `DbSet`): existe só para configurar e validar a conectividade.
+**No projeto** o `AppDbContext` já modela a entidade de tarefa: expõe o [`DbSet`](#dbset) `Tasks` e configura o mapeamento em `OnModelCreating`.
 
 ```csharp
 // TodoList.Api/Data/AppDbContext.cs
@@ -277,6 +280,14 @@ public sealed class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
+    }
+
+    public DbSet<TaskItem> Tasks => this.Set<TaskItem>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<TaskItem>(task => { /* título obrigatório, tamanhos, etc. */ });
     }
 }
 ```
@@ -295,20 +306,16 @@ Um **`DbSet<T>`** é uma propriedade do [`DbContext`](#appdbcontext) que represe
 É através dele que se consulta e manipula os dados de uma entidade (com LINQ: `Where`, `Add`, `Remove`, etc.).
 Cada `DbSet<T>` declarado normalmente vira uma tabela quando o schema é criado via *migrations*.
 
-**No projeto** ainda **não há nenhum `DbSet`** — o `AppDbContext` está vazio de propósito, porque as entidades de usuário e tarefa ainda não foram modeladas.
-Quando forem, terão esta forma (exemplo ilustrativo, ainda não no código):
+**No projeto** já existe um `DbSet`: o de tarefas, declarado no `AppDbContext`:
 
 ```csharp
-public sealed class AppDbContext : DbContext
-{
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-    // Exemplo futuro — ainda NÃO existe no projeto:
-    public DbSet<TodoItem> TodoItems => Set<TodoItem>();
-}
+// TodoList.Api/Data/AppDbContext.cs
+public DbSet<TaskItem> Tasks => this.Set<TaskItem>();
 ```
 
-- Hoje, como não há `DbSet`, a única coisa que se pode fazer com o contexto é testar a conexão (`Database.CanConnectAsync()`), que não depende de nenhuma tabela.
+- O `Tasks` é o ponto por onde o `TasksController` consulta e grava as tarefas — `this._dbContext.Tasks.Add(task)`, mais as consultas [LINQ](#linq) (`Where`, `OrderBy`, `FirstOrDefaultAsync`).
+- A forma `=> this.Set<TaskItem>()` (corpo de expressão, em vez de `{ get; set; }`) é o padrão idiomático do EF Core — ver [Membros com corpo de expressão](#membros-com-corpo-de-expressão).
+- A entidade de **usuário** ainda **não** tem `DbSet`: ela só chega na feature de login (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)). Por isso há um único `DbSet` hoje.
 
 ---
 
@@ -867,3 +874,285 @@ public async Task<ActionResult<TaskDto>> Create([FromBody] CreateTaskRequest req
 - `ValidationProblem(ModelState)` produz **exatamente o mesmo formato 400 ProblemDetails** que o `[ApiController]` geraria sozinho — a validação manual da data apenas reproduz, para um caso que os atributos não alcançam, o que o `[StringLength]` faz automaticamente.
 - Os dois caminhos desembocam no **mesmo `ModelState`**: o declarativo (atributos) o preenche antes da action; o imperativo (`AddModelError`) o complementa dentro dela.
 - É **defesa em profundidade**: o `[StringLength]` barra cedo (400, sem ir ao banco) e o `HasMaxLength` da entidade no EF Core é a segunda barreira na persistência — mesmo limite, duas camadas. Ver [DTO](#dto) e [Entity Framework Core](#entity-framework-core).
+
+---
+
+## Operadores `?`, `??` e derivados (null-safety)
+
+O caractere `?` aparece em **vários operadores diferentes** do C#, e a confusão é justamente que o mesmo símbolo significa coisas distintas dependendo de **onde** ele está.
+A maioria deles existe para lidar com uma única ideia: a **ausência de valor** (`null`).
+Vale separar primeiro o `?` que faz parte de um **tipo** do `?` que é um **operador** numa expressão.
+
+Mapa rápido (cada um detalhado abaixo):
+
+| Forma | Onde aparece | Nome | O que faz |
+|---|---|---|---|
+| `T?` | num **tipo** (`Guid?`, `string?`) | tipo anulável | declara que aquele valor **pode ser `null`** |
+| `cond ? a : b` | numa **expressão** | operador condicional (ternário) | escolhe entre dois valores conforme uma condição |
+| `a ?? b` | numa **expressão** | *null-coalescing* | usa `a`; se for `null`, cai para `b` |
+| `a ??= b` | numa **atribuição** | *null-coalescing assignment* | atribui `b` a `a` **só se** `a` for `null` |
+| `a?.M()` / `a?[i]` | num **acesso** | *null-conditional* | acessa membro/índice; se `a` for `null`, devolve `null` em vez de explodir |
+
+### 1. `T?` — tipo anulável (não é operador)
+
+Aqui o `?` é um **sufixo de tipo**: ele diz que aquele valor pode legitimamente ser `null`. Há **dois casos** com mecânicas diferentes:
+
+- **Tipo de valor anulável** (`Guid?`, `int?`, `bool?`): tipos de valor (`struct`) normalmente **não** aceitam `null`. O `?` os embrulha em `Nullable<T>`, criando um estado "sem valor". `Guid?` é açúcar sintático para `Nullable<Guid>`.
+- **Tipo de referência anulável** (`string?`, `TaskDto?`): referências sempre puderam ser `null` em tempo de execução. Com os *nullable reference types* (C# 8+, ligados neste projeto), o `?` vira uma **anotação para o compilador**: `string?` significa "pode ser null, me avise se eu esquecer de checar"; `string` (sem `?`) significa "prometo que nunca será null". É a mesma distinção que justifica o `= string.Empty;` nas [propriedades](#propriedades-get-set).
+
+**No projeto** os dois aparecem lado a lado. O `ResponsibleUserId` é `Guid?` porque uma tarefa **pode não ter responsável**; e o parâmetro de busca é `string?` porque o filtro é opcional:
+
+```csharp
+// TodoList.Shared/Tasks/TaskDto.cs
+public Guid? ResponsibleUserId { get; set; }   // valor anulável: tarefa sem responsável = null
+
+// TodoList.Api/Controllers/TasksController.cs
+public async Task<ActionResult<IReadOnlyList<TaskDto>>> GetAll([FromQuery] string? search)
+//                                                                          ^ referência anulável: busca opcional
+
+// TodoList.Api/Controllers/TasksController.cs
+TaskItem? task = await this._dbContext.Tasks.FirstOrDefaultAsync(entity => entity.Id == id);
+//      ^ FirstOrDefaultAsync pode não achar nada → o tipo precisa admitir null
+```
+
+- O `TaskItem? task` é o exemplo clássico: `FirstOrDefaultAsync` devolve a entidade **ou** `null`, então o tipo carrega o `?`. É por isso que logo depois há um `if (task is null)` — o compilador praticamente exige o teste antes de usar `task`.
+
+### 2. `cond ? a : b` — operador condicional (ternário)
+
+Este é o único `?` que **não** tem a ver com `null`. É um **`if`/`else` que é uma expressão** (devolve um valor), em vez de um bloco de comandos. Lê-se: "se `cond` for verdadeiro, o resultado é `a`; senão, é `b`". Chama-se *ternário* por ser o único operador do C# com **três** operandos.
+
+**No projeto** ele brilha no Razor, onde se precisa de um **valor** no meio do HTML (um `if` de bloco não caberia ali):
+
+```razor
+@* TodoList.Web/Components/Pages/Tasks/TaskList.razor *@
+<p><strong>Concluída:</strong> @(task.IsCompleted ? "Sim" : "Não")</p>
+
+<span class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+
+<p><strong>Descrição:</strong> @(string.IsNullOrWhiteSpace(task.Description) ? "—" : task.Description)</p>
+```
+
+- `task.IsCompleted ? "Sim" : "Não"` devolve uma das duas strings conforme o `bool` — direto, sem variável intermediária.
+
+### 3. `a ?? b` — *null-coalescing* ("se for null, use o outro")
+
+O operador `??` avalia `a`; **se `a` não for `null`, o resultado é `a`**; se for `null`, o resultado é `b`. É o atalho idiomático para fornecer um **valor de fallback**. Equivale a `a is not null ? a : b`, mas sem repetir `a`.
+
+**No projeto** ele garante que um método nunca devolva `null` para fora. O `GetAllAsync` blinda a desserialização: se a API devolver um corpo vazio, em vez de propagar `null` ele entrega uma lista vazia:
+
+```csharp
+// TodoList.Web/Services/TaskApiClient.cs
+List<TaskDto>? tasks = await this._httpClient.GetFromJsonAsync<List<TaskDto>>(requestUri);
+return tasks ?? new List<TaskDto>();   // se a desserialização deu null, devolve lista vazia
+```
+
+E no `ValidationProblemResponse`, ele dá um texto padrão quando o título do erro veio `null`:
+
+```csharp
+// TodoList.Web/Services/ValidationProblemResponse.cs
+return this.Title ?? "Erro de validação.";   // Title é string? — pode ser null
+```
+
+- Repare o contraste com o tipo: `this.Title` é `string?` (anulável); o `??` **remove** a possibilidade de `null` do resultado, então a função pode prometer devolver `string` (não-anulável).
+
+### 4. `a?.M()` e `a?[i]` — *null-conditional* ("acesse só se não for null")
+
+O `?.` (e seu primo `?[]` para indexadores) acessa um membro **de forma segura**: se `a` for `null`, a expressão **inteira curto-circuita e vale `null`**, em vez de lançar `NullReferenceException`. É o "acesse `a.M()`, mas se `a` for null, nem tente — me dê null".
+
+Um detalhe importante: o resultado de `a?.M()` é **sempre anulável**, mesmo que `M()` normalmente devolva um não-anulável — porque agora ele pode ser `null` pelo caminho do curto-circuito.
+
+**No projeto** o exemplo combina `?.` **e** `??` na mesma linha — um padrão muito comum:
+
+```csharp
+// TodoList.Web/Services/TaskApiClient.cs
+ValidationProblemResponse? problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>();
+return problem?.ToMessage() ?? "Não foi possível salvar a tarefa.";
+```
+
+Lendo `problem?.ToMessage() ?? "..."` da esquerda para a direita:
+1. `problem` é `ValidationProblemResponse?` (pode ter vindo `null` da desserialização).
+2. `problem?.ToMessage()` — se `problem` for `null`, **não** chama `ToMessage()` e o resultado é `null`; senão, chama e devolve o texto.
+3. `?? "Não foi possível salvar a tarefa."` — se o passo 2 deu `null`, cai para a mensagem padrão.
+
+Ou seja, os dois operadores se encaixam: `?.` produz um possível `null`, e o `??` logo em seguida o substitui por um fallback. O resultado final é garantidamente uma `string` não-nula.
+
+### 5. `a ??= b` — *null-coalescing assignment* (atribui só se for null)
+
+Variante de atribuição do `??`: `a ??= b` significa "**se `a` for `null`, atribua `b` a `a`**; caso contrário, não faça nada". É o atalho de `if (a is null) a = b;`, útil para inicialização preguiçosa (*lazy*).
+
+> **Ainda não aparece neste projeto** — está aqui para fechar a família. Forma ilustrativa:
+> ```csharp
+> _cache ??= CarregarDados();   // só carrega na primeira vez; depois reaproveita
+> ```
+
+### Por que esses operadores existem
+
+Todos (menos o ternário) giram em torno de tornar o trato com `null` **explícito e enxuto**: o tipo `T?` declara *onde* o null é permitido, e `??`/`?.`/`??=` oferecem formas curtas de **reagir** a ele sem `if`s repetitivos. Combinados com os *nullable reference types* ligados no projeto, o compilador passa a **cobrar** o tratamento — é o que transforma um `NullReferenceException` de tempo de execução num aviso de compilação. Conecta com [Propriedades (get; set;)](#propriedades-get-set) (o `= string.Empty;` nasce da mesma regra de não-nulidade) e com [Validação de modelo](#validação-de-modelo-data-annotations-e-modelstate) (campos opcionais como `Guid? ResponsibleUserId` não levam `[Required]`).
+
+---
+
+## Lambda (funções anônimas)
+
+Uma **lambda** é uma forma curta de escrever uma **função anônima** (sem nome) ali mesmo, no meio de uma expressão — tipicamente para **passá-la como argumento** a um método. A sintaxe é:
+
+```
+(parâmetros) => corpo
+```
+
+A seta `=>` (lê-se "*goes to*") separa os **parâmetros** (à esquerda) do **corpo** (à direita).
+
+**No projeto** o exemplo que motiva esta seção está no registro do `AppDbContext`, no `Program.cs`:
+
+```csharp
+// TodoList.Api/Program.cs
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+//                                          └──────┬──────┘  └──────────────┬──────────────────┘
+//                                           parâmetro              corpo da lambda
+//                                          └────────────────── a lambda inteira ──────────────┘
+```
+
+O ponto que mais confunde: **`options` não é a lambda** — é o **parâmetro** dela. A lambda é a expressão inteira `options => options.UseSqlServer(connectionString)`. O nome `options` é livre (poderia ser `opt`, `o`, `cfg`); quem **define o tipo** dele é o método que recebe a lambda.
+
+`AddDbContext<AppDbContext>` espera um `Action<DbContextOptionsBuilder>` — "me dê uma função que recebe um `DbContextOptionsBuilder` e não devolve nada". Então:
+
+- `options` tem tipo **`DbContextOptionsBuilder`**, **inferido** (você não escreve o tipo);
+- o corpo `options.UseSqlServer(connectionString)` configura esse builder;
+- o EF Core **chama** essa lambda lá dentro, passando um builder que ele mesmo criou.
+
+A ideia central é o **callback de configuração**: você não monta as opções (não dá `new DbContextOptionsBuilder()`) — entrega **uma receita de como configurá-las**, e o framework a executa no momento certo. Esse padrão é onipresente no ASP.NET Core; o `AddCors` da seção [CORS](#cors) é outra lambda igual (`options => { ... }`).
+
+### Lambda é um valor (delegate): `Action` × `Func`
+
+Diferente de um método nomeado, uma lambda é um **valor** que você guarda num tipo *delegate*. Os dois genéricos mais comuns:
+
+- **`Action<...>`** — **não devolve nada** (só age). É o caso de `options => options.UseSqlServer(...)`: ele apenas *configura*, não retorna valor.
+- **`Func<..., TResult>`** — **devolve** um valor. Ex.: `Func<int,int>` é `x => x * 2`; o último parâmetro genérico é o tipo de retorno.
+
+### Dois formatos de corpo
+
+```csharp
+// Corpo de EXPRESSÃO (uma só expressão; o valor dela é o retorno):
+x => x * 2
+options => options.UseSqlServer(connectionString)
+() => DateTime.Now            // sem parâmetros: parênteses vazios
+
+// Corpo de BLOCO (várias instruções, entre chaves, com return se devolver valor):
+task =>
+{
+    var dto = ToDto(task);
+    return dto;
+}
+```
+
+### Lambdas já espalhadas pelo projeto: o [LINQ](#linq)
+
+Você usa lambdas o tempo todo nas consultas. No `TasksController`, cada operador do LINQ recebe uma:
+
+```csharp
+// TodoList.Api/Controllers/TasksController.cs
+query = query.Where(task => task.Title.Contains(normalizedSearch));   // Func<TaskItem,bool>
+.OrderBy(task => task.DueDate)                                        // Func<TaskItem, DateOnly>
+.FirstOrDefaultAsync(entity => entity.Id == id)                       // o predicado de busca
+```
+
+E o mapeamento da entidade no `AppDbContext` recebe uma lambda de **bloco**:
+
+```csharp
+// TodoList.Api/Data/AppDbContext.cs
+modelBuilder.Entity<TaskItem>(task =>
+{
+    task.HasKey(entity => entity.Id);
+    task.Property(entity => entity.Title).IsRequired().HasMaxLength(TaskFieldLimits.TitleMaxLength);
+    // ...
+});
+```
+
+- Em todas, `task`/`entity` é o **parâmetro** que o método (`Where`, `OrderBy`, `Entity<T>`...) preenche — igualzinho ao `options` do `AddDbContext`. A diferença é só o tipo de delegate: as do LINQ devolvem algo (`Func`), as de configuração só agem (`Action`).
+
+### Closures: a lambda "lembra" o ambiente
+
+Uma lambda **enxerga as variáveis do escopo onde foi escrita** e as carrega consigo para quando for executada depois — isso se chama *closure* (fechamento). No exemplo do `AddDbContext`, `connectionString` é uma variável local do `Program.cs`: a lambda a **captura** e a usa no momento em que o EF Core a invoca. No LINQ, o `normalizedSearch` do `Where` é capturado da mesma forma.
+
+### Cuidado: `=>` em lambda **≠** `=>` em membro
+
+O mesmo glifo `=>` também aparece para declarar [membros com corpo de expressão](#membros-com-corpo-de-expressão) (ex.: `public DbSet<TaskItem> Tasks => this.Set<TaskItem>();`). **Não são a mesma coisa.** A regra para distinguir:
+
+- à esquerda do `=>` há uma **lista de parâmetros** → é **lambda** (um valor/função anônima);
+- à esquerda há a **assinatura de um membro** (modificadores + tipo + nome) → é **corpo de expressão** (forma curta de declarar o membro).
+
+---
+
+## Membros com corpo de expressão
+
+Um **membro com corpo de expressão** (*expression-bodied member*) é uma forma curta de escrever um membro (método, propriedade, construtor...) cujo corpo é **uma única expressão**. Em vez do bloco `{ ... }` com `return`, usa-se a seta `=>` seguida da expressão.
+
+É exatamente a forma da linha que você selecionou:
+
+```csharp
+// TodoList.Api/Data/AppDbContext.cs
+public DbSet<TaskItem> Tasks => this.Set<TaskItem>();
+```
+
+### O `=>` aqui **não** é uma lambda
+
+Este é o ponto que mais confunde: o mesmo símbolo `=>` aparece em **dois contextos diferentes** do C#, e eles não são a mesma coisa.
+
+- **Lambda** (ver [Lambda (funções anônimas)](#lambda-funções-anônimas)): vista na configuração do `AddDbContext`, `options => options.UseSqlServer(...)`. É um **valor** — uma função anônima que você passa como argumento, guarda numa variável, etc. Tem parâmetros à esquerda do `=>`.
+- **Corpo de expressão** (esta linha): é **sintaxe de declaração de um membro**. À esquerda do `=>` está a **assinatura do membro** (`public DbSet<TaskItem> Tasks`), não uma lista de parâmetros. Não há função anônima nenhuma; é só uma forma enxuta de escrever o corpo.
+
+Regra prática para distinguir: se à esquerda do `=>` está a **assinatura de um membro** (com modificadores e tipo), é corpo de expressão; se está uma **lista de parâmetros** (ou um único parâmetro), é lambda.
+
+### O que essa propriedade significa, expandida
+
+Uma propriedade com `=>` é uma **propriedade somente-leitura computada**. A linha acima é **equivalente** a:
+
+```csharp
+public DbSet<TaskItem> Tasks
+{
+    get { return this.Set<TaskItem>(); }
+}
+```
+
+Ou seja: não há `set`, não há *backing field*, e **cada leitura de `Tasks` reavalia a expressão** `this.Set<TaskItem>()`. Isso a diferencia das duas formas vizinhas (ver [Propriedades (get; set;)](#propriedades-get-set)):
+
+| Sintaxe | O que é | Backing field? | Quando avalia |
+|---|---|---|---|
+| `public DbSet<TaskItem> Tasks { get; set; }` | auto-property | sim (gerado) | guarda/lê um valor armazenado |
+| `public DbSet<TaskItem> Tasks { get; } = ...;` | auto-property só-leitura **com inicializador** (`=`) | sim | avalia **uma vez**, na construção |
+| `public DbSet<TaskItem> Tasks => ...;` | corpo de expressão (`=>`) | **não** | avalia **a cada acesso** |
+
+Repare no contraste entre `=` e `=>`: `=` é um **inicializador** (roda uma vez e guarda); `=>` é um **corpo de get** (roda toda vez que se lê). São coisas distintas apesar de parecidas.
+
+### Por que `=> this.Set<TaskItem>()` e não `{ get; set; }`
+
+`DbContext.Set<TaskItem>()` é um método do EF Core que devolve o **`DbSet<TaskItem>` que o próprio contexto gerencia internamente** para aquela entidade (o contexto mantém um cache interno dos seus `DbSet`). Então a propriedade não *guarda* nada: ela apenas **delega** ao contexto a obtenção do `DbSet`.
+
+Esse é o **padrão idiomático moderno** do EF Core, e ele é melhor que a forma antiga `public DbSet<TaskItem> Tasks { get; set; } = null!;` por dois motivos:
+
+- **Não precisa de setter nem de `null!`.** Na forma antiga, a propriedade era um auto-property que o EF Core preenchia por reflexão ao construir o contexto; como ela nascia `null` antes disso, era preciso o `= null!;` para calar o aviso de não-nulidade (ver [Operadores `?`, `??` e derivados](#operadores---e-derivados-null-safety)). Com `=> Set<T>()`, o valor vem sempre do contexto — nunca é `null` —, então nada disso é necessário.
+- **Fonte única.** O `DbSet` real é o que o contexto controla; a propriedade é só um atalho de acesso a ele.
+
+> A entidade `TaskItem` é reconhecida pelo modelo porque é mapeada em `OnModelCreating` (e referenciada por esta propriedade). A propriedade `Tasks` é o que o [`TasksController`](#dto) usa para consultar e gravar — ex.: `this._dbContext.Tasks.Add(task)` e as consultas [LINQ](#linq).
+
+### Vale para outros membros, não só propriedades
+
+A seta `=>` encurta qualquer membro de corpo único. **No projeto**, o `HealthController` usa um **método** com corpo de expressão:
+
+```csharp
+// TodoList.Api/Controllers/HealthController.cs
+[HttpGet]
+public IActionResult Get() => Ok(new { status = "ok", timeUtc = DateTime.UtcNow });
+```
+
+Que é apenas a forma curta de:
+
+```csharp
+[HttpGet]
+public IActionResult Get()
+{
+    return Ok(new { status = "ok", timeUtc = DateTime.UtcNow });
+}
+```
+
+- Aqui o `()` antes do `=>` é a **lista de parâmetros do método** (vazia) — de novo, assinatura de membro, não lambda.
+- Quando o corpo precisa de **mais de uma instrução** (como o `OnModelCreating` do `AppDbContext`, ou as actions do `TasksController`), não dá para usar `=>`: aí volta o bloco `{ ... }`. O corpo de expressão é só para o caso de **uma expressão só**.
