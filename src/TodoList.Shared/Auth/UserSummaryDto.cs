@@ -1,20 +1,34 @@
 namespace TodoList.Shared.Auth;
 
-///
 /// <summary>
-/// Objetivo: Transportar uma representação mínima de um usuário (id + nome) do backend para o frontend (GET /users) —
+/// 
+/// === <b>Objetivo</b> ===
+/// 
+/// <para>
+/// Transportar uma representação mínima de um usuário (id + nome) do backend para o frontend (GET /users) —
 /// usada para popular o seletor de "Responsável" nos formulários de tarefa, sem expor dados sensíveis da conta.
-///
-/// Descrição:
-/// 1. Carrega apenas o identificador e o nome de usuário, suficientes para listar e escolher um responsável.
-/// 2. É serializado na resposta de GET /users e desserializado pelo frontend ao montar o seletor.
+/// </para>
+/// 
+/// === <b>Descrição</b> ===
+/// 
+/// <para>
+/// Carrega apenas o identificador e o nome de usuário, suficientes para listar e escolher um responsável.
+/// </para>
+/// 
+/// <para>
+/// É serializado na resposta de GET /users e desserializado pelo frontend ao montar o seletor.
+/// </para>
+/// 
 /// </summary>
 ///
 /// <remarks>
-/// Restrições:
-/// - Deliberadamente minimalista: não inclui e-mail, papéis nem qualquer dado sensível — é apenas um rótulo selecionável.
+/// === <b>Restrições</b> ===
+/// 
+/// <para>
+/// Deliberadamente minimalista: não inclui e-mail, papéis nem qualquer dado sensível — é apenas um rótulo selecionável.
+/// </para>
+/// 
 /// </remarks>
-///
 public sealed class UserSummaryDto
 {
     /// <summary>Identificador único do usuário (valor atribuído a TaskDto.ResponsibleUserId).</summary>

@@ -1,21 +1,40 @@
 namespace TodoList.Shared.Auth;
 
-///
 /// <summary>
-/// Objetivo: Centralizar, em um único ponto compartilhado entre o backend (TodoList.Api) e o frontend (TodoList.Web),
+/// 
+/// === <b>Objetivo</b> ===
+/// 
+/// <para>
+/// Centralizar, em um único ponto compartilhado entre o backend (TodoList.Api) e o frontend (TodoList.Web),
 /// os limites de tamanho dos campos de autenticação (nome de usuário e senha) — evitando números mágicos espalhados.
-///
-/// Descrição:
-/// 1. As constantes são usadas nas anotações [StringLength] dos DTOs de autenticação (validação automática do [ApiController]).
-/// 2. Espelham a política do ASP.NET Core Identity configurada na API (ex.: tamanho mínimo da senha).
+/// </para>
+/// 
+/// === <b>Descrição</b> ===
+/// 
+/// <para>
+/// As constantes são usadas nas anotações [StringLength] dos DTOs de autenticação (validação automática do [ApiController]).
+/// </para>
+/// 
+/// <para>
+/// Espelham a política do ASP.NET Core Identity configurada na API (ex.: tamanho mínimo da senha).
+/// </para>
+/// 
 /// </summary>
 ///
 /// <remarks>
-/// Restrições:
-/// - <see cref="PasswordMinLength"/> deve permanecer coerente com a política de senha configurada no Identity (em Program.cs do TodoList.Api).
-/// - <see cref="UserNameMaxLength"/> acompanha o tamanho padrão da coluna de usuário do Identity (256).
+/// 
+/// === <b>Restrições</b> ===
+/// 
+/// <para>
+/// <see cref="PasswordMinLength"/> deve permanecer coerente com a política de senha 
+/// configurada no Identity (em Program.cs do TodoList.Api).
+/// </para>
+/// 
+/// <para>
+/// <see cref="UserNameMaxLength"/> acompanha o tamanho padrão da coluna de usuário do Identity (256).
+/// </para>
+/// 
 /// </remarks>
-///
 public static class UserFieldLimits
 {
     /// <summary>Tamanho máximo do nome de usuário (alinhado ao padrão do ASP.NET Core Identity).</summary>

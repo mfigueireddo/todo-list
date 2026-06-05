@@ -2,29 +2,42 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TodoList.Shared.Auth;
 
-///
 /// <summary>
-/// Objetivo: Representar o corpo (payload) enviado pelo frontend ao cadastrar um novo usuário (POST /auth/register) —
+/// 
+/// === <b>Objetivo</b> ===
+/// 
+/// <para>
+/// Representar o corpo (payload) enviado pelo frontend ao cadastrar um novo usuário (POST /auth/register) —
 /// o contrato de entrada do cadastro, compartilhado entre TodoList.Api e TodoList.Web.
-///
-/// Descrição:
-/// 1. Carrega os dados informados na tela de cadastro: nome de usuário, senha e, opcionalmente, e-mail.
-/// 2. As anotações de validação são verificadas automaticamente pelo [ApiController] antes de a action executar;
+/// </para>
+/// 
+/// === <b>Descrição</b> ===
+/// 
+/// <para>
+/// Carrega os dados informados na tela de cadastro: nome de usuário, senha e, opcionalmente, e-mail.
+/// </para>
+/// 
+/// <para>
+/// As anotações de validação são verificadas automaticamente pelo [ApiController] antes de a action executar;
 /// a política de senha definitiva (complexidade) é aplicada pelo Identity no servidor.
+/// </para>
+/// 
 /// </summary>
 ///
 /// <remarks>
-/// Atributos:
-/// - [Required] (em <see cref="UserName"/> e <see cref="Password"/>): exige os campos; a ausência → 400 automático pelo [ApiController].
-/// - [StringLength] (em <see cref="UserName"/>): limita ao tamanho de <see cref="UserFieldLimits.UserNameMaxLength"/>.
-/// - [StringLength] (em <see cref="Password"/>): impõe tamanho mínimo/máximo (<see cref="UserFieldLimits.PasswordMinLength"/>/<see cref="UserFieldLimits.PasswordMaxLength"/>).
-/// - [EmailAddress] (em <see cref="Email"/>): quando informado, valida o formato de e-mail.
 ///
-/// Restrições:
-/// - O e-mail é OPCIONAL: o login do projeto é por nome de usuário (ver docs/IDEA.md); o e-mail fica apenas como dado de conta.
-/// - A complexidade da senha (dígito, maiúscula, símbolo) é exigida pelo Identity no servidor, não por anotação aqui.
+/// === <b>Restrições</b> ===
+/// 
+/// <para>
+/// O e-mail é OPCIONAL: o login do projeto é por nome de usuário (ver docs/IDEA.md); 
+/// o e-mail fica apenas como dado de conta.
+/// </para>
+/// 
+/// <para>
+/// A complexidade da senha (dígito, maiúscula, símbolo) é exigida pelo Identity no servidor, não por anotação aqui.
+/// </para>
+/// 
 /// </remarks>
-///
 public sealed class RegisterRequest
 {
     /// <summary>Nome de usuário desejado (login). Obrigatório e único no sistema.</summary>

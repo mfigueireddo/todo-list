@@ -6,6 +6,14 @@ Not every item is mandatory for every function — use **only the items that are
 
 > **Idioma dos nomes das categorias:** os rótulos de cada categoria — o nome escrito antes dos dois-pontos no comentário (ex.: `Descrição:`, `Atributos:`, `Assertivas de Saída:`) — devem ser sempre escritos **em português**, exatamente como definidos nos títulos das seções abaixo. Apenas os **nomes** são fixos em português; o **conteúdo** de cada item acompanha o idioma do restante da documentação do código.
 
+> **Regras obrigatórias de formatação XML:**
+> - Nunca comece nem termine um bloco de comentário com uma linha vazia `///` sem conteúdo.
+> - Use `/// === <b>Tópico</b> ===` para títulos internos, sempre com um espaço antes e depois do tópico.
+> - Sempre deixe uma linha em branco entre uma tag XML e o conteúdo que ela envolve, mantendo o espaço fora da tag.
+> - Sempre envolva cada parágrafo em `<para>...</para>`, também com linhas em branco antes e depois do bloco.
+> - Nenhuma linha de comentário ou documentação deve ultrapassar 100 caracteres.
+> - Se o comentário for curto o suficiente para caber em uma linha, mantenha `<summary>...</summary>` na mesma linha.
+
 > **VERY IMPORTANT — blank line around tags:** Always leave a blank line **before and after** each block XML doc tag, so that every tag block is visually separated from the next. The blank line goes **outside** the tags (before the opening tag and after the closing tag), never inside:
 >
 > ```csharp
@@ -145,30 +153,44 @@ Atributos:
 
 ```csharp
 /// <summary>
+/// <para>
 /// Objetivo: [Broader intent, if the name is not self-explanatory]
+/// </para>
 ///
+/// <para>
 /// Descrição:
 /// 1. [Step one]
 /// 2. [Step two]
 /// 3. [Step three]
+/// </para>
 /// </summary>
 /// <param name="param_name">[Meaning, format, valid range, or special expectations]</param>
 /// <returns>
+/// <para>
 /// - Returns [value/type] when [condition].
 /// - Returns [value/type] when [condition].
+/// </para>
 /// </returns>
 /// <remarks>
+/// <para>
 /// Atributos:
 /// - [AttributeName]: [what it does and who interprets it] — required for every attribute used.
+/// </para>
 ///
+/// <para>
 /// Assertivas de Entrada:
 /// - [Precondition about parameters or system state]
+/// </para>
 ///
+/// <para>
 /// Assertivas de Saída:
 /// - [Postcondition about outputs or system state]
+/// </para>
 ///
+/// <para>
 /// Restrições:
 /// - [Business rule or technical constraint]
+/// </para>
 /// </remarks>
 ```
 

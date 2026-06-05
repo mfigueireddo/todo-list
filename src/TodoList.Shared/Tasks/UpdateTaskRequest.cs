@@ -2,32 +2,37 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TodoList.Shared.Tasks;
 
-///
 /// <summary>
-/// Objetivo: Representar o corpo (payload) enviado pelo frontend ao editar uma tarefa existente (PUT /tasks/{id}) — 
-/// o contrato de entrada da edição, compartilhado entre TodoList.Api e TodoList.Web.
-///
-/// Descrição:
-/// 1. Carrega os mesmos campos da criação E, adicionalmente, o estado de conclusão.
 /// 
-/// 2. Diferente da criação, inclui <see cref="IsCompleted"/> porque a edição pode marcar/desmarcar a tarefa como concluída — 
+/// === <b>Objetivo</b> ===
+/// 
+/// <para>
+/// Representar o corpo (payload) enviado pelo frontend ao editar uma tarefa existente (PUT /tasks/{id}) — 
+/// o contrato de entrada da edição, compartilhado entre TodoList.Api e TodoList.Web.
+/// </para>
+/// 
+/// === <b>Objetivo</b> ===
+/// 
+/// <para>
+/// Carrega os mesmos campos da criação E, adicionalmente, o estado de conclusão.
+/// </para>
+/// 
+/// <para>
+/// Diferente da criação, inclui <see cref="IsCompleted"/> porque a edição pode marcar/desmarcar a tarefa como concluída — 
 /// inclusive o checkbox da lista usa este mesmo endpoint, apenas alternando esse campo.
+/// </para>
+/// 
 /// </summary>
 ///
 /// <remarks>
-/// Atributos:
-/// - [Required] (em <see cref="Title"/>): exige o título; 
-/// sua ausência faz o [ApiController] responder 400 (Bad Request) automaticamente.
 /// 
-/// - [StringLength] (em <see cref="Title"/> e <see cref="Description"/>): 
-/// limita o tamanho aos valores de <see cref="TaskFieldLimits"/>, alinhado ao banco.
-///
-/// Restrições:
-/// - A regra "a data de entrega não pode ser anterior à data atual" é validada no controller (TodoList.Api), não por anotação.
+/// === <b>Restrições</b> ===
 /// 
-/// - <see cref="ResponsibleUserId"/> permanece anulável e, nesta etapa, sem usuários para atribuir (ver docs/KNOWN-ISSUES.md).
+/// <para>
+/// A regra "a data de entrega não pode ser anterior à data atual" é validada no controller (TodoList.Api), não por anotação.
+/// </para>
+/// 
 /// </remarks>
-///
 public sealed class UpdateTaskRequest
 {
     /// <summary>Título da tarefa. Obrigatório.</summary>
@@ -45,12 +50,7 @@ public sealed class UpdateTaskRequest
     /// <summary>Grau de dificuldade da tarefa.</summary>
     public Difficulty Difficulty { get; set; }
 
-    ///
-    /// <summary>
-    /// Identificador do usuário responsável, ou nulo quando a tarefa não tem responsável.
-    /// Provisoriamente sempre nulo até a feature de login existir (ver docs/KNOWN-ISSUES.md).
-    /// </summary>
-    ///
+    /// <summary>Identificador do usuário responsável, ou nulo quando a tarefa não tem responsável.</summary>
     public Guid? ResponsibleUserId { get; set; }
 
     /// <summary>Indica se a tarefa está concluída. Alternado pelo checkbox da lista ou pelo formulário de edição.</summary>

@@ -1,20 +1,35 @@
 namespace TodoList.Shared.Auth;
 
-///
 /// <summary>
-/// Objetivo: Transportar os dados da conta do usuário autenticado do backend para o frontend (GET /auth/me) —
+/// 
+/// === <b>Objetivo</b> ===
+/// 
+/// <para>
+/// Transportar os dados da conta do usuário autenticado do backend para o frontend (GET /auth/me) —
 /// a projeção exibida na página de conta (visualização), sem expor hash de senha nem detalhes de persistência.
-///
-/// Descrição:
-/// 1. Espelha os campos visíveis da conta: identificador, nome de usuário, e-mail (se houver) e papéis.
-/// 2. É serializado na resposta de GET /auth/me e desserializado pelo AuthApiClient da Web.
+/// </para>
+/// 
+/// === <b>Descrição</b> ===
+/// 
+/// <para>
+/// Espelha os campos visíveis da conta: identificador, nome de usuário, e-mail (se houver) e papéis.
+/// </para>
+/// 
+/// <para>
+/// É serializado na resposta de GET /auth/me e desserializado pelo AuthApiClient da Web.
+/// </para>
+/// 
 /// </summary>
 ///
 /// <remarks>
-/// Restrições:
-/// - NÃO contém senha nem hash: a senha jamais trafega de volta ao cliente.
+/// 
+/// === <b>Restrições</b> ===
+/// 
+/// <para>
+/// NÃO contém senha nem hash: a senha jamais trafega de volta ao cliente.
+/// </para>
+/// 
 /// </remarks>
-///
 public sealed class AccountDto
 {
     /// <summary>Identificador único do usuário.</summary>
