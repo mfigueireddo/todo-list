@@ -108,24 +108,38 @@ if (app.Configuration.GetValue("Seed:Enabled", true))
 
 app.Run();
 
-///
 /// <summary>
-/// Objetivo: Tornar a classe <c>Program</c> (gerada implicitamente pelos top-level statements acima)
+/// 
+/// === <b>Objetivo</b> ===
+/// 
+/// <para>
+/// Tornar a classe <c>Program</c> (gerada implicitamente pelos top-level statements acima)
 /// acessível a outros assemblies.
-///
-/// Descrição:
-/// 1. Os top-level statements do .NET geram uma classe <c>Program</c>
+/// </para>
+/// 
+/// === <b>Descrição</b> ===
+/// 
+/// <para>
+/// Os top-level statements do .NET geram uma classe <c>Program</c>
 /// com visibilidade <c>internal</c>, invisível fora deste projeto.
-///
-/// 2. Esta declaração parcial apenas reabre essa mesma classe para que
+/// </para>
+/// 
+/// <para>
+/// Esta declaração parcial apenas reabre essa mesma classe para que
 /// o projeto de testes possa referenciá-la em <c>WebApplicationFactory&lt;Program&gt;</c>,
 /// sobre o qual os testes de integração sobem a API em memória.
+/// </para>
+/// 
 /// </summary>
 ///
 /// <remarks>
-/// Restrições:
-/// - É o único ajuste no código de produção feito por causa dos testes:
+/// 
+/// === <b>Restrições</b> ===
+/// 
+/// <para>
+/// É o único ajuste no código de produção feito por causa dos testes:
 /// não acrescenta comportamento, só amplia a visibilidade do tipo já existente (ver docs/TESTS.md).
+/// </para>
+/// 
 /// </remarks>
-///
 public partial class Program { }
