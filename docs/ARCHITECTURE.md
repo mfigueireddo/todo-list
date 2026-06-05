@@ -12,8 +12,24 @@ todo-list/
 ├── global.json                             # Fixa a versão do .NET SDK
 ├── .gitignore                              # Padrões ignorados pelo Git
 ├── .config/dotnet-tools.json               # Manifesto de ferramentas locais (dotnet-ef p/ migrations)
-├── docs/                                   # Documentação (IDEA, ARCHITECTURE, KNOWN-ISSUES, ...)
-├── tests/                                  # Reservada p/ projetos de teste (ainda vazia)
+├── docs/                                   # Documentação (IDEA, ARCHITECTURE, KNOWN-ISSUES, TESTS, ...)
+├── tests/                                  # Projetos de teste da solution
+│   └── TodoList.Api.Tests/                 # Testes de integração do CRUD de tarefas (xUnit + WebApplicationFactory)
+│       ├── TodoList.Api.Tests.csproj       # Projeto/build dos testes (espelha as build props do repo)
+│       ├── Infrastructure/                 # Fundação dos testes de integração
+│       │   ├── TodoListApiFactory.cs       # WebApplicationFactory<Program>: aponta p/ LocalDB TodoList_Tests, migra e limpa a tabela
+│       │   ├── ApiCollection.cs            # Collection única (serializa a suíte) + ICollectionFixture da factory
+│       │   └── HttpJson.cs                 # Opções JSON compartilhadas + helpers tipados e RAW
+│       ├── TestData/                       # Dados/baselines de teste
+│       │   └── TaskRequestFactory.cs       # Requests válidos de baseline + seed direto via AppDbContext
+│       ├── Tasks/                          # Testes dos endpoints de tarefas (HTTP)
+│       │   ├── CreateTaskTests.cs          # POST /tasks (validação, fronteiras, brecha do enum, data)
+│       │   ├── GetTasksTests.cs            # GET /tasks e /tasks/{id} (lista, ordenação, busca, 404)
+│       │   ├── UpdateTaskTests.cs          # PUT /tasks/{id} (validação + nuance data-antes-do-NotFound)
+│       │   ├── DeleteTaskTests.cs          # DELETE /tasks/{id} (remoção, inexistente, malformado)
+│       │   └── TaskCrudRoundTripTests.cs   # Ciclo completo POST→GET→PUT→GET→DELETE→GET 404
+│       └── Database/                       # Testes do schema real
+│           └── DatabaseConstraintTests.cs  # Inserção direta via AppDbContext p/ provar as constraints do SQL Server
 └── src/                                    # Projetos da solution (frontend, backend e código compartilhado)
     ├── TodoList.Shared/                    # Biblioteca de classes compartilhada (referenciada por Api e Web)
     │   ├── TodoList.Shared.csproj          # Projeto/build da lib compartilhada
@@ -255,3 +271,32 @@ Páginas roteáveis da aplicação (componentes com diretiva `@page`).
 #### `Home.razor`
 Página inicial roteável (`@page "/"`) sem conteúdo próprio: ao inicializar, redireciona o usuário para a lista de tarefas (`/tarefas`), tela principal do sistema.
 - **Usage**: Renderizada pelo `Router` quando a rota `/` é acessada; encaminha imediatamente para `/tarefas` via `NavigationManager`.
+
+---
+
+## `tests/` — Testes automatizados
+
+Projeto de teste [`tests/TodoList.Api.Tests`](../tests/TodoList.Api.Tests), adicionado à solution sob a *solution folder* `tests` (espelhando `src`).
+Cobre o CRUD de tarefas e explora as vulnerabilidades de cada campo (obrigatório ausente, tipo errado, tamanho fora do limite, valor maior que o banco, data anterior à atual).
+A descrição completa de stack, execução (inclui os *smoke tests*) e cobertura está em [`TESTS.md`](TESTS.md).
+
+Além das [configurações de build comuns](#configurações-de-build-comuns), o projeto define `<IsPackable>false</IsPackable>`, `<IsTestProject>true</IsTestProject>` e `<RootNamespace>TodoList.Api.Tests</RootNamespace>`.
+Como o `TreatWarningsAsErrors` também vale aqui, o código de teste compila sem avisos (usings não usados, *nullability* etc.).
+
+### Stack e abordagem
+`xUnit` (asserções `Assert` puras, sem FluentAssertions) + `Microsoft.NET.Test.Sdk` + `xunit.runner.visualstudio` + `Microsoft.AspNetCore.Mvc.Testing` (`WebApplicationFactory<Program>`).
+A suíte é de **integração**: as requisições passam pelo pipeline HTTP real (`HttpClient` in-memory), pois a validação do `[ApiController]` e a desserialização JSON só rodam dentro do host — não ao instanciar o controller diretamente.
+Para suportar a `WebApplicationFactory<Program>`, o [`Program.cs`](../src/TodoList.Api/Program.cs) da API recebeu, ao final, uma declaração `public partial class Program { }` (a classe gerada por *top-level statements* é `internal`).
+
+### Banco de teste (LocalDB dedicado)
+Os testes batem em um banco SQL Server **LocalDB real** — `Database=TodoList_Tests` no mesmo servidor `(localdb)\MSSQLLocalDB`, **separado do banco de dev `TodoList`**.
+A [`TodoListApiFactory`](../tests/TodoList.Api.Tests/Infrastructure/TodoListApiFactory.cs) sobrescreve `ConnectionStrings:Default` (via configuração em memória) antes de o host subir, aplica as migrations com `Database.Migrate()` e expõe `ResetDatabaseAsync()` (limpa a tabela `Tasks` antes de cada teste).
+A *connection string* usa `Trusted_Connection=True` (sem credenciais) → segura para versionar.
+- **Restrição**: o banco é compartilhado e a **paralelização é desativada** — todas as classes entram em uma única xUnit *collection* ([`ApiCollection`](../tests/TodoList.Api.Tests/Infrastructure/ApiCollection.cs)), serializando a execução para evitar corrida entre os testes que limpam a tabela.
+- **Restrição**: exige o LocalDB instalado e em execução (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+
+### Estrutura interna
+- `Infrastructure/` — a factory, a *collection* e [`HttpJson`](../tests/TodoList.Api.Tests/Infrastructure/HttpJson.cs) (opções JSON compartilhadas + *sender* RAW para enviar JSON malformado que um DTO tipado não representa).
+- `TestData/` — [`TaskRequestFactory`](../tests/TodoList.Api.Tests/TestData/TaskRequestFactory.cs): *requests* válidos de baseline e *seed* direto via `AppDbContext`.
+- `Tasks/` — testes dos endpoints HTTP (criação, leitura/busca, edição, exclusão e ciclo completo).
+- `Database/` — [`DatabaseConstraintTests`](../tests/TodoList.Api.Tests/Database/DatabaseConstraintTests.cs): inserção direta via `AppDbContext` para provar que o **schema do SQL Server** (e não só a validação da API) barra valores maiores que as colunas suportam.

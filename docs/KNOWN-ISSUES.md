@@ -108,3 +108,13 @@ Isso elimina a duplicação de porta **entre arquivos de código**, mas duas lim
 > **A revisitar no futuro:** mover as URLs para configuração lida em runtime (ex.: a URL da API no `wwwroot/appsettings.json` do WASM via `builder.Configuration`; as origens de CORS na configuração da API), para não recompilar ao mudar de ambiente.
 > Avaliar derivar o `applicationUrl` do `launchSettings.json` a partir de uma fonte única (ex.: variável de ambiente `ASPNETCORE_URLS`) para eliminar também esse último ponto de duplicação.
 > Manter coerência com as portas do item 3 e com o CORS do item 6.
+
+## 13. Testes automatizados do CRUD de tarefas
+
+A suíte [`tests/TodoList.Api.Tests`](../tests/TodoList.Api.Tests) já existe e cobre o CRUD de tarefas (detalhes em [`TESTS.md`](TESTS.md)). Alguns pontos exigem atenção na continuidade:
+
+- **Exige LocalDB rodando.** Os testes batem em um banco SQL Server **LocalDB real** (`TodoList_Tests`, separado do dev `TodoList`), criado/migrado automaticamente pela factory. Sem o `(localdb)\MSSQLLocalDB` instalado e em execução, a suíte falha. Quando houver **CI**, será preciso provisionar LocalDB (ou um SQL Server) no *runner*, ou introduzir um provider alternativo para o pipeline.
+- **Paralelização desativada.** Como o banco é compartilhado e cada teste limpa a tabela `Tasks`, todas as classes ficam em uma única xUnit *collection* (execução serializada) para evitar corrida. Isso mantém os testes confiáveis, mas **não escala** — ao crescer a suíte, considerar isolamento por banco/respawn por classe ou transações por teste.
+- **Cobertura sem autorização.** Os testes refletem o comportamento atual **sem login** (qualquer chamador cria/edita/exclui), consistente com o item 10. Ao implementar o login, será preciso **acrescentar testes das regras de permissão** (apenas o admin exclui; responsável edita/visualiza; usuário comum só visualiza e pode se autoatribuir).
+
+> **Nota:** a brecha do enum fora de range (`"difficulty": 99` é aceito e gravado como `"99"`) está documentada como teste em [`TESTS.md`](TESTS.md). Se a regra de negócio passar a exigir validação do enum, ajustar o controller/DTO **e** o teste correspondente.

@@ -30,4 +30,5 @@ Os documentos do projeto estão na pasta [`docs/`](docs):
 | [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Estado atual da arquitetura: visão geral, estrutura de pastas e componentes. |
 | [`DIAGRAMS.md`](docs/DIAGRAMS.md) | Diagramas da arquitetura (componentes, classes e fluxos) em Mermaid. |
 | [`KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) | Limitações conhecidas, decisões adiadas e lembretes de continuidade. |
+| [`TESTS.md`](docs/TESTS.md) | Testes do CRUD de tarefas: stack, execução (inclui smoke tests) e cobertura. |
 | [`STUDY.md`](docs/STUDY.md) | Glossário de estudo: conceitos que surgiram no projeto, explicados com exemplos do próprio código. |

@@ -51,3 +51,26 @@ app.UseCors(WebClientCorsPolicy);
 app.MapControllers();
 
 app.Run();
+
+///
+/// <summary>
+/// Objetivo: Tornar a classe <c>Program</c> (gerada implicitamente pelos top-level statements acima) 
+/// acessível a outros assemblies.
+///
+/// Descrição:
+/// 1. Os top-level statements do .NET geram uma classe <c>Program</c>
+/// com visibilidade <c>internal</c>, invisível fora deste projeto.
+///
+/// 2. Esta declaração parcial apenas reabre essa mesma classe para que 
+/// o projeto de testes possa referenciá-la em <c>WebApplicationFactory&lt;Program&gt;</c>, 
+/// sobre o qual os testes de integração sobem a API em memória.
+/// </summary>
+///
+/// <remarks>
+/// Restrições:
+/// - É o único ajuste no código de produção feito por causa dos testes: 
+/// não acrescenta comportamento, só amplia a visibilidade do tipo já existente (ver docs/TESTS.md).
+/// </remarks>
+///
+public partial class Program { }
+
