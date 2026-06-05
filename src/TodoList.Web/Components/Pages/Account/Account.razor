@@ -1,0 +1,121 @@
+@page "/conta"
+@attribute [Authorize]
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+
+@*
+    Página de conta (docs/IDEA.md): mostra os dados do usuário autenticado e permite excluir a própria conta.
+    Protegida por [Authorize]: um usuário deslogado é redirecionado ao login.
+*@
+
+<PageTitle>Minha Conta</PageTitle>
+
+<h1 class="h3 mb-3">Minha Conta</h1>
+
+@if (_errorMessage is not null)
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p class="text-muted">Carregando conta...</p>
+}
+else if (_account is not null)
+{
+    <dl class="row">
+        <dt class="col-sm-3">Usuário</dt>
+        <dd class="col-sm-9">@_account.UserName</dd>
+
+        <dt class="col-sm-3">E-mail</dt>
+        <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(_account.Email) ? "—" : _account.Email)</dd>
+
+        <dt class="col-sm-3">Papéis</dt>
+        <dd class="col-sm-9">@(_account.Roles.Count == 0 ? "—" : string.Join(", ", _account.Roles))</dd>
+    </dl>
+
+    <hr />
+
+    <h2 class="h5 text-danger">Excluir conta</h2>
+    <p class="text-muted">Esta ação é irreversível. Suas tarefas permanecem, mas deixam de estar vinculadas a você.</p>
+    <button type="button" class="btn btn-danger" @onclick="DeleteAsync" disabled="@_isDeleting">Excluir minha conta</button>
+}
+
+@code {
+    /// <summary>Dados da conta carregados da API; nulo enquanto carrega ou em caso de falha.</summary>
+    private AccountDto? _account;
+
+    /// <summary>Indica que os dados da conta ainda estão sendo carregados.</summary>
+    private bool _isLoading = true;
+
+    /// <summary>Indica que a exclusão da conta está em andamento (evita cliques duplicados).</summary>
+    private bool _isDeleting;
+
+    /// <summary>Mensagem de erro a exibir; nula quando não há erro.</summary>
+    private string? _errorMessage;
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Ao inicializar, carrega os dados da conta autenticada.
+    /// </summary>
+    ///
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            this._account = await this.AuthApi.GetAccountAsync();
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível carregar a conta: {exception.Message}";
+        }
+        finally
+        {
+            this._isLoading = false;
+        }
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Pede confirmação e, se confirmada, solicita a exclusão da conta.
+    /// 2. Em sucesso, redireciona ao login; caso a exclusão seja recusada (ex.: conta admin), exibe a mensagem.
+    /// </summary>
+    ///
+    private async Task DeleteAsync()
+    {
+        bool confirmed = await this.JsRuntime.InvokeAsync<bool>("confirm", "Tem certeza que deseja excluir sua conta? Esta ação é irreversível.");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        this._isDeleting = true;
+        this._errorMessage = null;
+
+        try
+        {
+            bool deleted = await this.AuthApi.DeleteAccountAsync();
+
+            if (deleted)
+            {
+                this.Navigation.NavigateTo("login");
+            }
+            else
+            {
+                this._errorMessage = "Não foi possível excluir a conta. A conta administradora não pode ser excluída.";
+            }
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível excluir a conta: {exception.Message}";
+        }
+        finally
+        {
+            this._isDeleting = false;
+        }
+    }
+}

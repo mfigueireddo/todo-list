@@ -14,63 +14,93 @@ todo-list/
 ├── .config/dotnet-tools.json               # Manifesto de ferramentas locais (dotnet-ef p/ migrations)
 ├── docs/                                   # Documentação (IDEA, ARCHITECTURE, KNOWN-ISSUES, TESTS, ...)
 ├── tests/                                  # Projetos de teste da solution
-│   └── TodoList.Api.Tests/                 # Testes de integração do CRUD de tarefas (xUnit + WebApplicationFactory)
+│   └── TodoList.Api.Tests/                 # Testes de integração da API (xUnit + WebApplicationFactory)
 │       ├── TodoList.Api.Tests.csproj       # Projeto/build dos testes (espelha as build props do repo)
 │       ├── Infrastructure/                 # Fundação dos testes de integração
-│       │   ├── TodoListApiFactory.cs       # WebApplicationFactory<Program>: aponta p/ LocalDB TodoList_Tests, migra e limpa a tabela
+│       │   ├── TodoListApiFactory.cs       # WebApplicationFactory<Program>: LocalDB TodoList_Tests, migra+semeia, limpa tabela/usuários, autentica admin
 │       │   ├── ApiCollection.cs            # Collection única (serializa a suíte) + ICollectionFixture da factory
 │       │   └── HttpJson.cs                 # Opções JSON compartilhadas + helpers tipados e RAW
 │       ├── TestData/                       # Dados/baselines de teste
-│       │   └── TaskRequestFactory.cs       # Requests válidos de baseline + seed direto via AppDbContext
-│       ├── Tasks/                          # Testes dos endpoints de tarefas (HTTP)
+│       │   ├── TaskRequestFactory.cs       # Requests válidos de baseline + seed direto via AppDbContext
+│       │   └── AuthTestHelpers.cs          # Cadastro/login, cliente autenticado e leitura de claims do JWT
+│       ├── Tasks/                          # Testes dos endpoints de tarefas (HTTP, autenticados como admin)
 │       │   ├── CreateTaskTests.cs          # POST /tasks (validação, fronteiras, brecha do enum, data)
 │       │   ├── GetTasksTests.cs            # GET /tasks e /tasks/{id} (lista, ordenação, busca, 404)
 │       │   ├── UpdateTaskTests.cs          # PUT /tasks/{id} (validação + nuance data-antes-do-NotFound)
 │       │   ├── DeleteTaskTests.cs          # DELETE /tasks/{id} (remoção, inexistente, malformado)
 │       │   └── TaskCrudRoundTripTests.cs   # Ciclo completo POST→GET→PUT→GET→DELETE→GET 404
+│       ├── Auth/                           # Testes de login e autorização (HTTP)
+│       │   ├── RegisterTests.cs            # POST /auth/register (válido, duplicado, senha fraca, ausente)
+│       │   ├── LoginTests.cs               # POST /auth/login (admin semeado, credenciais inválidas, claims do token)
+│       │   ├── AuthorizationTests.cs       # Regras: 401 deslogado; admin exclui; responsável edita; autoatribuição
+│       │   └── AccountTests.cs             # GET/DELETE /auth/me (ver, excluir, anular referências, bloquear admin)
 │       └── Database/                       # Testes do schema real
 │           └── DatabaseConstraintTests.cs  # Inserção direta via AppDbContext p/ provar as constraints do SQL Server
 └── src/                                    # Projetos da solution (frontend, backend e código compartilhado)
     ├── TodoList.Shared/                    # Biblioteca de classes compartilhada (referenciada por Api e Web)
     │   ├── TodoList.Shared.csproj          # Projeto/build da lib compartilhada
-    │   ├── Routes.cs                       # URLs base (origens) + caminho do recurso de tarefas
-    │   └── Tasks/                          # Contrato de tarefas (DTOs + enum), compartilhado Api/Web
-    │       ├── Difficulty.cs               # Enum fixo de dificuldade (Facil/Media/Dificil)
-    │       ├── TaskFieldLimits.cs          # Constantes de tamanho dos campos de texto da tarefa
-    │       ├── TaskDto.cs                  # Projeção pública de uma tarefa (resposta da API)
-    │       ├── CreateTaskRequest.cs        # Payload de criação (POST /tasks)
-    │       └── UpdateTaskRequest.cs        # Payload de edição (PUT /tasks/{id})
+    │   ├── Routes.cs                       # URLs base (origens) + caminhos dos recursos (tasks/auth/users)
+    │   ├── Tasks/                          # Contrato de tarefas (DTOs + enum), compartilhado Api/Web
+    │   │   ├── Difficulty.cs               # Enum fixo de dificuldade (Facil/Media/Dificil)
+    │   │   ├── TaskFieldLimits.cs          # Constantes de tamanho dos campos de texto da tarefa
+    │   │   ├── TaskDto.cs                  # Projeção pública de uma tarefa (inclui ResponsibleUserName)
+    │   │   ├── CreateTaskRequest.cs        # Payload de criação (POST /tasks)
+    │   │   └── UpdateTaskRequest.cs        # Payload de edição (PUT /tasks/{id})
+    │   └── Auth/                           # Contrato de autenticação/conta (DTOs + constantes), compartilhado Api/Web
+    │       ├── LoginRequest.cs             # Payload de login (POST /auth/login)
+    │       ├── RegisterRequest.cs          # Payload de cadastro (POST /auth/register)
+    │       ├── AuthResponse.cs             # Resposta de login/cadastro (token + dados do usuário)
+    │       ├── AccountDto.cs               # Projeção da conta (GET /auth/me)
+    │       ├── UserSummaryDto.cs           # Id + nome de usuário (GET /users; seletor de responsável)
+    │       ├── UserFieldLimits.cs          # Constantes de tamanho de usuário/senha
+    │       ├── AppRoles.cs                 # Nomes dos papéis (Admin/User), compartilhados
+    │       └── JwtClaimNames.cs            # Nomes curtos das claims do JWT (sub/name/role)
     ├── TodoList.Api/                       # Backend — .NET Web API
-    │   ├── TodoList.Api.csproj             # Projeto/build do backend (+ EF Core SQL Server e Design)
-    │   ├── Program.cs                      # Pipeline HTTP + CORS + registro do AppDbContext
-    │   ├── appsettings.json                # Configuração de servidor (logging, hosts, connection string)
+    │   ├── TodoList.Api.csproj             # Projeto/build do backend (+ EF Core SQL Server, Identity EF, JwtBearer)
+    │   ├── Program.cs                      # Pipeline HTTP + CORS + AppDbContext + Identity + JWT + seed do admin
+    │   ├── appsettings.json                # Configuração de servidor (logging, hosts, connection string, Jwt:Issuer/Audience)
+    │   ├── Auth/                           # Autenticação no servidor (JWT)
+    │   │   ├── JwtConfig.cs                # Chaves de config, nomes de claim e TokenValidationParameters do JWT
+    │   │   └── JwtTokenService.cs          # Emite o JWT assinado (claims sub/name/role) no login/cadastro
     │   ├── Data/                           # Acesso a dados (EF Core)
-    │   │   ├── AppDbContext.cs             # DbContext com o DbSet de tarefas — sessão com o SQL Server
-    │   │   ├── Entities/TaskItem.cs        # Entidade de persistência da tarefa (tabela "Tasks")
-    │   │   └── Migrations/                 # Migrations do EF Core (schema versionado) — AddTasks
+    │   │   ├── AppDbContext.cs             # IdentityDbContext (tarefas + tabelas AspNet*) — sessão com o SQL Server
+    │   │   ├── Entities/TaskItem.cs        # Entidade de persistência da tarefa (FKs opcionais p/ AspNetUsers)
+    │   │   ├── Entities/AppUser.cs         # Entidade de usuário (IdentityUser<Guid>) — tabela AspNetUsers
+    │   │   ├── Seeding/IdentitySeeder.cs   # Semeia papéis Admin/User e o usuário admin (idempotente)
+    │   │   └── Migrations/                 # Migrations do EF Core — AddTasks, AddIdentity
     │   ├── Controllers/                    # Controllers da Web API (endpoints HTTP)
     │   │   ├── HealthController.cs         # GET /health (verificação de disponibilidade da API)
     │   │   ├── DatabaseHealthController.cs # GET /databasehealth (smoke test de conexão com o banco)
-    │   │   └── TasksController.cs          # CRUD de tarefas (GET/POST/PUT/DELETE em /tasks)
+    │   │   ├── TasksController.cs          # CRUD de tarefas (com [Authorize] e regras de permissão) + /assign
+    │   │   ├── AuthController.cs           # /auth: register, login, me, exclusão de conta
+    │   │   └── UsersController.cs          # GET /users (lista mínima p/ o seletor de responsável)
     │   └── Properties/launchSettings.json  # Perfis de execução (dotnet run)
     └── TodoList.Web/                       # Frontend — Blazor WebAssembly
-        ├── TodoList.Web.csproj             # Projeto/build do frontend
-        ├── Program.cs                      # Host do WASM + HttpClient + TaskApiClient
-        ├── _Imports.razor                  # Usings globais dos componentes Blazor
+        ├── TodoList.Web.csproj             # Projeto/build do frontend (+ Components.Authorization)
+        ├── Program.cs                      # Host do WASM + HttpClient + autenticação + clientes de API
+        ├── _Imports.razor                  # Usings globais dos componentes Blazor (+ Authorization)
         ├── wwwroot/index.html              # Host page estática (monta o #app) + Bootstrap (CDN)
-        ├── Services/                       # Clientes de transporte HTTP do frontend
-        │   ├── TaskApiClient.cs            # Centraliza as chamadas HTTP ao recurso de tarefas
+        ├── Services/                       # Clientes de transporte HTTP + autenticação do frontend
+        │   ├── TaskApiClient.cs            # Chamadas ao recurso de tarefas (+ autoatribuição, lista de usuários)
+        │   ├── AuthApiClient.cs            # Chamadas de login/cadastro/conta + coordenação do estado de sessão
+        │   ├── TokenStore.cs               # Guarda/recupera o JWT no localStorage (interop JS)
+        │   ├── JwtAuthenticationStateProvider.cs # Estado de autenticação a partir do JWT + cabeçalho Authorization
         │   └── ValidationProblemResponse.cs# Leitura do corpo de erro 400 (ProblemDetails)
         ├── Display/DifficultyDisplay.cs    # Rótulo PT + classe de badge para a dificuldade (UI)
         ├── Components/                     # Componentes Blazor da aplicação
-        │   ├── App.razor                   # Componente raiz / roteador
-        │   ├── Layout/MainLayout.razor     # Layout + navbar (Lista, Adicionar, Logout)
+        │   ├── App.razor                   # Raiz / roteador (CascadingAuthenticationState + AuthorizeRouteView)
+        │   ├── RedirectToLogin.razor       # Redireciona o usuário deslogado para /login
+        │   ├── Layout/MainLayout.razor     # Layout + navbar condicional por autenticação + Logout real
         │   └── Pages/                      # Páginas roteáveis
-        │       ├── Home.razor              # Página "/" — redireciona para "/tarefas"
-        │       └── Tasks/                  # Páginas do CRUD de tarefas
-        │           ├── TaskList.razor      # "/tarefas" — lista (accordion + filtro)
-        │           ├── TaskCreate.razor    # "/tarefas/nova" — cadastro
-        │           └── TaskEdit.razor      # "/tarefas/{id}/editar" — edição
+        │       ├── Home.razor              # Página "/" ([Authorize]) — redireciona para "/tarefas"
+        │       ├── Account/                # Páginas de usuário (login/cadastro/conta)
+        │       │   ├── Login.razor         # "/login" — autenticação (anônima)
+        │       │   ├── Register.razor      # "/cadastro" — cadastro com auto-login (anônima)
+        │       │   └── Account.razor       # "/conta" ([Authorize]) — ver dados e excluir conta
+        │       └── Tasks/                  # Páginas do CRUD de tarefas ([Authorize])
+        │           ├── TaskList.razor      # "/tarefas" — lista (accordion + filtro + ações por papel)
+        │           ├── TaskCreate.razor    # "/tarefas/nova" — cadastro (seletor de responsável)
+        │           └── TaskEdit.razor      # "/tarefas/{id}/editar" — edição (responsável editável p/ admin)
         └── Properties/launchSettings.json  # Perfis de execução (dotnet run)
 ```
 
@@ -119,10 +149,25 @@ Enum fixo com os três níveis de dificuldade (`Facil`, `Media`, `Dificil`), exi
 Constantes de tamanho máximo dos campos de texto (`TitleMaxLength`, `DescriptionMaxLength`), usadas tanto nas anotações `[StringLength]` dos DTOs quanto no `HasMaxLength` do mapeamento da entidade — mantendo validação e schema alinhados, sem números mágicos.
 
 #### `TaskDto.cs`
-Projeção **pública e segura** de uma tarefa, serializada nas respostas de leitura (`GET /tasks` e `GET /tasks/{id}`). Espelha os campos exibíveis; não contém detalhes de persistência. `ResponsibleUserId` é `Guid?` e, nesta etapa, sempre nulo (sem sistema de usuários).
+Projeção **pública e segura** de uma tarefa, serializada nas respostas de leitura (`GET /tasks` e `GET /tasks/{id}`). Espelha os campos exibíveis; não contém detalhes de persistência. Inclui `ResponsibleUserId` (`Guid?`) e `ResponsibleUserName` (`string?`, preenchido pela API via join com `AspNetUsers`) para o frontend exibir o **nome** do responsável.
 
 #### `CreateTaskRequest.cs` / `UpdateTaskRequest.cs`
 Payloads de entrada da criação e da edição. Carregam as anotações de validação (`[Required]`, `[StringLength]`) verificadas automaticamente pelo `[ApiController]`. O de edição inclui `IsCompleted` (a criação não, pois toda tarefa nasce com conclusão falsa). A regra "data de entrega não anterior à atual" **não** é anotação — é validada no servidor (ver `TasksController`).
+
+### `Auth/` — Contrato de autenticação (DTOs + constantes)
+Tipos compilados nos dois lados que definem o formato da conversa sobre autenticação/conta e os nomes compartilhados de papéis e claims.
+
+#### `LoginRequest.cs` / `RegisterRequest.cs`
+Payloads de entrada do login e do cadastro (com `[Required]`/`[StringLength]`/`[EmailAddress]`). O e-mail é opcional (o login é por nome de usuário). A complexidade da senha é exigida pelo Identity no servidor.
+
+#### `AuthResponse.cs`
+Resposta de login/cadastro: o **token JWT** + dados básicos do usuário (id, nome, papéis). O frontend guarda o token e o reenvia; quem o valida é a API.
+
+#### `AccountDto.cs` / `UserSummaryDto.cs`
+`AccountDto` é a projeção da conta (`GET /auth/me`: id, nome, e-mail, papéis), sem senha/hash. `UserSummaryDto` é a projeção mínima (id + nome) de `GET /users`, para o seletor de responsável.
+
+#### `UserFieldLimits.cs` / `AppRoles.cs` / `JwtClaimNames.cs`
+Constantes compartilhadas: tamanhos de usuário/senha (`UserFieldLimits`), nomes dos papéis (`AppRoles.Admin`/`User`, usados em `[Authorize(Roles=...)]` e no `AuthorizeView`) e nomes curtos das claims do JWT (`JwtClaimNames` = `sub`/`name`/`role`), garantindo que backend e frontend usem exatamente os mesmos literais.
 
 ---
 
@@ -147,6 +192,11 @@ As decisões atuais são voltadas para **desenvolvimento**; o endurecimento para
 | `Logging:LogLevel:Default` | `"Trace"` | Nível de log **mais verboso** possível — registra todos os eventos, do mais detalhado ao mais grave. Escolhido para facilitar a depuração nesta fase inicial. É excessivo (e potencialmente custoso/inseguro) em produção; a separação por ambiente via `appsettings.Development.json`/`appsettings.Production.json` está pendente. |
 | `AllowedHosts` | `"*"` | Aceita requisições de **qualquer** host (validação do cabeçalho `Host`). Prático em desenvolvimento, mas em produção deve ser restrito aos domínios reais da aplicação para mitigar ataques de *Host header*. |
 | `ConnectionStrings:Default` | `Server=(localdb)\MSSQLLocalDB;Database=TodoList;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True` | *Connection string* do SQL Server lida em `Program.cs`. Aponta para o **LocalDB** com `Trusted_Connection=True` (autenticação integrada do Windows), portanto **sem usuário/senha** — segura para versionar enquanto for LocalDB. `MultipleActiveResultSets=true` permite múltiplos *result sets* ativos na mesma conexão; `TrustServerCertificate=True` aceita o certificado TLS sem validar a cadeia (adequado para LocalDB/dev). Uso detalhado em [Integração com banco de dados](#integração-com-banco-de-dados-entity-framework-core--sql-server). |
+| `Jwt:Issuer` | `"TodoList.Api"` | Emissor (issuer) embutido e validado no JWT. Valor **não sensível**, versionado. |
+| `Jwt:Audience` | `"TodoList.Web"` | Público (audience) embutido e validado no JWT. Valor **não sensível**, versionado. |
+| `Jwt:SigningKey` | *(ausente do `appsettings.json`)* | Chave de assinatura HMAC-SHA256 — **segredo**. Lida da configuração (User Secrets em dev, variável de ambiente em prod) com *fail-fast* se ausente. NÃO versionada (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md), item 14). |
+| `Seed:Admin:Username` / `Seed:Admin:Password` | *(ausentes; default no código)* | Credenciais do admin semeado. Default = valor público exigido pelo [`IDEA.md`](IDEA.md); sobrescritíveis por ambiente (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md), item 15). |
+| `Seed:Enabled` | *(ausente; default `true`)* | Liga/desliga o *seed* no startup. Os testes definem `false` e semeiam manualmente após migrar (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md), item 17). |
 
 > **Coerência com a estratégia de segredos:** o `appsettings.json` é **versionado** porque hoje não contém dados sensíveis.
 > Isso muda se a *connection string* passar a conter credenciais reais — nesse caso ela deve sair do controle de versão e ir para **User Secrets** (dev) ou **variáveis de ambiente** (produção), conforme [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
@@ -154,7 +204,7 @@ As decisões atuais são voltadas para **desenvolvimento**; o endurecimento para
 ### Integração com banco de dados (Entity Framework Core + SQL Server)
 
 O acesso ao **Microsoft SQL Server** é feito via **Entity Framework Core 8** (pacote `Microsoft.EntityFrameworkCore.SqlServer`, fixado em `8.0.27` para builds reprodutíveis).
-A entidade `TaskItem` já está modelada e há a *migration* `AddTasks` que cria a tabela `Tasks`. A entidade de usuário e o ASP.NET Core Identity ainda não existem (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+A entidade `TaskItem` está modelada (*migration* `AddTasks`) e o **ASP.NET Core Identity** (pacote `Microsoft.AspNetCore.Identity.EntityFrameworkCore`) modela usuários e papéis: o `AppDbContext` herda de `IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>` e a *migration* `AddIdentity` cria as tabelas `AspNet*` e as FKs de `Tasks` para `AspNetUsers`. A autenticação por **JWT Bearer** usa o pacote `Microsoft.AspNetCore.Authentication.JwtBearer`.
 
 | Peça | Para que serve |
 |---|---|
@@ -166,22 +216,38 @@ A entidade `TaskItem` já está modelada e há a *migration* `AddTasks` que cria
 | `UserSecretsId` (no `.csproj`) | Habilita o **User Secrets** para guardar, fora do controle de versão, uma *connection string* com credenciais reais (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)). |
 
 ### `Program.cs`
-Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core. Além dos controllers e do CORS, lê a *connection string* `Default` da configuração e registra o `AppDbContext` (EF Core + SQL Server) no contêiner de injeção de dependência. As origens liberadas no CORS vêm de `Routes.Web` (em [`TodoList.Shared`](#todolistshared--código-compartilhado-biblioteca-de-classes)), não de literais de porta.
+Ponto de entrada (top-level statements) com o *builder*/*pipeline* do ASP.NET Core. Registra os controllers, o CORS (origens de `Routes.Web`), o `AppDbContext` (EF Core + SQL Server), o **ASP.NET Core Identity** (`AddIdentityCore<AppUser>` + papéis + stores EF; política de senha com `RequireDigit = false` para aceitar a senha do admin) e a **autenticação JWT Bearer** (`MapInboundClaims = false`; `TokenValidationParameters` de `JwtConfig`). No *pipeline*, `UseAuthentication()`/`UseAuthorization()` rodam após o CORS e antes de `MapControllers()`. Ao final, semeia papéis/admin via `IdentitySeeder` (a menos que `Seed:Enabled=false`), de forma resiliente a banco indisponível.
 
 ### `TodoList.Api/Data/`
 Camada de acesso a dados (Entity Framework Core).
 
 #### `AppDbContext.cs`
-`DbContext` do EF Core que representa a sessão com o SQL Server. Expõe `DbSet<TaskItem> Tasks` e configura o mapeamento da entidade em `OnModelCreating`: título obrigatório com tamanho máximo, descrição limitada, dificuldade persistida como **texto** (`HasConversion<string>`, `nvarchar(20)`) e `IsCompleted` com valor padrão `false`.
-- **Usage**: Injetado por requisição (scoped) nos controllers que acessam o banco — `DatabaseHealthController` (conectividade) e `TasksController` (CRUD).
+`IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>` do EF Core que representa a sessão com o SQL Server — modela as tarefas **e** as tabelas do Identity (usuários, papéis, claims). A chave de usuário/papel é `Guid` (e não a `string` padrão) para casar com `ResponsibleUserId`/`CreatedByUserId`. Expõe `DbSet<TaskItem> Tasks` e configura o mapeamento da tarefa em `OnModelCreating`: título obrigatório com tamanho máximo, descrição limitada, dificuldade persistida como **texto** (`HasConversion<string>`, `nvarchar(20)`), `IsCompleted` padrão `false` e as **FKs opcionais** de responsável/criador para `AppUser` (com `DeleteBehavior.NoAction`).
+- **Usage**: Injetado por requisição (scoped) nos controllers e managers do Identity — `DatabaseHealthController` (conectividade), `TasksController` (CRUD), `AuthController`/`UsersController` (via `UserManager`/`RoleManager`).
 - **Restrição**: mudanças no mapeamento ou nas entidades exigem nova *migration* + `dotnet ef database update`.
 
 #### `Data/Entities/TaskItem.cs`
 Entidade de persistência de uma tarefa, mapeada para a tabela `Tasks`. Nomeada **`TaskItem`** (não `Task`) para evitar colisão com `System.Threading.Tasks.Task`. Campos: `Id` (GUID), `Title`, `Description`, `DueDate` (`DateOnly` → coluna `date`), `ResponsibleUserId` e `CreatedByUserId` (ambos `Guid?`), `Difficulty` e `IsCompleted`.
-- **Restrição**: `ResponsibleUserId`/`CreatedByUserId` são, por ora, colunas anuláveis **sem chave estrangeira** — a ligação com a tabela de usuários (e a definição do tipo da chave) virá com o login (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+- **Restrição**: `ResponsibleUserId`/`CreatedByUserId` são chaves estrangeiras **opcionais** para `AppUser` (`DeleteBehavior.NoAction`); ao excluir uma conta, o `AuthController` anula essas referências explicitamente (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+
+#### `Data/Entities/AppUser.cs`
+Entidade de usuário do Identity (`IdentityUser<Guid>`), mapeada para `AspNetUsers`. Sem campos próprios — reaproveita `UserName`, `Email`, `PasswordHash` (a senha é sempre guardada como **hash**) do Identity. A chave é `Guid` de propósito, para casar com as colunas de tarefa.
+
+#### `Data/Seeding/IdentitySeeder.cs`
+Classe estática que garante, de forma **idempotente**, o estado mínimo de identidade exigido pelo [`IDEA.md`](IDEA.md): os papéis `Admin`/`User` e o usuário `admin` (`Admin@ICAD!`, no papel `Admin`). Lê as credenciais de `Seed:Admin:*` (default = valor público do `IDEA.md`).
+- **Usage**: chamado no startup por `Program.cs` (a menos que `Seed:Enabled=false`) e pela factory de testes após migrar.
 
 #### `Data/Migrations/`
-*Migrations* do EF Core (schema versionado). A *migration* `AddTasks` cria a tabela `Tasks` e o snapshot do modelo. Aplicada com `dotnet ef database update` (requer o LocalDB acessível — ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+*Migrations* do EF Core (schema versionado). `AddTasks` cria a tabela `Tasks`; `AddIdentity` cria as tabelas `AspNet*` (usuários, papéis, claims) e as FKs de `Tasks` para `AspNetUsers`. Aplicadas com `dotnet ef database update` (requer o LocalDB acessível — ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+
+### `TodoList.Api/Auth/`
+Autenticação no servidor (JWT).
+
+#### `JwtConfig.cs`
+Classe estática que concentra a configuração do JWT: os nomes das chaves de configuração (`Jwt:SigningKey`/`Issuer`/`Audience`), os nomes curtos das claims (`sub`/`name`/`role`, espelhando `TodoList.Shared.Auth.JwtClaimNames`) e a fábrica `BuildValidationParameters` (com *fail-fast* se a chave estiver ausente). Garante que emissão e validação sigam exatamente as mesmas regras.
+
+#### `JwtTokenService.cs`
+Serviço (scoped) que emite o JWT assinado (HMAC-SHA256) no login/cadastro, com as claims `sub` (id), `name` (usuário) e uma `role` por papel. Tempo de vida fixo (8h; sem *refresh token* — ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
 
 ### `TodoList.Api/Controllers/`
 Controllers da Web API (endpoints HTTP).
@@ -195,8 +261,14 @@ Endpoint de verificação de disponibilidade (`GET /health`), respondendo `200 O
 - **Usage**: Análogo do `HealthController`, porém tocando o SQL Server; confirma que a API consegue conectar ao banco com a *connection string* configurada.
 
 #### `TasksController.cs`
-CRUD de tarefas sobre a tabela `Tasks`, com URL base `Routes.Api.Tasks` (`/tasks`). Injeta o `AppDbContext` e fala direto com o EF Core (sem camada de serviço, seguindo o padrão do projeto). Endpoints: `GET /tasks?search=` (lista com filtro por nome), `GET /tasks/{id}`, `POST /tasks` (201), `PUT /tasks/{id}` (204, também usado pelo checkbox de conclusão) e `DELETE /tasks/{id}` (204). Converte entre `TaskItem` (entidade) e os DTOs do contrato por métodos privados.
-- **Restrição**: valida no servidor que a data de entrega não é anterior à data atual (regra do [`IDEA.md`](IDEA.md) que depende da data corrente). **Sem autorização** nesta etapa — as regras de quem pode excluir/editar dependem do login e estão pendentes (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+CRUD de tarefas sobre a tabela `Tasks`, com URL base `Routes.Api.Tasks` (`/tasks`) e **`[Authorize]` no controller** (deslogado → 401). Injeta o `AppDbContext` e fala direto com o EF Core. Endpoints: `GET /tasks?search=`, `GET /tasks/{id}`, `POST /tasks` (201), `PUT /tasks/{id}` (204, também usado pelo checkbox de conclusão), `DELETE /tasks/{id}` (204) e `POST /tasks/{id}/assign` (204) para autoatribuição. Lê o id/papel do chamador das claims do JWT e preenche `TaskDto.ResponsibleUserName` (join com `AspNetUsers`).
+- **Restrição**: valida no servidor que a data de entrega não é anterior à atual (antes de checar existência). **Autorização** (regras do [`IDEA.md`](IDEA.md)): o criador é o usuário autenticado; **apenas o admin exclui** (`[Authorize(Roles = Admin)]` → 403); **admin ou responsável** editam (senão 403); qualquer autenticado **se autoatribui** se a tarefa não tem responsável (senão 409); não-admin não reatribui responsável via PUT.
+
+#### `AuthController.cs`
+Endpoints de autenticação/conta sob `Routes.Api.Auth` (`/auth`): `POST /auth/register` (cria no papel `User` e devolve token — auto-login), `POST /auth/login` (valida com `UserManager` e devolve token; 401 genérico em falha), `GET /auth/me` (`[Authorize]`, dados da conta) e `DELETE /auth/me` (`[Authorize]`, exclui a conta após **anular** as referências de tarefas; bloqueia a exclusão do admin com 400). Injeta `UserManager<AppUser>`, `JwtTokenService` e `AppDbContext`.
+
+#### `UsersController.cs`
+`GET /users` (`Routes.Api.Users`, `[Authorize]`): lista mínima de usuários (`UserSummaryDto` = id + nome), usada pelo frontend para popular o seletor de "Responsável".
 
 ---
 
@@ -213,7 +285,7 @@ Além das [configurações de build comuns](#configurações-de-build-comuns), o
 Por ser WebAssembly, o `TodoList.Web` não gera apphost e, portanto, **não** usa a propriedade `<UseAppHost>` descrita na camada do `TodoList.Api`.
 
 ### `Program.cs`
-Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`) que inicializa o app Blazor no navegador e configura os serviços do cliente. O `HttpClient` que aponta para o backend usa `Routes.Api.HttpsBaseUrl` (em [`TodoList.Shared`](#todolistshared--código-compartilhado-biblioteca-de-classes)) como `BaseAddress`, em vez de uma URL "hard-coded". Registra também o `TaskApiClient` (escopo), que encapsula as chamadas ao CRUD de tarefas.
+Ponto de entrada do host WebAssembly (`WebAssemblyHostBuilder`) que inicializa o app Blazor no navegador e configura os serviços do cliente. Registra um `HttpClient` **scoped** (instância única no WASM, compartilhada pelos clientes de API) com `BaseAddress = Routes.Api.HttpsBaseUrl`; o `TokenStore`, o `JwtAuthenticationStateProvider` (também exposto como `AuthenticationStateProvider`) e `AddAuthorizationCore()` para o suporte a `[Authorize]`/`AuthorizeView`; e os clientes `AuthApiClient` e `TaskApiClient`.
 - **Usage**: Carregado pela host page [`wwwroot/index.html`](../src/TodoList.Web/wwwroot/index.html) através do script `_framework/blazor.webassembly.js`.
 
 ### `TodoList.Web/wwwroot/`
@@ -226,23 +298,37 @@ Host page estática do Blazor WebAssembly: documento HTML que ancora o app (`#ap
 Componentes Blazor da aplicação.
 
 #### `App.razor`
-Componente raiz / roteador (envolve o `<Router>` do Blazor): varre o *assembly* em busca de componentes com `@page`, renderiza a página dentro do layout padrão (`Layout.MainLayout`), move o foco para o `<h1>` a cada navegação (`FocusOnNavigate`) e trata rota não encontrada (`<NotFound>`).
+Componente raiz / roteador, envolto em `<CascadingAuthenticationState>` e usando `<AuthorizeRouteView>` (em vez de `RouteView`): páginas com `[Authorize]` acessadas por um deslogado caem no `<NotAuthorized>`, que renderiza o `RedirectToLogin`. Renderiza a página no layout padrão (`Layout.MainLayout`), move o foco para o `<h1>` a cada navegação e trata rota não encontrada (`<NotFound>`).
 - **Usage**: Montado em `#app` por [`Program.cs`](../src/TodoList.Web/Program.cs).
+
+#### `RedirectToLogin.razor`
+Componente sem interface: ao inicializar, redireciona o usuário não autenticado para `/login`. Usado no `<NotAuthorized>` do `AuthorizeRouteView`.
 
 ### `TodoList.Web/Components/Layout/`
 Layouts compartilhados que envolvem o conteúdo das páginas.
 
 #### `MainLayout.razor`
-Layout (herda de `LayoutComponentBase`) que fornece a moldura visual comum a todas as páginas. Renderiza a **navbar** Bootstrap sempre visível exigida pelo [`IDEA.md`](IDEA.md) — nome do site + navegação "Lista de Tarefas" e "Adicionar Nova Tarefa" + botão **Logout em vermelho** — e o conteúdo da página atual através de `@Body` dentro de um `<main class="container">`.
+Layout (herda de `LayoutComponentBase`) com a **navbar** Bootstrap exigida pelo [`IDEA.md`](IDEA.md), agora **condicional por autenticação** (`<AuthorizeView>`): autenticado mostra "Lista de Tarefas", "Adicionar Nova Tarefa", "Conta", o nome do usuário e o **Logout em vermelho**; deslogado mostra apenas "Entrar"/"Cadastrar". O conteúdo da página vai em `@Body`.
 - **Usage**: Definido como `DefaultLayout` em `App.razor`.
-- **Restrição**: o Logout é **placeholder** (apenas redireciona à raiz), pois o login ainda não existe (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+- **Comportamento**: o Logout agora encerra a sessão de verdade (via `AuthApiClient.LogoutAsync` → limpa o token e o estado) e redireciona para `/login`.
 
 ### `TodoList.Web/Services/`
-Clientes de **transporte** HTTP do frontend (sem regra de negócio, que vive na API).
+Clientes de **transporte** HTTP e **autenticação** do frontend (regra de negócio vive na API).
 
 #### `TaskApiClient.cs`
-Encapsula o `HttpClient` e expõe um método por operação do CRUD de tarefas (`GetAllAsync`, `GetByIdAsync`, `CreateAsync`, `UpdateAsync`, `DeleteAsync`), montando as URLs a partir de `Routes.Api.Tasks` e serializando/desserializando os DTOs do contrato. Criação e edição retornam a mensagem de erro de validação (ou `null` em sucesso).
+Encapsula o `HttpClient` e expõe um método por operação do CRUD de tarefas (`GetAllAsync`, `GetByIdAsync`, `CreateAsync`, `UpdateAsync`, `DeleteAsync`), além de `AssignSelfAsync` (autoatribuição, traduz 409/403 em mensagem) e `GetUsersAsync` (lista para o seletor de responsável). Monta as URLs a partir de `Routes.Api.Tasks`/`Users` e serializa/desserializa os DTOs do contrato.
 - **Usage**: Injetado nas páginas de tarefa; registrado em `Program.cs`.
+
+#### `TokenStore.cs`
+Encapsula o `IJSRuntime` para guardar/recuperar/remover o JWT em uma única chave do `localStorage` — a ponte entre o estado de login e o navegador (risco de XSS registrado em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+
+#### `JwtAuthenticationStateProvider.cs`
+`AuthenticationStateProvider` que informa ao Blazor quem é o usuário a partir do JWT guardado: faz o **parse manual** das claims (`sub`/`name`/`role`), checa a expiração e, ao mesmo tempo, mantém o cabeçalho `Authorization` do `HttpClient` compartilhado em sincronia. Expõe `MarkLoggedInAsync`/`MarkLoggedOutAsync` (chamados no login/logout). Não valida a assinatura (isso é da API a cada requisição).
+- **Usage**: registrado em `Program.cs` e consumido por `AuthorizeRouteView`/`AuthorizeView` e pelas páginas que leem o papel do usuário.
+
+#### `AuthApiClient.cs`
+Centraliza as chamadas de `/auth` (`LoginAsync`, `RegisterAsync`, `GetAccountAsync`, `DeleteAccountAsync`, `LogoutAsync`) e coordena a transição de sessão com o `JwtAuthenticationStateProvider` (em sucesso de login/cadastro, repassa o token; no logout/exclusão, encerra a sessão). Traduz as respostas em `null` (sucesso) ou mensagem de erro.
+- **Usage**: Injetado nas páginas de conta e na navbar (logout); registrado em `Program.cs`.
 
 #### `ValidationProblemResponse.cs`
 Modelo mínimo que lê o corpo de erro `400` (formato *ProblemDetails* do ASP.NET Core) **sem** referenciar os tipos do MVC (indisponíveis no WebAssembly), concatenando as mensagens de validação para exibição.
@@ -257,20 +343,32 @@ Classe estática que traduz o enum `Difficulty` para o rótulo em português ("F
 Páginas roteáveis do CRUD de tarefas.
 
 #### `TaskList.razor`
-Página `/tarefas`: lista as tarefas em um **accordion** Bootstrap (cabeçalho com título, data e checkbox de concluída; corpo com descrição, dificuldade como tag e responsável), com **filtro por nome**, marcação de conclusão (PUT) e botões de editar e excluir (com confirmação via `confirm`).
+Página `/tarefas` (`[Authorize]`): lista as tarefas em um **accordion** Bootstrap, com **filtro por nome**. Lê o papel/id do usuário (via `[CascadingParameter] Task<AuthenticationState>`) e ajusta as ações: o **checkbox** de conclusão e o botão **Editar** só aparecem para admin ou responsável; **Excluir** só para admin; **Atribuir-me** aparece quando a tarefa não tem responsável (chama `POST /tasks/{id}/assign`). O responsável é exibido pelo **nome**.
 
 #### `TaskCreate.razor`
-Página `/tarefas/nova`: formulário (`EditForm` + `DataAnnotationsValidator`) que envia `CreateTaskRequest` via `POST`. O seletor de responsável fica **desabilitado** (sem usuários ainda).
+Página `/tarefas/nova` (`[Authorize]`): formulário (`EditForm` + `DataAnnotationsValidator`) que envia `CreateTaskRequest` via `POST`. O seletor de **responsável** está habilitado (carrega `GET /users`): o admin escolhe qualquer usuário; o usuário comum, apenas a si mesmo ou "Não atribuído".
 
 #### `TaskEdit.razor`
-Página `/tarefas/{id}/editar`: carrega a tarefa (`GET /tasks/{id}`), preenche o mesmo formulário (acrescido do checkbox "Concluída") e envia `UpdateTaskRequest` via `PUT`. Trata o caso 404 (tarefa inexistente).
+Página `/tarefas/{id}/editar` (`[Authorize]`): carrega a tarefa (`GET /tasks/{id}`), preenche o formulário (com o checkbox "Concluída") e envia `UpdateTaskRequest` via `PUT`. O **responsável** é editável apenas pelo admin (seletor com todos os usuários); para os demais é exibido como somente leitura, pois o servidor não permite reatribuir. Trata o caso 404.
 
 ### `TodoList.Web/Components/Pages/`
 Páginas roteáveis da aplicação (componentes com diretiva `@page`).
 
 #### `Home.razor`
-Página inicial roteável (`@page "/"`) sem conteúdo próprio: ao inicializar, redireciona o usuário para a lista de tarefas (`/tarefas`), tela principal do sistema.
-- **Usage**: Renderizada pelo `Router` quando a rota `/` é acessada; encaminha imediatamente para `/tarefas` via `NavigationManager`.
+Página inicial roteável (`@page "/"`, `[Authorize]`) sem conteúdo próprio: ao inicializar, redireciona o usuário (já autenticado) para a lista de tarefas (`/tarefas`). Um deslogado que acessa `/` cai no `RedirectToLogin` do `AuthorizeRouteView`.
+- **Usage**: Renderizada pelo `Router` quando a rota `/` é acessada.
+
+### `TodoList.Web/Components/Pages/Account/`
+Páginas de usuário (login, cadastro e conta) exigidas pelo [`IDEA.md`](IDEA.md).
+
+#### `Login.razor`
+Página `/login` (anônima): formulário usuário/senha que chama `AuthApiClient.LoginAsync`; em sucesso navega para `/tarefas`, em 401 mostra "Usuário ou senha inválidos".
+
+#### `Register.razor`
+Página `/cadastro` (anônima): formulário usuário/e-mail (opcional)/senha que chama `AuthApiClient.RegisterAsync`; em sucesso faz **auto-login** e navega para `/tarefas`; mostra os erros de validação do servidor (ex.: usuário em uso, senha fraca).
+
+#### `Account.razor`
+Página `/conta` (`[Authorize]`): exibe os dados da conta (`GET /auth/me`) e permite **excluir a conta** (com confirmação); em sucesso encerra a sessão e vai para `/login`. A conta administradora não pode ser excluída (a API responde 400).
 
 ---
 

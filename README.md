@@ -2,6 +2,8 @@
 
 Esse repositório é destinado à elaboração de um projeto TO-DO list com sistema de login de usuários.
 
+Estão implementados o **login de usuários** (ASP.NET Core Identity + JWT: cadastro, login, conta com exclusão, proteção de rotas) e o **CRUD de tarefas** com as regras de permissão do [`IDEA.md`](docs/IDEA.md) (apenas o admin exclui; o responsável edita; o usuário comum se autoatribui). Para entrar localmente, use o admin semeado `admin` / `Admin@ICAD!` — ver o passo a passo em [`BUILD.md`](docs/BUILD.md).
+
 ---
 
 ## Estrutura da solution

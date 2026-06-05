@@ -45,11 +45,29 @@ public static class Routes
         ///
         /// <summary>
         /// Caminho relativo (sem barra inicial) do recurso de tarefas na Web API.
-        /// Fonte única do caminho: usado no atributo [Route(...)] do TasksController (backend) 
+        /// Fonte única do caminho: usado no atributo [Route(...)] do TasksController (backend)
         /// e na montagem das URLs das chamadas HttpClient (frontend), evitando o literal "tasks" duplicado entre os dois lados.
         /// </summary>
         ///
         public const string Tasks = "tasks";
+
+        ///
+        /// <summary>
+        /// Caminho relativo (sem barra inicial) do recurso de autenticação na Web API.
+        /// Fonte única do caminho: usado no [Route(...)] do AuthController (backend) e na montagem das URLs do AuthApiClient (frontend),
+        /// evitando o literal "auth" duplicado entre os dois lados.
+        /// </summary>
+        ///
+        public const string Auth = "auth";
+
+        ///
+        /// <summary>
+        /// Caminho relativo (sem barra inicial) do recurso de usuários na Web API.
+        /// Fonte única do caminho: usado no [Route(...)] do UsersController (backend) e na montagem das URLs do frontend (seletor de responsável),
+        /// evitando o literal "users" duplicado entre os dois lados.
+        /// </summary>
+        ///
+        public const string Users = "users";
     }
 
     ///

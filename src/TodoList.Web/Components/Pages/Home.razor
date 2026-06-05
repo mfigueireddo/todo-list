@@ -1,23 +1,19 @@
 @page "/"
+@attribute [Authorize]
 @inject NavigationManager Navigation
 
 @*
     Página inicial. Não tem conteúdo próprio: apenas redireciona o usuário para a
     lista de tarefas (/tarefas), que é a tela principal do sistema (docs/IDEA.md).
+    Protegida por [Authorize]: um usuário deslogado é redirecionado ao login (via <RedirectToLogin>).
 *@
 
 @code {
     ///
     /// <summary>
     /// Descrição:
-    /// 1. Ao inicializar a página, redireciona imediatamente para a lista de tarefas.
+    /// 1. Ao inicializar a página, redireciona imediatamente para a lista de tarefas (o usuário já está autenticado aqui).
     /// </summary>
-    ///
-    /// <remarks>
-    /// Restrições:
-    /// - Quando a feature de login existir, 
-    /// a raiz deverá redirecionar conforme o estado de autenticação (ver docs/KNOWN-ISSUES.md).
-    /// </remarks>
     ///
     protected override void OnInitialized()
     {

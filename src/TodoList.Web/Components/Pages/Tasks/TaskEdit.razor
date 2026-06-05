@@ -1,11 +1,14 @@
 @page "/tarefas/{Id:guid}/editar"
+@attribute [Authorize]
+@using System.Security.Claims
 @inject TaskApiClient TaskApi
 @inject NavigationManager Navigation
 
 @*
     Página de edição de uma tarefa existente (docs/IDEA.md). Carrega a tarefa pela API,
     preenche o formulário e envia um PUT. Os campos são os mesmos do cadastro, acrescidos
-    do estado de conclusão. O responsável fica desabilitado enquanto não há usuários.
+    do estado de conclusão. O responsável só é editável pelo admin; para os demais (responsável
+    editando a própria tarefa) ele é exibido como somente leitura, pois o servidor não permite reatribuir.
 *@
 
 <PageTitle>Editar Tarefa</PageTitle>
@@ -61,8 +64,21 @@ else
 
         <div class="mb-3">
             <label class="form-label" for="responsible">Responsável</label>
-            <input id="responsible" class="form-control" disabled
-                   placeholder="Disponível após a implementação do login de usuários" />
+            @if (_isAdmin)
+            {
+                <InputSelect id="responsible" class="form-select" @bind-Value="_model.ResponsibleUserId">
+                    <option value="">Não atribuído</option>
+                    @foreach (UserSummaryDto user in _selectableUsers)
+                    {
+                        <option value="@user.Id">@user.UserName</option>
+                    }
+                </InputSelect>
+            }
+            else
+            {
+                <input id="responsible" class="form-control" disabled
+                       value="@(string.IsNullOrWhiteSpace(_responsibleUserName) ? "Não atribuído" : _responsibleUserName)" />
+            }
         </div>
 
         <div class="form-check mb-3">
@@ -76,12 +92,25 @@ else
 }
 
 @code {
+    /// <summary>Estado de autenticação atual, fornecido pelo <CascadingAuthenticationState> (App.razor).</summary>
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
     /// <summary>Identificador da tarefa em edição, vindo da rota.</summary>
     [Parameter]
     public Guid Id { get; set; }
 
     /// <summary>Modelo vinculado ao formulário de edição.</summary>
     private UpdateTaskRequest _model = new();
+
+    /// <summary>Indica se o usuário autenticado é admin (pode reatribuir o responsável).</summary>
+    private bool _isAdmin;
+
+    /// <summary>Usuários selecionáveis como responsável (carregados apenas para o admin).</summary>
+    private IReadOnlyList<UserSummaryDto> _selectableUsers = Array.Empty<UserSummaryDto>();
+
+    /// <summary>Nome do responsável atual, exibido como somente leitura para não-admins.</summary>
+    private string? _responsibleUserName;
 
     /// <summary>Indica que a tarefa ainda está sendo carregada da API.</summary>
     private bool _isLoading = true;
@@ -98,13 +127,16 @@ else
     ///
     /// <summary>
     /// Descrição:
-    /// 1. Carrega a tarefa pelo identificador da rota.
-    ///
-    /// 2. Preenche o modelo do formulário ou sinaliza ausência (404).
+    /// 1. Resolve o papel do usuário (admin define se o responsável é editável).
+    /// 2. Carrega a tarefa pelo identificador da rota e preenche o modelo, ou sinaliza ausência (404).
+    /// 3. Para o admin, carrega a lista de usuários do seletor de responsável.
     /// </summary>
     ///
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationState authState = await this.AuthenticationStateTask;
+        this._isAdmin = authState.User.IsInRole(AppRoles.Admin);
+
         try
         {
             TaskDto? task = await this.TaskApi.GetByIdAsync(this.Id);
@@ -115,6 +147,8 @@ else
                 return;
             }
 
+            this._responsibleUserName = task.ResponsibleUserName;
+
             this._model = new UpdateTaskRequest
             {
                 Title = task.Title,
@@ -124,6 +158,11 @@ else
                 ResponsibleUserId = task.ResponsibleUserId,
                 IsCompleted = task.IsCompleted
             };
+
+            if (this._isAdmin)
+            {
+                this._selectableUsers = await this.TaskApi.GetUsersAsync();
+            }
         }
         catch (HttpRequestException exception)
         {
@@ -139,7 +178,6 @@ else
     /// <summary>
     /// Descrição:
     /// 1. Envia o modelo para a API atualizar a tarefa.
-    ///
     /// 2. Em sucesso, navega para a lista; em erro de validação do servidor, exibe a mensagem.
     /// </summary>
     ///

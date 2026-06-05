@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using TodoList.Shared;
+using TodoList.Shared.Auth;
 using TodoList.Shared.Tasks;
 
 namespace TodoList.Web.Services;
@@ -166,6 +167,60 @@ public sealed class TaskApiClient
         HttpResponseMessage response = await this._httpClient.DeleteAsync($"{Routes.Api.Tasks}/{id}");
 
         _ = response.EnsureSuccessStatusCode();
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Envia POST para autoatribuir o usuário autenticado como responsável de uma tarefa sem responsável.
+    /// </summary>
+    ///
+    /// <param name="id">Identificador único da tarefa a autoatribuir.</param>
+    ///
+    /// <returns>
+    /// - Retorna <c>null</c> quando a autoatribuição ocorre.
+    /// - Retorna a mensagem de erro quando a tarefa já tem responsável (409) ou a operação é negada (403).
+    /// </returns>
+    ///
+    public async Task<string?> AssignSelfAsync(Guid id)
+    {
+        HttpResponseMessage response = await this._httpClient.PostAsync($"{Routes.Api.Tasks}/{id}/assign", content: null);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            return "Esta tarefa já tem um responsável.";
+        }
+
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+        {
+            return "Você não tem permissão para se atribuir a esta tarefa.";
+        }
+
+        _ = response.EnsureSuccessStatusCode();
+
+        return null;
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Requisita GET /users e desserializa a lista de usuários para o seletor de responsável.
+    /// </summary>
+    ///
+    /// <returns>
+    /// - Retorna a lista de <see cref="UserSummaryDto"/> (vazia quando não há usuários).
+    /// </returns>
+    ///
+    public async Task<IReadOnlyList<UserSummaryDto>> GetUsersAsync()
+    {
+        List<UserSummaryDto>? users = await this._httpClient.GetFromJsonAsync<List<UserSummaryDto>>(Routes.Api.Users);
+
+        return users ?? new List<UserSummaryDto>();
     }
 
     ///

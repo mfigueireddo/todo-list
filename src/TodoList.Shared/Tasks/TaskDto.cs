@@ -36,10 +36,18 @@ public sealed class TaskDto
     ///
     /// <summary>
     /// Identificador do usuário responsável pela tarefa, ou nulo quando não há responsável atribuído.
-    /// Provisoriamente sempre nulo: a tabela de usuários e a FK serão introduzidas na feature de login (ver docs/KNOWN-ISSUES.md).
+    /// Aponta para um usuário real (FK para AspNetUsers), definido na criação ou via autoatribuição (ver docs/IDEA.md).
     /// </summary>
     ///
     public Guid? ResponsibleUserId { get; set; }
+
+    ///
+    /// <summary>
+    /// Nome de usuário do responsável, ou nulo quando não há responsável.
+    /// Preenchido pela API (join com a tabela de usuários) para o frontend exibir o nome em vez do GUID.
+    /// </summary>
+    ///
+    public string? ResponsibleUserName { get; set; }
 
     /// <summary>Grau de dificuldade da tarefa. Exibido como tag colorida nos detalhes.</summary>
     public Difficulty Difficulty { get; set; }

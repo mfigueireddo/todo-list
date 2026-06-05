@@ -1,4 +1,6 @@
 @page "/tarefas"
+@attribute [Authorize]
+@using System.Security.Claims
 @inject TaskApiClient TaskApi
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
@@ -7,7 +9,8 @@
     Página de listagem de tarefas (docs/IDEA.md). Mostra um accordion por tarefa:
     no cabeçalho ficam título, data e o checkbox de concluída; ao expandir, aparecem
     descrição, responsável e a dificuldade como tag colorida. Há filtro por nome e os
-    botões de editar e excluir por tarefa.
+    botões disponíveis variam conforme o papel: excluir só para admin; editar e o checkbox
+    só para o admin ou o responsável; "Atribuir-me" quando a tarefa não tem responsável.
 *@
 
 <PageTitle>Lista de Tarefas</PageTitle>
@@ -46,7 +49,7 @@ else
             <div class="accordion-item">
                 <div class="accordion-header d-flex align-items-center gap-2 pe-2">
                     <input class="form-check-input ms-3 mt-0" type="checkbox" checked="@task.IsCompleted"
-                           @onchange="() => ToggleCompletedAsync(task)" title="Marcar como concluída" />
+                           disabled="@(!CanEdit(task))" @onchange="() => ToggleCompletedAsync(task)" title="Marcar como concluída" />
 
                     <button class="accordion-button collapsed flex-grow-1" type="button"
                             data-bs-toggle="collapse" data-bs-target="@($"#{bodyId}")">
@@ -56,10 +59,21 @@ else
                         </span>
                     </button>
 
-                    <button class="btn btn-sm btn-outline-secondary" type="button"
-                            @onclick="() => EditTask(task.Id)">Editar</button>
-                    <button class="btn btn-sm btn-outline-danger" type="button"
-                            @onclick="() => DeleteTaskAsync(task)">Excluir</button>
+                    @if (CanAssignSelf(task))
+                    {
+                        <button class="btn btn-sm btn-outline-primary" type="button"
+                                @onclick="() => AssignSelfAsync(task)">Atribuir-me</button>
+                    }
+                    @if (CanEdit(task))
+                    {
+                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                                @onclick="() => EditTask(task.Id)">Editar</button>
+                    }
+                    @if (CanDelete(task))
+                    {
+                        <button class="btn btn-sm btn-outline-danger" type="button"
+                                @onclick="() => DeleteTaskAsync(task)">Excluir</button>
+                    }
                 </div>
 
                 <div id="@bodyId" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">
@@ -81,6 +95,10 @@ else
 }
 
 @code {
+    /// <summary>Estado de autenticação atual, fornecido pelo <CascadingAuthenticationState> (App.razor).</summary>
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
     /// <summary>Tarefas atualmente exibidas (já filtradas pelo servidor quando há busca).</summary>
     private List<TaskDto> _tasks = new();
 
@@ -93,14 +111,29 @@ else
     /// <summary>Mensagem de erro a exibir quando uma operação falha; nula quando não há erro.</summary>
     private string? _errorMessage;
 
+    /// <summary>Identificador do usuário autenticado, usado para decidir o que ele pode editar.</summary>
+    private Guid? _currentUserId;
+
+    /// <summary>Indica se o usuário autenticado é admin (pode excluir e editar qualquer tarefa).</summary>
+    private bool _isAdmin;
+
     ///
     /// <summary>
     /// Descrição:
-    /// 1. Ao inicializar a página, carrega a lista completa de tarefas.
+    /// 1. Resolve a identidade do usuário (id e papel) a partir do estado de autenticação.
+    /// 2. Carrega a lista completa de tarefas.
     /// </summary>
     ///
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationState authState = await this.AuthenticationStateTask;
+        ClaimsPrincipal user = authState.User;
+
+        this._isAdmin = user.IsInRole(AppRoles.Admin);
+
+        string? subject = user.FindFirst(JwtClaimNames.Subject)?.Value;
+        this._currentUserId = Guid.TryParse(subject, out Guid userId) ? userId : null;
+
         await this.LoadTasksAsync();
     }
 
@@ -108,13 +141,12 @@ else
     /// <summary>
     /// Descrição:
     /// 1. Busca as tarefas na API aplicando o filtro atual e atualiza o estado da página.
-    ///
     /// 2. Captura falhas de comunicação para exibi-las ao usuário.
     /// </summary>
     ///
     /// <remarks>
     /// Assertivas de Saída:
-    /// Ao término, <c>_isLoading</c> é falso e <c>_tasks</c> reflete o resultado da API 
+    /// Ao término, <c>_isLoading</c> é falso e <c>_tasks</c> reflete o resultado da API
     /// (ou ficou inalterado, com <c>_errorMessage</c> preenchido, em caso de falha).
     /// </remarks>
     ///
@@ -169,7 +201,6 @@ else
     /// <summary>
     /// Descrição:
     /// 1. Alterna o estado de conclusão de uma tarefa e persiste a mudança via PUT na API.
-    ///
     /// 2. Recarrega a lista para refletir o novo estado.
     /// </summary>
     ///
@@ -177,7 +208,7 @@ else
     ///
     /// <remarks>
     /// Restrições:
-    /// - Reutiliza o endpoint de edição (PUT /tasks/{id}) enviando os mesmos dados da tarefa, apenas com a conclusão invertida.
+    /// - Reutiliza o endpoint de edição (PUT /tasks/{id}); só está habilitado para quem pode editar (admin ou responsável).
     /// </remarks>
     ///
     private async Task ToggleCompletedAsync(TaskDto task)
@@ -206,6 +237,27 @@ else
     ///
     /// <summary>
     /// Descrição:
+    /// 1. Autoatribui o usuário autenticado como responsável da tarefa e recarrega a lista.
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa a ser autoatribuída.</param>
+    ///
+    private async Task AssignSelfAsync(TaskDto task)
+    {
+        string? error = await this.TaskApi.AssignSelfAsync(task.Id);
+
+        if (error is not null)
+        {
+            this._errorMessage = error;
+            return;
+        }
+
+        await this.LoadTasksAsync();
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
     /// 1. Navega para a página de edição da tarefa selecionada.
     /// </summary>
     ///
@@ -220,7 +272,6 @@ else
     /// <summary>
     /// Descrição:
     /// 1. Pede confirmação ao usuário e, se confirmada, exclui a tarefa via DELETE na API.
-    ///
     /// 2. Recarrega a lista após a exclusão.
     /// </summary>
     ///
@@ -249,19 +300,63 @@ else
     ///
     /// <summary>
     /// Descrição:
-    /// 1. Produz o rótulo do responsável para exibição.
+    /// 1. Indica se o usuário atual pode editar a tarefa (admin ou responsável atual).
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa avaliada.</param>
+    ///
+    /// <returns>- Retorna <c>true</c> quando o usuário é admin ou o responsável da tarefa.</returns>
+    ///
+    private bool CanEdit(TaskDto task)
+    {
+        return this._isAdmin || (this._currentUserId is not null && task.ResponsibleUserId == this._currentUserId);
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Indica se o usuário atual pode excluir a tarefa (apenas admin).
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa avaliada.</param>
+    ///
+    /// <returns>- Retorna <c>true</c> quando o usuário é admin.</returns>
+    ///
+    private bool CanDelete(TaskDto task)
+    {
+        return this._isAdmin;
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Indica se o usuário pode se autoatribuir como responsável (a tarefa não tem responsável).
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa avaliada.</param>
+    ///
+    /// <returns>- Retorna <c>true</c> quando a tarefa está sem responsável.</returns>
+    ///
+    private bool CanAssignSelf(TaskDto task)
+    {
+        return task.ResponsibleUserId is null;
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Produz o rótulo do responsável para exibição (nome do usuário ou "Não atribuído").
     /// </summary>
     ///
     /// <param name="task">Tarefa cujo responsável será rotulado.</param>
     ///
     /// <returns>
-    /// - Retorna o identificador do responsável quando há um.
-    ///
-    /// - Retorna "Não atribuído" enquanto o sistema de usuários não existe (responsável sempre nulo).
+    /// - Retorna o nome do responsável quando há um.
+    /// - Retorna "Não atribuído" quando a tarefa não tem responsável.
     /// </returns>
     ///
     private static string ResponsibleLabel(TaskDto task)
     {
-        return task.ResponsibleUserId is null ? "Não atribuído" : task.ResponsibleUserId.ToString()!;
+        return string.IsNullOrWhiteSpace(task.ResponsibleUserName) ? "Não atribuído" : task.ResponsibleUserName;
     }
 }

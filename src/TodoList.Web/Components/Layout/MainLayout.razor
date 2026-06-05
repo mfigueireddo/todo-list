@@ -1,22 +1,37 @@
 @inherits LayoutComponentBase
+@inject AuthApiClient AuthApi
 @inject NavigationManager Navigation
 
 @*
     Layout raiz de todas as páginas. Fornece a navbar fixa exigida pelo projeto (docs/IDEA.md):
-    nome do site + navegação para a lista e o cadastro de tarefas + botão de Logout (vermelho).
-    O conteúdo da página atual é renderizado em @Body.
+    nome do site + navegação para a lista e o cadastro de tarefas + Conta + botão de Logout (vermelho).
+    Os links de navegação e o Logout só aparecem quando há usuário autenticado (<AuthorizeView>);
+    deslogado, a navbar mostra apenas Entrar/Cadastrar. O conteúdo da página atual é renderizado em @Body.
 *@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" href="tarefas">✓ TodoList</a>
 
-        <div class="navbar-nav me-auto flex-row gap-4">
-            <NavLink class="nav-link" href="tarefas" Match="NavLinkMatch.All">Lista de Tarefas</NavLink>
-            <NavLink class="nav-link" href="tarefas/nova">Adicionar Nova Tarefa</NavLink>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <div class="navbar-nav me-auto flex-row gap-4">
+                    <NavLink class="nav-link" href="tarefas" Match="NavLinkMatch.All">Lista de Tarefas</NavLink>
+                    <NavLink class="nav-link" href="tarefas/nova">Adicionar Nova Tarefa</NavLink>
+                    <NavLink class="nav-link" href="conta">Conta</NavLink>
+                </div>
 
-        <button type="button" class="btn btn-danger" @onclick="Logout">Logout</button>
+                <span class="navbar-text text-light me-3">@context.User.Identity?.Name</span>
+                <button type="button" class="btn btn-danger" @onclick="Logout">Logout</button>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="navbar-nav ms-auto flex-row gap-4">
+                    <NavLink class="nav-link" href="login">Entrar</NavLink>
+                    <NavLink class="nav-link" href="cadastro">Cadastrar</NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </div>
 </nav>
 
@@ -28,16 +43,12 @@
     ///
     /// <summary>
     /// Descrição:
-    /// 1. Placeholder do logout: por ora apenas redireciona para a raiz, pois o sistema de login ainda não existe.
+    /// 1. Encerra a sessão (remove o token, limpa o cabeçalho e notifica a UI) e redireciona para a página de login (docs/IDEA.md).
     /// </summary>
     ///
-    /// <remarks>
-    /// Restrições:
-    /// - Comportamento provisório: quando a feature de login existir, deve encerrar a sessão e redirecionar para a página de login (ver docs/KNOWN-ISSUES.md).
-    /// </remarks>
-    ///
-    private void Logout()
+    private async Task Logout()
     {
-        this.Navigation.NavigateTo("");
+        await this.AuthApi.LogoutAsync();
+        this.Navigation.NavigateTo("login");
     }
 }

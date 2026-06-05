@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TodoList.Api.Data.Entities;
 using TodoList.Shared.Tasks;
@@ -6,25 +8,27 @@ namespace TodoList.Api.Data;
 
 ///
 /// <summary>
-/// Objetivo: Representar a sessão do Entity Framework Core com o Microsoft SQL Server — 
+/// Objetivo: Representar a sessão do Entity Framework Core com o Microsoft SQL Server —
 /// a porta única pela qual a Web API conversa com o banco.
 ///
-/// Modela atualmente a entidade de tarefa (<see cref="Tasks"/>). 
-/// A entidade de usuário e o ASP.NET Core Identity ainda não existem 
-/// e serão adicionados na feature de login (ver docs/KNOWN-ISSUES.md).
+/// Modela a entidade de tarefa (<see cref="Tasks"/>) e, herdando de <see cref="IdentityDbContext{TUser, TRole, TKey}"/>,
+/// também as tabelas do ASP.NET Core Identity (usuários, papéis e claims) que sustentam o login.
 /// </summary>
 ///
 /// <remarks>
 /// Restrições:
 ///
-/// - O <c>DbContext</c> NÃO é thread-safe e tem tempo de vida curto (scoped): 
-/// é registrado por requisição em <c>Program.cs</c> via <c>AddDbContext</c>; 
+/// - Herda de <c>IdentityDbContext&lt;AppUser, IdentityRole&lt;Guid&gt;, Guid&gt;</c>: a chave dos usuários/papéis é <c>Guid</c>
+/// (e não a <c>string</c> padrão), para casar com <see cref="TaskItem.ResponsibleUserId"/>/<see cref="TaskItem.CreatedByUserId"/>.
+///
+/// - O <c>DbContext</c> NÃO é thread-safe e tem tempo de vida curto (scoped):
+/// é registrado por requisição em <c>Program.cs</c> via <c>AddDbContext</c>;
 /// não o compartilhe entre requisições nem o capture em campos de longa duração.
 ///
 /// - Mudanças no mapeamento (<see cref="OnModelCreating"/>) ou nas entidades exigem nova migration (<c>dotnet ef migrations add ...</c>) e aplicação do schema (<c>dotnet ef database update</c>).
 /// </remarks>
 ///
-public sealed class AppDbContext : DbContext
+public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
 {
     ///
     /// <summary>
@@ -82,9 +86,10 @@ public sealed class AppDbContext : DbContext
     /// Restrições:
     /// - A dificuldade é gravada como STRING (HasConversion&lt;string&gt;) em vez do índice numérico do enum,
     /// para manter o dado legível no banco e robusto a reordenações futuras do enum.
-    /// 
-    /// - Os identificadores de responsável/criador permanecem como colunas anuláveis
-    ///  SEM chave estrangeira nesta etapa (sem tabela de usuários — ver docs/KNOWN-ISSUES.md).
+    ///
+    /// - Os identificadores de responsável/criador são chaves estrangeiras OPCIONAIS para <see cref="AppUser"/>, com
+    /// <c>DeleteBehavior.NoAction</c>: evita o erro de "múltiplos caminhos de cascata" do SQL Server (duas FKs para a mesma
+    /// tabela de usuários) — a limpeza dessas referências ao excluir uma conta é feita EXPLICITAMENTE no AuthController.
     /// </remarks>
     ///
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -111,6 +116,20 @@ public sealed class AppDbContext : DbContext
 
             task.Property(entity => entity.IsCompleted)
                 .HasDefaultValue(false)
+            ;
+
+            // Responsável e criador: FKs opcionais para AspNetUsers. NoAction evita múltiplos caminhos de cascata
+            // (duas FKs para a mesma tabela); a deleção de conta limpa essas referências explicitamente (AuthController).
+            task.HasOne<AppUser>()
+                .WithMany()
+                .HasForeignKey(entity => entity.ResponsibleUserId)
+                .OnDelete(DeleteBehavior.NoAction)
+            ;
+
+            task.HasOne<AppUser>()
+                .WithMany()
+                .HasForeignKey(entity => entity.CreatedByUserId)
+                .OnDelete(DeleteBehavior.NoAction)
             ;
         });
     }

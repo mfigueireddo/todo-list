@@ -1,11 +1,13 @@
 @page "/tarefas/nova"
+@attribute [Authorize]
+@using System.Security.Claims
 @inject TaskApiClient TaskApi
 @inject NavigationManager Navigation
 
 @*
     Página de cadastro de uma nova tarefa (docs/IDEA.md). Formulário com título, descrição,
-    data de entrega e dificuldade. O campo de responsável fica desabilitado por enquanto,
-    pois o sistema de usuários ainda não existe (ver docs/KNOWN-ISSUES.md).
+    data de entrega, dificuldade e responsável. O seletor de responsável oferece todos os usuários
+    para o admin e apenas o próprio usuário (ou "Não atribuído") para um usuário comum (docs/IDEA.md).
 *@
 
 <PageTitle>Adicionar Nova Tarefa</PageTitle>
@@ -50,8 +52,13 @@
 
     <div class="mb-3">
         <label class="form-label" for="responsible">Responsável</label>
-        <input id="responsible" class="form-control" disabled
-               placeholder="Disponível após a implementação do login de usuários" />
+        <InputSelect id="responsible" class="form-select" @bind-Value="_model.ResponsibleUserId">
+            <option value="">Não atribuído</option>
+            @foreach (UserSummaryDto user in _selectableUsers)
+            {
+                <option value="@user.Id">@user.UserName</option>
+            }
+        </InputSelect>
     </div>
 
     <button type="submit" class="btn btn-primary" disabled="@_isSaving">Salvar</button>
@@ -59,11 +66,18 @@
 </EditForm>
 
 @code {
+    /// <summary>Estado de autenticação atual, fornecido pelo <CascadingAuthenticationState> (App.razor).</summary>
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
     /// <summary>Modelo vinculado ao formulário de criação. Inicia com data de entrega = hoje (data válida por padrão).</summary>
     private CreateTaskRequest _model = new()
     {
         DueDate = DateOnly.FromDateTime(DateTime.Today)
     };
+
+    /// <summary>Usuários que podem ser escolhidos como responsável (todos para admin; só o próprio usuário para os demais).</summary>
+    private IReadOnlyList<UserSummaryDto> _selectableUsers = Array.Empty<UserSummaryDto>();
 
     /// <summary>Indica que a criação está em andamento (evita envios duplicados).</summary>
     private bool _isSaving;
@@ -74,14 +88,42 @@
     ///
     /// <summary>
     /// Descrição:
+    /// 1. Resolve a identidade do usuário (id e papel).
+    /// 2. Carrega os usuários e restringe as opções de responsável conforme o papel (admin vê todos; comum, apenas a si mesmo).
+    /// </summary>
+    ///
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationState authState = await this.AuthenticationStateTask;
+        ClaimsPrincipal user = authState.User;
+
+        bool isAdmin = user.IsInRole(AppRoles.Admin);
+        string? subject = user.FindFirst(JwtClaimNames.Subject)?.Value;
+        Guid? currentUserId = Guid.TryParse(subject, out Guid userId) ? userId : null;
+
+        try
+        {
+            IReadOnlyList<UserSummaryDto> users = await this.TaskApi.GetUsersAsync();
+            this._selectableUsers = isAdmin
+                ? users
+                : users.Where(candidate => candidate.Id == currentUserId).ToList();
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível carregar a lista de usuários: {exception.Message}";
+        }
+    }
+
+    ///
+    /// <summary>
+    /// Descrição:
     /// 1. Envia o modelo para a API criar a tarefa.
-    
     /// 2. Em sucesso, navega para a lista; em erro de validação do servidor, exibe a mensagem.
     /// </summary>
     ///
     /// <remarks>
     /// Restrições:
-    /// - As validações de obrigatoriedade/tamanho já são checadas no cliente (DataAnnotationsValidator) e novamente no servidor; a regra de data não-passada é validada apenas no servidor.
+    /// - As validações de obrigatoriedade/tamanho são checadas no cliente e no servidor; a regra de data não-passada é validada no servidor.
     /// </remarks>
     ///
     private async Task SubmitAsync()

@@ -32,6 +32,11 @@ Cada tema traz uma explicação geral e um exemplo tirado do **próprio código*
 - [Operadores `?`, `??` e derivados (null-safety)](#operadores---e-derivados-null-safety)
 - [Lambda (funções anônimas)](#lambda-funções-anônimas)
 - [Membros com corpo de expressão](#membros-com-corpo-de-expressão)
+- [Autenticação e autorização](#autenticação-e-autorização)
+- [ASP.NET Core Identity e hash de senha](#aspnet-core-identity-e-hash-de-senha)
+- [JWT (JSON Web Token)](#jwt-json-web-token)
+- [Claims e ClaimsPrincipal](#claims-e-claimsprincipal)
+- [AuthenticationStateProvider (Blazor)](#authenticationstateprovider-blazor)
 
 ---
 
@@ -1156,3 +1161,152 @@ public IActionResult Get()
 
 - Aqui o `()` antes do `=>` é a **lista de parâmetros do método** (vazia) — de novo, assinatura de membro, não lambda.
 - Quando o corpo precisa de **mais de uma instrução** (como o `OnModelCreating` do `AppDbContext`, ou as actions do `TasksController`), não dá para usar `=>`: aí volta o bloco `{ ... }`. O corpo de expressão é só para o caso de **uma expressão só**.
+
+---
+
+## Autenticação e autorização
+
+São dois conceitos distintos e complementares, e é comum confundi-los:
+
+- **Autenticação** (*authentication*) responde "**quem é você?**" — confirma a identidade do usuário (ex.: conferindo usuário + senha).
+- **Autorização** (*authorization*) responde "**o que você pode fazer?**" — decide, já sabendo quem é, se a ação é permitida (ex.: só o admin exclui).
+
+A ordem é sempre essa: primeiro autentica, depois autoriza. No ASP.NET Core isso vira dois *middlewares* no `pipeline`, nesta ordem: `UseAuthentication()` (lê e valida o token, montando o usuário) e `UseAuthorization()` (aplica as regras dos `[Authorize]`).
+
+**No projeto:**
+- A **autenticação** acontece no `AuthController.Login` (confere a senha) e, a cada requisição, no *middleware* JWT (valida o token e monta o usuário).
+- A **autorização** é declarada com atributos e checada em código:
+
+```csharp
+// TodoList.Api/Controllers/TasksController.cs
+[ApiController]
+[Route(Routes.Api.Tasks)]
+[Authorize]                       // exige estar AUTENTICADO em todas as actions (deslogado → 401)
+public sealed class TasksController : ControllerBase
+{
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = AppRoles.Admin)]   // AUTORIZAÇÃO: só o papel Admin (senão → 403)
+    public async Task<IActionResult> Delete(Guid id) { ... }
+}
+```
+
+- `[Authorize]` sem argumento = "precisa estar autenticado". Falha → **401 Unauthorized** ("não sei quem você é").
+- `[Authorize(Roles = ...)]` = "precisa ter o papel". Autenticado mas sem o papel → **403 Forbidden** ("sei quem você é, mas você não pode").
+- Regras que dependem do **dado** (ex.: "só o responsável edita") não cabem num atributo — são checadas dentro da action, lendo a identidade do usuário (ver [Claims e ClaimsPrincipal](#claims-e-claimsprincipal)).
+
+---
+
+## ASP.NET Core Identity e hash de senha
+
+**ASP.NET Core Identity** é a biblioteca oficial do .NET para **gerenciar usuários, senhas e papéis**: criação de contas, verificação de senha, papéis (*roles*), tokens, etc. Ela cuida das partes sensíveis e fáceis de errar — em especial o **armazenamento seguro de senhas**.
+
+**Por que nunca se guarda a senha em texto puro:** se o banco vazar, todas as senhas estariam expostas. Em vez disso, guarda-se um **hash** — o resultado de uma função de mão única que transforma a senha numa sequência irreversível. Para conferir um login, aplica-se o mesmo hash à senha digitada e compara-se com o guardado; **a senha original nunca é recuperável**. O Identity usa um algoritmo apropriado (PBKDF2, com *salt* e muitas iterações), o que também dificulta ataques de força bruta.
+
+**No projeto:**
+- A entidade de usuário herda do Identity, com chave `Guid`:
+
+```csharp
+// TodoList.Api/Data/Entities/AppUser.cs
+public sealed class AppUser : IdentityUser<Guid> { }   // UserName, Email, PasswordHash... vêm do Identity
+```
+
+- O `AppDbContext` herda de `IdentityDbContext`, então as tabelas `AspNet*` (usuários, papéis) são criadas pela *migration*.
+- O `AuthController` nunca vê a senha em texto: delega ao `UserManager`, que **faz o hash** ao criar e **compara hashes** ao validar:
+
+```csharp
+// TodoList.Api/Controllers/AuthController.cs
+await this._userManager.CreateAsync(user, request.Password);          // grava só o HASH
+// ...
+await this._userManager.CheckPasswordAsync(user, request.Password);   // confere contra o hash
+```
+
+- Isso atende ao requisito do [`IDEA.md`](IDEA.md) de "usar um sistema de login que já tenha criptografia de senhas embutida".
+
+---
+
+## JWT (JSON Web Token)
+
+Um **JWT** é um **token** (uma credencial) em formato compacto, usado para provar quem é o usuário em cada requisição. Ele é **autocontido** e **assinado**: carrega as informações do usuário dentro de si e uma assinatura que permite ao servidor confiar nelas sem consultar o banco.
+
+Estrutura: três partes separadas por ponto, `header.payload.signature` (cada uma em Base64Url):
+- **Header** — o algoritmo de assinatura (ex.: HMAC-SHA256).
+- **Payload** — as **claims** (ver [Claims](#claims-e-claimsprincipal)): id, nome, papéis, expiração (`exp`), etc.
+- **Signature** — o resultado de assinar `header.payload` com uma **chave secreta** que só o servidor conhece. Se alguém alterar o payload (ex.: trocar o papel para "Admin"), a assinatura não bate mais e o token é rejeitado.
+
+Característica central: o JWT é **stateless** (sem estado no servidor). O servidor não guarda sessão; ele confia no token porque a assinatura é válida e ele ainda não expirou. Isso é simples e escalável, mas tem um custo: **não há "logout no servidor"** — o token vale até expirar (por isso a expiração curta importa, e por isso não há revogação imediata — ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)).
+
+> Importante: o payload é apenas **codificado** (Base64Url), **não criptografado** — qualquer um que tenha o token consegue lê-lo. A assinatura garante **integridade** (não foi adulterado), não **sigilo**. Por isso o token só deve trafegar sobre HTTPS e não deve conter segredos.
+
+**No projeto** o `JwtTokenService` emite o token no login/cadastro, com claims curtas (`sub`/`name`/`role`):
+
+```csharp
+// TodoList.Api/Auth/JwtTokenService.cs
+List<Claim> claims = new()
+{
+    new Claim(JwtConfig.SubjectClaim, user.Id.ToString()),
+    new Claim(JwtConfig.NameClaim, user.UserName ?? string.Empty)
+};
+foreach (string role in roles) { claims.Add(new Claim(JwtConfig.RoleClaim, role)); }
+
+SigningCredentials credentials = new(signingKey, SecurityAlgorithms.HmacSha256);   // assinatura
+```
+
+- A **chave de assinatura** (`Jwt:SigningKey`) é um **segredo** e nunca vai para o repositório (ver [`BUILD.md`](BUILD.md)).
+- O cliente reenvia o token no cabeçalho `Authorization: Bearer {token}`; a API o valida com os `TokenValidationParameters` de `JwtConfig` (emissor, público, validade e assinatura).
+- O frontend também lê o token (sem confiar nele para segurança) só para exibir o estado de login — ver [AuthenticationStateProvider](#authenticationstateprovider-blazor).
+
+---
+
+## Claims e ClaimsPrincipal
+
+Uma **claim** ("afirmação") é um par **tipo + valor** que declara algo sobre o usuário — ex.: `name = "admin"`, `role = "Admin"`, `sub = "<guid>"`. Um conjunto de claims forma uma **identidade** (`ClaimsIdentity`), e uma ou mais identidades formam o **`ClaimsPrincipal`** — o objeto que representa "o usuário atual" no .NET (disponível como `User` no controller).
+
+Em vez de o servidor perguntar ao banco "qual o papel desse usuário?" a cada requisição, ele lê as claims que já vieram (assinadas) **dentro do JWT**. As claims são, portanto, a ponte entre o token e as decisões de autorização.
+
+Um detalhe prático: o `ClaimsIdentity` precisa saber **qual tipo de claim representa o nome e qual representa o papel** (o `NameClaimType` e o `RoleClaimType`). Se esses tipos não baterem com os nomes usados no token, `User.Identity.Name` vem vazio e `User.IsInRole(...)` sempre falha — um erro silencioso clássico. Por isso o projeto padroniza os nomes curtos `sub`/`name`/`role` numa constante compartilhada (`JwtClaimNames`) e configura os dois lados para usá-los.
+
+**No projeto**, a API lê a identidade do `User` para aplicar as regras de permissão:
+
+```csharp
+// TodoList.Api/Controllers/TasksController.cs
+private Guid GetCurrentUserId()
+{
+    string? subject = this.User.FindFirstValue(JwtConfig.SubjectClaim);   // lê a claim "sub"
+    return Guid.TryParse(subject, out Guid userId) ? userId : throw ...;
+}
+
+private bool IsCurrentUserAdmin() => this.User.IsInRole(AppRoles.Admin);  // lê as claims "role"
+```
+
+- `User.FindFirstValue("sub")` extrai o id do usuário autenticado — usado para definir o criador e checar "é o responsável?".
+- `User.IsInRole("Admin")` consulta as claims de papel — funciona porque o *middleware* JWT foi configurado com `RoleClaimType = "role"` (e `MapInboundClaims = false`, para não renomear as claims).
+
+---
+
+## AuthenticationStateProvider (Blazor)
+
+No Blazor, o **`AuthenticationStateProvider`** é o serviço que responde à pergunta "**quem é o usuário no navegador agora?**". Componentes como `<AuthorizeView>` e `<AuthorizeRouteView>` e o atributo `[Authorize]` nas páginas perguntam a ele o estado atual para decidir o que mostrar (ou se redirecionam o deslogado). Como o app WASM roda inteiramente no cliente, é ele que centraliza esse estado.
+
+A implementação padrão não sabe do nosso JWT, então o projeto fornece uma **própria**: a `JwtAuthenticationStateProvider`. Ela lê o token guardado no `localStorage`, faz o *parse* das claims, verifica a expiração e devolve um `ClaimsPrincipal` (autenticado ou anônimo). Quando o login/logout muda o estado, ela **notifica** a UI para re-renderizar.
+
+> Ponto importante de segurança: a validação que vale é a da **API** (que confere a assinatura a cada requisição). O provider do frontend **não** valida a assinatura — ele só lê o token para *exibir* o estado. Confiar no cliente para segurança seria um erro; o gating do frontend é conveniência de UX, a barreira real é o `[Authorize]` no servidor.
+
+**No projeto:**
+
+```csharp
+// TodoList.Web/Services/JwtAuthenticationStateProvider.cs
+public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+{
+    string? token = await this._tokenStore.GetTokenAsync();        // lê do localStorage
+    if (string.IsNullOrWhiteSpace(token) || IsExpired(token))
+    {
+        return AnonymousState;                                     // sem token/expirado → anônimo
+    }
+    this.SetAuthorizationHeader(token);                            // injeta o Bearer no HttpClient
+    return new AuthenticationState(BuildPrincipal(token));         // monta o usuário das claims
+}
+```
+
+- O `<AuthorizeRouteView>` (em `App.razor`) chama esse método ao navegar: se anônimo numa página `[Authorize]`, cai no `RedirectToLogin`.
+- O mesmo `ClaimsPrincipal` montado aqui alimenta o `<AuthorizeView>` da navbar (mostra Logout/Conta só logado) e o `[CascadingParameter] Task<AuthenticationState>` da lista de tarefas (decide quais botões exibir por papel).
+- Como bônus, o provider mantém o cabeçalho `Authorization` do `HttpClient` em dia, de modo que as chamadas do `TaskApiClient` já saem autenticadas.

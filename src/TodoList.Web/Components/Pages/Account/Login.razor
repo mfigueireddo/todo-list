@@ -1,0 +1,83 @@
+@page "/login"
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
+
+@*
+    Página de login (docs/IDEA.md). Formulário com usuário e senha; em sucesso, navega para a lista de tarefas.
+    É anônima (sem [Authorize]): acessível por um usuário deslogado.
+*@
+
+<PageTitle>Entrar</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <h1 class="h3 mb-3">Entrar</h1>
+
+        @if (_errorMessage is not null)
+        {
+            <div class="alert alert-danger" role="alert">@_errorMessage</div>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label" for="userName">Usuário</label>
+                <InputText id="userName" class="form-control" @bind-Value="_model.UserName" autocomplete="username" />
+                <ValidationMessage For="() => _model.UserName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="password">Senha</label>
+                <InputText type="password" id="password" class="form-control" @bind-Value="_model.Password" autocomplete="current-password" />
+                <ValidationMessage For="() => _model.Password" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@_isSubmitting">Entrar</button>
+        </EditForm>
+
+        <p class="mt-3 mb-0 text-center">Não tem conta? <a href="cadastro">Cadastre-se</a></p>
+    </div>
+</div>
+
+@code {
+    /// <summary>Modelo vinculado ao formulário de login.</summary>
+    private LoginRequest _model = new();
+
+    /// <summary>Indica que o login está em andamento (evita envios duplicados).</summary>
+    private bool _isSubmitting;
+
+    /// <summary>Mensagem de erro a exibir (credenciais inválidas ou falha de conexão); nula quando não há erro.</summary>
+    private string? _errorMessage;
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Envia as credenciais para a API.
+    /// 2. Em sucesso, navega para a lista de tarefas; em erro, exibe a mensagem.
+    /// </summary>
+    ///
+    private async Task SubmitAsync()
+    {
+        this._isSubmitting = true;
+        this._errorMessage = null;
+
+        try
+        {
+            this._errorMessage = await this.AuthApi.LoginAsync(this._model);
+
+            if (this._errorMessage is null)
+            {
+                this.Navigation.NavigateTo("tarefas");
+            }
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível conectar ao servidor: {exception.Message}";
+        }
+        finally
+        {
+            this._isSubmitting = false;
+        }
+    }
+}

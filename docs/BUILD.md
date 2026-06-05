@@ -21,14 +21,21 @@ sqllocaldb start MSSQLLocalDB
 dotnet restore TodoList.sln
 dotnet build TodoList.sln
 
-# 5. Aplicar o schema do banco (cria o banco TodoList e a tabela Tasks)
+# 5. Configurar a chave de assinatura do JWT (uma vez, segredo — NÃO vai para o repo)
+#    Gera uma chave aleatória e a guarda em User Secrets do TodoList.Api
+$key = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+dotnet user-secrets set "Jwt:SigningKey" $key --project src/TodoList.Api
+
+# 6. Aplicar o schema do banco (cria o banco TodoList: tabelas Tasks + AspNet* do Identity)
 dotnet tool restore
 dotnet ef database update --project src/TodoList.Api
 
-# 6. Rodar backend e frontend em DOIS terminais separados
-dotnet run --project src/TodoList.Api --launch-profile https   # API
+# 7. Rodar backend e frontend em DOIS terminais separados
+dotnet run --project src/TodoList.Api --launch-profile https   # API (semeia o admin no 1º start)
 dotnet run --project src/TodoList.Web --launch-profile https   # Frontend
 ```
+
+Depois, entre com o usuário **`admin`** / senha **`Admin@ICAD!`** (semeado automaticamente; ver seção 3.5).
 
 Depois, abra o **frontend** em <https://localhost:7150>. 
 
@@ -130,6 +137,23 @@ dotnet user-secrets set "ConnectionStrings:Default" "<connection string com cred
 
 Em seguida, rode novamente o passo 3.3. Mais detalhes sobre a estratégia de segredos em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
+### 3.5. Chave de assinatura do JWT (obrigatória; segredo)
+
+A API assina os tokens de login com a chave `Jwt:SigningKey`. Ela é um **segredo** e, por isso, **não** está no `appsettings.json` (lá ficam só `Jwt:Issuer`/`Jwt:Audience`). Sem ela, a API **não autentica** (*fail-fast* na inicialização da validação do token).
+
+Em desenvolvimento, guarde-a em **User Secrets** (HMAC-SHA256 exige ≥ 32 bytes):
+
+```powershell
+$key = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+dotnet user-secrets set "Jwt:SigningKey" $key --project src/TodoList.Api
+```
+
+Em produção, forneça-a por **variável de ambiente** `Jwt__SigningKey`.
+
+### 3.6. Usuário admin semeado
+
+No primeiro `dotnet run` (com o banco migrado), a API semeia os papéis `Admin`/`User` e o usuário **`admin`** / **`Admin@ICAD!`** exigido pelo [`IDEA.md`](IDEA.md) — use-o para entrar. O *seed* é idempotente (não duplica) e *best-effort* (se o banco estiver fora, registra um aviso e o app sobe mesmo assim; o login só funciona após o banco voltar). As credenciais são sobrescritíveis por `Seed:Admin:Username`/`Seed:Admin:Password` (User Secrets/variáveis de ambiente). Detalhes em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+
 ---
 
 ## 4. Rodar o projeto
@@ -156,7 +180,7 @@ Perfis e portas ficam no `Properties/launchSettings.json` de cada projeto:
 | `TodoList.Api` (backend)  | `https` | <https://localhost:7180> (e <http://localhost:5180>) |
 | `TodoList.Api` (backend)  | `http`  | <http://localhost:5180> |
 
-Abra o **frontend** no navegador — a página inicial deve exibir **"Olá, Mundo"**. 
+Abra o **frontend** no navegador — sem sessão, você é levado à **tela de login**; entre com `admin` / `Admin@ICAD!` (ver seção 3.6) para chegar à lista de tarefas. 
 
 A **API** pode ser verificada em <https://localhost:7180/health> (responde `200 OK`).
 

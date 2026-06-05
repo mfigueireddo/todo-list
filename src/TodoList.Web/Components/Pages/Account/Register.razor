@@ -1,0 +1,90 @@
+@page "/cadastro"
+@inject AuthApiClient AuthApi
+@inject NavigationManager Navigation
+
+@*
+    Página de cadastro (docs/IDEA.md). Usuário, e-mail (opcional) e senha; em sucesso, faz auto-login e navega
+    para a lista de tarefas. É anônima (sem [Authorize]): acessível por um usuário deslogado.
+*@
+
+<PageTitle>Cadastrar</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <h1 class="h3 mb-3">Cadastrar</h1>
+
+        @if (_errorMessage is not null)
+        {
+            <div class="alert alert-danger" role="alert">@_errorMessage</div>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label" for="userName">Usuário</label>
+                <InputText id="userName" class="form-control" @bind-Value="_model.UserName" autocomplete="username" />
+                <ValidationMessage For="() => _model.UserName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">E-mail (opcional)</label>
+                <InputText id="email" class="form-control" @bind-Value="_model.Email" autocomplete="email" />
+                <ValidationMessage For="() => _model.Email" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="password">Senha</label>
+                <InputText type="password" id="password" class="form-control" @bind-Value="_model.Password" autocomplete="new-password" />
+                <ValidationMessage For="() => _model.Password" />
+                <div class="form-text">Mínimo de @UserFieldLimits.PasswordMinLength caracteres, com maiúscula, minúscula e símbolo.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" disabled="@_isSubmitting">Cadastrar</button>
+        </EditForm>
+
+        <p class="mt-3 mb-0 text-center">Já tem conta? <a href="login">Entrar</a></p>
+    </div>
+</div>
+
+@code {
+    /// <summary>Modelo vinculado ao formulário de cadastro.</summary>
+    private RegisterRequest _model = new();
+
+    /// <summary>Indica que o cadastro está em andamento (evita envios duplicados).</summary>
+    private bool _isSubmitting;
+
+    /// <summary>Mensagem de erro a exibir (validação do servidor ou falha de conexão); nula quando não há erro.</summary>
+    private string? _errorMessage;
+
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Envia os dados de cadastro para a API.
+    /// 2. Em sucesso (auto-login), navega para a lista de tarefas; em erro, exibe a mensagem retornada.
+    /// </summary>
+    ///
+    private async Task SubmitAsync()
+    {
+        this._isSubmitting = true;
+        this._errorMessage = null;
+
+        try
+        {
+            this._errorMessage = await this.AuthApi.RegisterAsync(this._model);
+
+            if (this._errorMessage is null)
+            {
+                this.Navigation.NavigateTo("tarefas");
+            }
+        }
+        catch (HttpRequestException exception)
+        {
+            this._errorMessage = $"Não foi possível conectar ao servidor: {exception.Message}";
+        }
+        finally
+        {
+            this._isSubmitting = false;
+        }
+    }
+}

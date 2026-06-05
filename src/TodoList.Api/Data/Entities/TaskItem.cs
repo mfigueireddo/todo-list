@@ -11,21 +11,20 @@ namespace TodoList.Api.Data.Entities;
 /// Descrição:
 /// 1. Reúne os campos de negócio de uma tarefa (título, descrição, data de entrega, dificuldade e conclusão).
 /// 
-/// 2. Guarda referências a usuários (responsável e criador) como identificadores ANULÁVEIS, 
-/// ainda sem relacionamento/FK, pois o sistema de usuários será criado depois.
+/// 2. Guarda referências a usuários (responsável e criador) como identificadores ANULÁVEIS,
+/// agora ligados por chave estrangeira opcional à tabela de usuários (<see cref="AppUser"/>).
 /// </summary>
 ///
 /// <remarks>
 /// Restrições:
-/// - O nome é "TaskItem", e não "Task", de propósito: evita colisão com System.Threading.Tasks.Task, 
+/// - O nome é "TaskItem", e não "Task", de propósito: evita colisão com System.Threading.Tasks.Task,
 /// onipresente no código assíncrono da API.
-/// 
-/// - O mapeamento (obrigatoriedade, tamanhos, conversão do enum, valor padrão) 
+///
+/// - O mapeamento (obrigatoriedade, tamanhos, conversão do enum, valor padrão)
 /// é configurado em AppDbContext.OnModelCreating, não por anotações nesta classe.
-/// 
-/// - <see cref="ResponsibleUserId"/> e <see cref="CreatedByUserId"/> são provisoriamente 
-/// apenas colunas anuláveis SEM chave estrangeira: a ligação com a tabela de usuários (e a definição do tipo da chave) 
-/// virá na feature de login (ver docs/KNOWN-ISSUES.md).
+///
+/// - <see cref="ResponsibleUserId"/> e <see cref="CreatedByUserId"/> são chaves estrangeiras OPCIONAIS para <see cref="AppUser"/>
+/// (<c>DeleteBehavior.NoAction</c>): a deleção de uma conta limpa essas referências explicitamente no AuthController (ver docs/KNOWN-ISSUES.md).
 /// </remarks>
 ///
 public sealed class TaskItem
@@ -45,16 +44,16 @@ public sealed class TaskItem
     ///
     /// <summary>
     /// Identificador do usuário responsável pela tarefa, ou nulo quando não há responsável.
-    /// Coluna anulável sem FK nesta etapa (sem tabela de usuários — ver docs/KNOWN-ISSUES.md).
+    /// Chave estrangeira opcional para <see cref="AppUser"/>; definida na criação ou pela autoatribuição (ver docs/IDEA.md).
     /// </summary>
     ///
     public Guid? ResponsibleUserId { get; set; }
 
     ///
     /// <summary>
-    /// Identificador do usuário criador da tarefa, ou nulo enquanto não há autenticação para determiná-lo.
-    /// Guardado desde já porque, por requisito (docs/IDEA.md), o criador NÃO é necessariamente o responsável.
-    /// Coluna anulável sem FK nesta etapa (ver docs/KNOWN-ISSUES.md).
+    /// Identificador do usuário criador da tarefa, ou nulo quando o criador não pôde ser determinado.
+    /// Definido a partir do usuário autenticado na criação; por requisito (docs/IDEA.md), o criador NÃO é necessariamente o responsável.
+    /// Chave estrangeira opcional para <see cref="AppUser"/>.
     /// </summary>
     ///
     public Guid? CreatedByUserId { get; set; }

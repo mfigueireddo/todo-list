@@ -1,0 +1,24 @@
+@inject NavigationManager Navigation
+
+@*
+    Componente sem interface: redireciona o usuário não autenticado para a página de login.
+    Usado no <NotAuthorized> do <AuthorizeRouteView> (App.razor) quando uma página com [Authorize] é acessada deslogado.
+*@
+
+@code {
+    ///
+    /// <summary>
+    /// Descrição:
+    /// 1. Ao inicializar, redireciona imediatamente para a página de login.
+    /// </summary>
+    ///
+    /// <remarks>
+    /// Restrições:
+    /// - Não força recarregamento (navegação do lado do cliente), preservando o app WASM já carregado.
+    /// </remarks>
+    ///
+    protected override void OnInitialized()
+    {
+        this.Navigation.NavigateTo("login");
+    }
+}

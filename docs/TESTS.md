@@ -7,8 +7,8 @@ Descreve o estado atual do que existe; pendências de teste ficam em [`KNOWN-ISS
 
 ## Propósito
 
-A suíte exercita o **CRUD de tarefas** ([`TasksController`](../src/TodoList.Api/Controllers/TasksController.cs)) e, principalmente, **explora as vulnerabilidades de cada campo**: campos obrigatórios ausentes, tipos de dado errados, tamanhos fora do permitido, valores maiores do que o banco suporta e datas anteriores à atual.
-O objetivo não é só confirmar o caminho feliz, mas documentar — em forma de teste executável — como a API responde a cada entrada inválida (incluindo as brechas conhecidas).
+A suíte exercita o **CRUD de tarefas** ([`TasksController`](../src/TodoList.Api/Controllers/TasksController.cs)) e o **login/autorização** ([`AuthController`](../src/TodoList.Api/Controllers/AuthController.cs) + as regras do `TasksController`). Para o CRUD, **explora as vulnerabilidades de cada campo**: campos obrigatórios ausentes, tipos de dado errados, tamanhos fora do permitido, valores maiores do que o banco suporta e datas anteriores à atual. Para o login, cobre cadastro/login (incluindo o admin semeado), as **regras de permissão** e a conta (ver/excluir).
+O objetivo não é só confirmar o caminho feliz, mas documentar — em forma de teste executável — como a API responde a cada entrada inválida e a cada papel (incluindo as brechas conhecidas).
 
 ---
 
@@ -37,8 +37,10 @@ Os testes batem em um banco SQL Server **LocalDB real** (não InMemory), para va
 
 - A factory ([`TodoListApiFactory`](../tests/TodoList.Api.Tests/Infrastructure/TodoListApiFactory.cs)) sobrescreve `ConnectionStrings:Default` para apontar a `Database=TodoList_Tests` no mesmo servidor `(localdb)\MSSQLLocalDB`, **separado do banco de dev `TodoList`** — os testes nunca tocam o banco de desenvolvimento.
 - A connection string usa `Trusted_Connection=True` (identidade do Windows, **sem credenciais**) → segura para versionar, conforme [`CLAUDE.md`](../CLAUDE.md) e [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
-- Na inicialização, a factory chama `Database.Migrate()` (não `EnsureCreated()`) para aplicar as migrations existentes e refletir fielmente o schema de produção.
-- **Isolamento:** o banco é compartilhado pela suíte; cada teste limpa a tabela `Tasks` antes de rodar (`DELETE FROM Tasks`). A **paralelização é desativada** colocando todas as classes em uma única xUnit *collection* ([`ApiCollection`](../tests/TodoList.Api.Tests/Infrastructure/ApiCollection.cs)), evitando corrida entre os testes que limpam a tabela.
+- Na inicialização, a factory chama `Database.Migrate()` (não `EnsureCreated()`) para aplicar as migrations existentes (inclui `AddIdentity`) e, em seguida, **semeia** papéis/admin com `IdentitySeeder.SeedAsync` (na ordem certa: migra → semeia). O *seed* do startup fica desativado nos testes via `Seed:Enabled=false`.
+- A factory também injeta em memória a configuração do **JWT de teste** (`Jwt:SigningKey`/`Issuer`/`Audience`) — uma chave **descartável, só de teste** (análoga à connection string de teste, não é um segredo de produção) — para o host emitir/validar tokens.
+- **Isolamento:** o banco é compartilhado pela suíte; cada teste limpa a tabela `Tasks` **e** os usuários não-admin (`DELETE FROM AspNetUsers WHERE UserName <> 'admin'`, cascata limpa papéis/claims), preservando o admin semeado. As tarefas são apagadas antes dos usuários (as FKs `Tasks → AspNetUsers` bloqueariam a ordem inversa). A **paralelização é desativada** colocando todas as classes em uma única xUnit *collection* ([`ApiCollection`](../tests/TodoList.Api.Tests/Infrastructure/ApiCollection.cs)).
+- **Autenticação na suíte:** o `AuthenticateAsAdminAsync` faz login como o admin semeado e anexa o `Bearer` ao cliente. As classes de CRUD existentes o chamam no `InitializeAsync` para atravessar o `[Authorize]` sem alterar as asserções (o admin pode tudo); os testes de autorização criam usuários comuns via `AuthTestHelpers`.
 
 ---
 
@@ -95,6 +97,10 @@ Antes da suíte automatizada, o projeto já tinha dois *health checks* HTTP que 
 | **Data anterior à atual** | `CreateTaskTests`, `UpdateTaskTests` | data de ontem → 400; hoje/futuro → ok. |
 | **Leitura e busca** | [`GetTasksTests`](../tests/TodoList.Api.Tests/Tasks/GetTasksTests.cs) | lista vazia, ordenação por data, busca case-insensitive / sem match / em branco; id inexistente/malformado → 404. |
 | **Ciclo completo** | [`TaskCrudRoundTripTests`](../tests/TodoList.Api.Tests/Tasks/TaskCrudRoundTripTests.cs) | POST → GET → PUT → GET → DELETE → GET 404. |
+| **Cadastro** | [`RegisterTests`](../tests/TodoList.Api.Tests/Auth/RegisterTests.cs) | válido (token + papel User); usuário duplicado; senha fraca; campo ausente → 400. |
+| **Login / seed do admin** | [`LoginTests`](../tests/TodoList.Api.Tests/Auth/LoginTests.cs) | admin `admin`/`Admin@ICAD!` → 200 + papel Admin (prova o *seed*); senha errada/usuário inexistente → 401; claims `sub`/`name`/`role` do token. |
+| **Regras de autorização** | [`AuthorizationTests`](../tests/TodoList.Api.Tests/Auth/AuthorizationTests.cs) | deslogado → 401; comum cria mas não exclui (403) nem edita tarefa alheia (403); autoatribui (204) e edita; já atribuída → 409; admin edita/exclui; criador = chamador. |
+| **Conta** | [`AccountTests`](../tests/TodoList.Api.Tests/Auth/AccountTests.cs) | `GET /auth/me`; `DELETE /auth/me` (204 + `me` vira 401); referências de tarefas anuladas; excluir admin → 400. |
 
 ### Nuances confirmadas pelos testes
 
@@ -104,7 +110,8 @@ Antes da suíte automatizada, o projeto já tinha dois *health checks* HTTP que 
 
 ---
 
-## Cobertura atual: sem autorização
+## Cobertura de autorização
 
-Os testes refletem o comportamento **sem login/autorização** (qualquer chamador cria/edita/exclui), consistente com a pendência registrada em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
-Quando o sistema de login chegar, será preciso acrescentar testes das regras de permissão (apenas o admin exclui; responsável edita/visualiza; etc.).
+Os testes agora exercitam o sistema de **login e autorização**: o admin semeado, o cadastro/login, as regras de permissão (apenas o admin exclui; admin/responsável editam; usuário comum visualiza e se autoatribui) e a conta (ver/excluir). As classes de CRUD existentes passaram a autenticar como admin, mantendo as asserções originais.
+
+Pendências de teste (ver [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md)): o **frontend** (`TodoList.Web`), incluindo o fluxo de login e o gating de rotas, ainda **não** tem testes automatizados (ex.: bUnit) — foi verificado manualmente.

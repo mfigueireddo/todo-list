@@ -51,6 +51,7 @@ public sealed class GetTasksTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
+        await this._factory.AuthenticateAsAdminAsync(this._client);
     }
 
     ///

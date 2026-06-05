@@ -1,16 +1,27 @@
 @*
     Componente raiz do Blazor WebAssembly: resolve a rota da requisição para o componente de página correspondente.
-    No WASM standalone, o documento HTML fica em wwwroot/index.html; este componente é montado no elemento #app daquela página.
+    Envolve o roteador em <CascadingAuthenticationState> e usa <AuthorizeRouteView> para que páginas com [Authorize]
+    redirecionem o usuário deslogado para o login (via <RedirectToLogin>). No WASM standalone, o documento HTML fica
+    em wwwroot/index.html; este componente é montado no elemento #app daquela página.
 *@
-<Router AppAssembly="@typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Não encontrado</PageTitle>
-        <LayoutView Layout="@typeof(Layout.MainLayout)">
-            <p role="alert">Não há nada neste endereço.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    <RedirectToLogin />
+                </NotAuthorized>
+                <Authorizing>
+                    <p class="text-muted">Verificando autenticação...</p>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>Não encontrado</PageTitle>
+            <LayoutView Layout="@typeof(Layout.MainLayout)">
+                <p role="alert">Não há nada neste endereço.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
