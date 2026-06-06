@@ -166,6 +166,7 @@ classDiagram
         +UpdateAsync(id, request) string
         +DeleteAsync(id) Task
         +AssignSelfAsync(id) string
+        +UnassignSelfAsync(id) string
         +GetUsersAsync() IReadOnlyList~UserSummaryDto~
     }
     class AuthApiClient {
@@ -222,6 +223,7 @@ classDiagram
         +Create(request) ActionResult
         +Update(id, request) IActionResult
         +AssignSelf(id) IActionResult
+        +UnassignSelf(id) IActionResult
         +Delete(id) IActionResult
     }
     class AuthController {

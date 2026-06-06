@@ -252,6 +252,54 @@ public sealed class AuthorizationTests : IAsyncLifetime
     /// === <b>Descrição</b> ===
     ///
     /// <para>
+    /// Um usuário comum que se autoatribuiu pode tirar a própria atribuição (204), liberando a tarefa.
+    /// </para>
+    ///
+    /// </summary>
+    [Fact]
+    public async Task CommonUser_CanUnassignSelf_FromOwnTask()
+    {
+        HttpClient admin = await AuthTestHelpers.CreateAdminClientAsync(this._factory);
+        Guid taskId = await CreateTaskAsync(admin);
+
+        (HttpClient user, _) = await AuthTestHelpers.CreateUserClientAsync(this._factory);
+
+        HttpResponseMessage assign = await user.PostAsync($"tasks/{taskId}/assign", content: null);
+        Assert.Equal(HttpStatusCode.NoContent, assign.StatusCode);
+
+        HttpResponseMessage unassign = await user.PostAsync($"tasks/{taskId}/unassign", content: null);
+        Assert.Equal(HttpStatusCode.NoContent, unassign.StatusCode);
+    }
+
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Tirar a atribuição de uma tarefa cujo responsável é OUTRO usuário retorna 409 (Conflict).
+    /// </para>
+    ///
+    /// </summary>
+    [Fact]
+    public async Task UnassignSelf_TaskAssignedToAnotherUser_ReturnsConflict()
+    {
+        HttpClient admin = await AuthTestHelpers.CreateAdminClientAsync(this._factory);
+        Guid taskId = await CreateTaskAsync(admin);
+
+        (HttpClient firstUser, _) = await AuthTestHelpers.CreateUserClientAsync(this._factory);
+        _ = await firstUser.PostAsync($"tasks/{taskId}/assign", content: null);
+
+        (HttpClient secondUser, _) = await AuthTestHelpers.CreateUserClientAsync(this._factory);
+        HttpResponseMessage response = await secondUser.PostAsync($"tasks/{taskId}/unassign", content: null);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// O admin pode editar (204) e excluir (204) qualquer tarefa.
     /// </para>
     ///

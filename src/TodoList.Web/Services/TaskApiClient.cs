@@ -302,6 +302,50 @@ public sealed class TaskApiClient
     /// === <b>Descrição</b> ===
     ///
     /// <para>
+    /// Envia POST para remover o usuário autenticado como responsável de uma tarefa da qual ele é o responsável atual.
+    /// </para>
+    ///
+    /// </summary>
+    ///
+    /// <param name="id">Identificador único da tarefa a desatribuir.</param>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna <c>null</c> quando a desatribuição ocorre.
+    /// </para>
+    ///
+    /// <para>
+    /// Retorna a mensagem de erro quando o usuário não é o responsável atual da tarefa (409).
+    /// </para>
+    ///
+    /// </remarks>
+    public async Task<string?> UnassignSelfAsync(Guid id)
+    {
+        HttpResponseMessage response = await this._httpClient.PostAsync($"{Routes.Api.Tasks}/{id}/unassign", content: null);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            return "Você não é o responsável atual desta tarefa.";
+        }
+
+        _ = response.EnsureSuccessStatusCode();
+
+        return null;
+    }
+
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Requisita GET /users e desserializa a lista de usuários para o seletor de responsável.
     /// </para>
     ///

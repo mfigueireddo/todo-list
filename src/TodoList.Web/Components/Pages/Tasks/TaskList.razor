@@ -15,7 +15,8 @@
     Há filtro por nome e os botões disponíveis variam conforme o papel: 
     - Excluir só para admin; 
     - Editar e o checkbox só para o admin ou o responsável;
-    - "Atribuir-me" quando a tarefa não tem responsável.
+    - "Atribuir-me" quando a tarefa não tem responsável;
+    - "Tirar atribuição" quando o próprio usuário é o responsável atual.
 *@
 
 <PageTitle>Lista de Tarefas</PageTitle>
@@ -68,6 +69,11 @@ else
                     {
                         <button class="btn btn-sm btn-outline-primary" type="button"
                                 @onclick="() => AssignSelfAsync(task)">Atribuir-me</button>
+                    }
+                    @if (CanUnassignSelf(task))
+                    {
+                        <button class="btn btn-sm btn-outline-primary" type="button"
+                                @onclick="() => UnassignSelfAsync(task)">Tirar atribuição</button>
                     }
                     @if (CanEdit(task))
                     {
@@ -303,6 +309,30 @@ else
     /// === <b>Descrição</b> ===
     ///
     /// <para>
+    /// Remove o usuário autenticado como responsável da tarefa e recarrega a lista.
+    /// </para>
+    ///
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa a ser desatribuída.</param>
+    private async Task UnassignSelfAsync(TaskDto task)
+    {
+        string? error = await this.TaskApi.UnassignSelfAsync(task.Id);
+
+        if (error is not null)
+        {
+            this._errorMessage = error;
+            return;
+        }
+
+        await this.LoadTasksAsync();
+    }
+
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Navega para a página de edição da tarefa selecionada.
     /// </para>
     ///
@@ -425,6 +455,32 @@ else
     private bool CanAssignSelf(TaskDto task)
     {
         return task.ResponsibleUserId is null;
+    }
+
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Indica se o usuário atual pode tirar a própria atribuição (ele é o responsável atual da tarefa).
+    /// </para>
+    ///
+    /// </summary>
+    ///
+    /// <param name="task">Tarefa avaliada.</param>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna <c>true</c> quando o usuário autenticado é o responsável atual da tarefa.
+    /// </para>
+    ///
+    /// </remarks>
+    private bool CanUnassignSelf(TaskDto task)
+    {
+        return this._currentUserId is not null && task.ResponsibleUserId == this._currentUserId;
     }
 
     /// <summary>

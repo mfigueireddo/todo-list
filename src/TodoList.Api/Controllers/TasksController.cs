@@ -442,6 +442,64 @@ public sealed class TasksController : ControllerBase
     /// === <b>Descrição</b> ===
     ///
     /// <para>
+    /// Remove o usuário autenticado como responsável de uma tarefa da qual ele próprio é o responsável atual.
+    /// </para>
+    ///
+    /// </summary>
+    ///
+    /// <param name="id">Identificador único da tarefa a ser desatribuída.</param>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Restrições</b> ===
+    ///
+    /// <para>
+    /// É o inverso de <see cref="AssignSelf"/>: cada usuário só pode tirar a atribuição de si mesmo.
+    /// Reatribuir/remover o responsável de outro usuário continua sendo exclusivo do admin, via PUT (edição).
+    /// </para>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna HTTP 204 (No Content) quando a desatribuição ocorre.
+    /// </para>
+    ///
+    /// <para>
+    /// Retorna HTTP 404 (Not Found) quando não existe tarefa com o <paramref name="id"/> informado.
+    /// </para>
+    ///
+    /// <para>
+    /// Retorna HTTP 409 (Conflict) quando o chamador não é o responsável atual da tarefa.
+    /// </para>
+    ///
+    /// </remarks>
+    [HttpPost("{id:guid}/unassign")]
+    public async Task<IActionResult> UnassignSelf(Guid id)
+    {
+        TaskItem? task = await this._dbContext.Tasks.FirstOrDefaultAsync(entity => entity.Id == id);
+
+        if (task is null)
+        {
+            return this.NotFound();
+        }
+
+        if (task.ResponsibleUserId != this.GetCurrentUserId())
+        {
+            return this.Conflict();
+        }
+
+        task.ResponsibleUserId = null;
+
+        _ = await this._dbContext.SaveChangesAsync();
+
+        return this.NoContent();
+    }
+
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Busca a tarefa pelo identificador.
     /// </para>
     ///
