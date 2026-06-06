@@ -12,10 +12,8 @@ Consulte os arquivos relevantes **antes** de escrever ou revisar código:
 
 | Tarefa | Arquivo |
 |---|---|
-| Ponto de entrada / índice das convenções | [`.claude/STYLEGUIDE.md`](.claude/STYLEGUIDE.md) |
 | Escrever/revisar código (nomes, padrões, loops, memória, OOP) | [`.claude/CONVENTIONS.md`](.claude/CONVENTIONS.md) |
 | Documentar funções/métodos (XML doc comments) | [`.claude/DOCUMENTATION.md`](.claude/DOCUMENTATION.md) |
-| Documentar arquitetura e componentes (visão geral, estrutura, diagramas) | [`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md) |
 
 Regras de uso:
 - Antes de gerar código, verifique **todos** os arquivos aplicáveis — múltiplos podem se aplicar (ex.: uma nova feature exige `CONVENTIONS.md` para o estilo **e** `DOCUMENTATION.md` para a documentação).
@@ -34,7 +32,6 @@ Antes de gerar ou alterar qualquer arquivo, **revise se todo o conteúdo pode se
 Regras de uso:
 - Uma *connection string* só pode ser versionada se **não** contiver credenciais — por exemplo, LocalDB com `Trusted_Connection=True` (identidade do Windows).
   Com usuário/senha, mantê-la fora do controle de versão via **User Secrets** (dev) ou **variáveis de ambiente** (produção).
-  Isso é coerente com o item de *connection strings* em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
 - O `UserSecretsId` no `.csproj` é apenas um **identificador** (não um segredo) e pode ser versionado; o arquivo de *secrets* fica fora do repositório.
 - Ao adicionar um novo arquivo de configuração que possa conter segredos (ex.: `appsettings.Development.json`/`appsettings.Production.json`), garantir que ele esteja no [`.gitignore`](.gitignore) **antes** do primeiro commit.
 - Se uma alteração precisar de um valor sensível para funcionar, **não** o inclua no código/commit: use um *placeholder* e registre em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) como o valor real deve ser fornecido.
@@ -47,12 +44,3 @@ Isso inclui, por exemplo: decisões adiadas, configurações provisórias, depen
 - Registre o lembrete em [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) (na seção "Limitações conhecidas").
 - O registro deve ser feito **no mesmo momento** em que o código/decisão é gerado — não deixe pendências importantes apenas na conversa, pois elas se perdem entre sessões.
 - Cada lembrete deve ser autoexplicativo: o que é, por que está assim e o que precisa ser ajustado/feito no futuro.
-
-## Sincronização do ARCHITECTURE.md (OBRIGATÓRIO)
-
-O [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) é um retrato do estado atual da arquitetura do projeto e **deve ser atualizado como parte de cada nova feature ou mudança relevante** — não é um documento escrito uma vez só.
-
-- Sempre que uma alteração afetar o estado descrito no `ARCHITECTURE.md` (ex.: nova funcionalidade, nova dependência, mudança de arquitetura, novos componentes, novos padrões), atualize as seções correspondentes **no mesmo momento** da mudança.
-- Mantenha a estrutura de seções definida em [`.claude/ARCHITECTURE.md`](.claude/ARCHITECTURE.md).
-- Distinção em relação ao `KNOWN-ISSUES.md`: o `ARCHITECTURE.md` descreve **o que já existe** (estado atual); o `docs/KNOWN-ISSUES.md` descreve **pendências e lembretes de continuidade**.
-  Os dois devem permanecer coerentes entre si.

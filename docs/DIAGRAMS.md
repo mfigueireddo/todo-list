@@ -1,10 +1,8 @@
-# DIAGRAMS
+# DIAGRAMS.md
 
 Diagramas da arquitetura do projeto, em [Mermaid](https://mermaid.js.org/). 
 
 A organização deste arquivo segue as instruções em [`.claude/ARCHITECTURE.md`](../.claude/ARCHITECTURE.md).
-
-O detalhamento textual de cada componente fica em [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ---
 
@@ -83,8 +81,6 @@ graph TD
 ### Componentes Blazor (`TodoList.Web`)
 
 Hierarquia dos componentes Blazor. Todo componente `.razor` deriva (direta ou implicitamente) de `ComponentBase`; layouts derivam de `LayoutComponentBase`.
-
-    As classes de framework aparecem apenas para situar a herança.
 
 ```mermaid
 classDiagram

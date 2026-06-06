@@ -4,37 +4,6 @@ When documenting functions, methods, or any callable unit of code, follow the st
 
 Not every item is mandatory for every function — use **only the items that are relevant**. For example, a simple getter with a self-explanatory name may only need **Descrição** and **Retornos Esperados**, while a complex business-logic method should include all seven items.
 
-> **Idioma dos nomes das categorias:** os rótulos de cada categoria — o nome escrito antes dos dois-pontos no comentário (ex.: `Descrição:`, `Atributos:`, `Assertivas de Saída:`) — devem ser sempre escritos **em português**, exatamente como definidos nos títulos das seções abaixo. Apenas os **nomes** são fixos em português; o **conteúdo** de cada item acompanha o idioma do restante da documentação do código.
-
-> **Regras obrigatórias de formatação XML:**
-> - Nunca comece nem termine um bloco de comentário com uma linha vazia `///` sem conteúdo.
-> - Use `/// === <b>Tópico</b> ===` para títulos internos, sempre com um espaço antes e depois do tópico.
-> - Sempre deixe uma linha em branco entre uma tag XML e o conteúdo que ela envolve, mantendo o espaço fora da tag.
-> - Sempre envolva cada parágrafo em `<para>...</para>`, também com linhas em branco antes e depois do bloco.
-> - Nenhuma linha de comentário ou documentação deve ultrapassar 100 caracteres.
-> - Se o comentário for curto o suficiente para caber em uma linha, mantenha `<summary>...</summary>` na mesma linha.
-
-> **VERY IMPORTANT — blank line around tags:** Always leave a blank line **before and after** each block XML doc tag, so that every tag block is visually separated from the next. The blank line goes **outside** the tags (before the opening tag and after the closing tag), never inside:
->
-> ```csharp
-> ///
-> /// <summary>
-> /// Descrição:
-> /// 1. ...
-> /// </summary>
-> ///
-> /// <returns>
-> /// - Returns ...
-> /// </returns>
-> ///
-> /// <remarks>
-> /// ...
-> /// </remarks>
-> ///
-> ```
->
-> This applies to every block tag (`<summary>`, `<remarks>`, `<returns>`, etc.).
-
 ## Documentation Items
 
 ### 1. Objetivo
@@ -44,8 +13,12 @@ Not every item is mandatory for every function — use **only the items that are
 
 **Example:**
 ```
-Objetivo: Initializes the game session by loading saved data, resetting the score,
+=== <b>Objetivo</b> ===
+
+<para>
+Initializes the game session by loading saved data, resetting the score,
 and preparing the rendering pipeline for the first frame.
+</para>
 ```
 
 ### 2. Descrição
@@ -55,11 +28,23 @@ and preparing the rendering pipeline for the first frame.
 
 **Example:**
 ```
-Descrição:
-1. Reads the save file from disk using the FileManager utility.
-2. Parses the JSON content into a PlayerData object.
-3. If no save file exists, creates a default PlayerData with initial values.
-4. Assigns the PlayerData to the active session and triggers a UI refresh.
+=== <b>Descrição</b> ===
+
+<para>
+Reads the save file from disk using the FileManager utility.
+</para>
+
+<para>
+Parses the JSON content into a PlayerData object.
+</para>
+
+<para>
+If no save file exists, creates a default PlayerData with initial values.
+</para>
+
+<para>
+Assigns the PlayerData to the active session and triggers a UI refresh.
+</para>
 ```
 
 ### 3. Parâmetros
@@ -83,10 +68,19 @@ Parâmetros:
 
 **Example:**
 ```
-Retornos Esperados:
-- Returns the loaded PlayerData object when the save file is successfully read and parsed.
-- Returns a new PlayerData with default values when no save file is found on disk.
-- Returns null when the save file exists but contains corrupted or unreadable data.
+=== <b>Retornos</b> ===
+
+<para>
+Returns the loaded PlayerData object when the save file is successfully read and parsed.
+</para>
+
+<para>
+Returns a new PlayerData with default values when no save file is found on disk.
+</para>
+
+<para>
+Returns null when the save file exists but contains corrupted or unreadable data.
+</para>
 ```
 
 ### 5. Assertivas de Entrada (Pré-condições)
@@ -96,10 +90,19 @@ Retornos Esperados:
 
 **Example:**
 ```
-Assertivas de Entrada:
+=== <b>Assertivas de Entrada<b> ===
+
+<para>
 - The GameEngine must be fully initialized (i.e., GameEngine.getInstance() returns a non-null value).
+</para>
+
+<para>
 - The file_path parameter must point to an existing, readable file on disk.
+</para>
+
+<para>
 - The player_id parameter must correspond to a player already registered in the active session.
+</para>
 ```
 
 ### 6. Assertivas de Saída (Pós-condições)
@@ -109,11 +112,20 @@ Assertivas de Entrada:
 
 **Example:**
 ```
-Assertivas de Saída:
-- The active session's PlayerData is non-null and fully populated.
-- The UI has been refreshed to reflect the loaded player data.
-- If a new default PlayerData was created, it has NOT been persisted to disk yet —
-  the caller is responsible for saving it if needed.
+=== <b>Assertivas de Saída</b> ===
+
+<para>
+The active session's PlayerData is non-null and fully populated.
+</para>
+
+<para>
+The UI has been refreshed to reflect the loaded player data.
+</para>
+
+<para>
+If a new default PlayerData was created, it has NOT been persisted to disk yet —
+the caller is responsible for saving it if needed.
+</para>
 ```
 
 ### 7. Restrições
@@ -123,86 +135,82 @@ Assertivas de Saída:
 
 **Example:**
 ```
-Restrições:
-- Player data must be persisted in a local .txt file, not in a database,
-  due to the project's offline-first requirement.
-- This function must not be called from a background thread, as it directly
-  updates Blazor component state, which must run on the renderer's synchronization
-  context (use `InvokeAsync` when triggered from another thread).
-- The save file format must remain backward-compatible with version 1.0 saves.
-```
+=== <b>Restrições</b> ===
 
-### 8. Atributos
-- **When to include**: **Always, whenever a type or member is decorated with one or more attributes** (e.g., `[ApiController]`, `[Route]`, `[HttpGet]`, `[Authorize]`, `[FromBody]`, or any custom attribute). This item is mandatory in this repository for every attribute used.
-- **Purpose**: Make explicit what each attribute *implies* about the class/method, because attributes are not interpreted by the C# compiler — they are metadata read at runtime by a framework/SDK (ASP.NET Core, the serializer, etc.). Without this note, the behavior an attribute introduces is invisible from the code alone.
-- **Guideline**: List each attribute applied to the unit being documented and, for each, describe (a) **what it does** — the concrete behavior or contract it activates — and (b) **who interprets it** when relevant (the framework, the serializer, your own code). If an attribute takes arguments or special tokens (e.g., the `[controller]` token in a route template), explain how they are resolved. Document the attributes on the member where they appear: type-level attributes in the type's doc comment, member-level attributes in the member's doc comment.
+<para>
+Player data must be persisted in a local .txt file, not in a database,
+due to the project's offline-first requirement.
+<para>
+  
+<para> 
+This function must not be called from a background thread, as it directly
+updates Blazor component state, which must run on the renderer's synchronization
+context (use `InvokeAsync` when triggered from another thread).
+</para>
 
-**Example:**
-```
-Atributos:
-- [ApiController]: marks the class as a REST API controller and enables ASP.NET Core
-  conventions (automatic model validation returning 400, parameter source inference,
-  ProblemDetails error responses). Read by the framework at runtime, not by the C# compiler.
-- [Route("[controller]")]: defines this controller's URL template. The [controller] token is
-  replaced by the routing layer with the class name minus the "Controller" suffix.
-- [HttpGet]: maps the action to HTTP GET requests; with no argument it inherits the controller's
-  route. It is this attribute — not the method name — that drives routing.
+<para>
+The save file format must remain backward-compatible with version 1.0 saves.
+</para>
 ```
 
 ## Quick Reference Template
 
 ```csharp
 /// <summary>
+/// 
+/// === <b>Objetivo</b> ===
+/// 
 /// <para>
-/// Objetivo: [Broader intent, if the name is not self-explanatory]
+/// [Broader intent, if the name is not self-explanatory]
 /// </para>
 ///
+/// === <b>Descrição</b> ===
+/// 
 /// <para>
-/// Descrição:
-/// 1. [Step one]
-/// 2. [Step two]
-/// 3. [Step three]
+/// [Step one]
 /// </para>
+/// 
+/// <para>
+/// [Step two]
+/// </para>
+/// 
+/// <para>
+/// [Step three]
+/// </para>
+/// 
 /// </summary>
+/// 
 /// <param name="param_name">[Meaning, format, valid range, or special expectations]</param>
-/// <returns>
-/// <para>
-/// - Returns [value/type] when [condition].
-/// - Returns [value/type] when [condition].
-/// </para>
-/// </returns>
+/// 
 /// <remarks>
+/// 
+/// === <b>Assertivas de Entrada</b> ===
+/// 
 /// <para>
-/// Atributos:
-/// - [AttributeName]: [what it does and who interprets it] — required for every attribute used.
+/// [Precondition about parameters or system state]
+/// <para>
+///
+/// === <b>Assertivas de Saída</b> ===
+/// 
+/// <para>
+/// [Postcondition about outputs or system state]
 /// </para>
 ///
+/// === <b>Restrições</b> ===
+/// 
 /// <para>
-/// Assertivas de Entrada:
-/// - [Precondition about parameters or system state]
+/// [Business rule or technical constraint]
 /// </para>
-///
+/// 
+/// === <b>Retornos</b> ===
+/// 
 /// <para>
-/// Assertivas de Saída:
-/// - [Postcondition about outputs or system state]
-/// </para>
-///
+/// Returns [value/type] when [condition].
 /// <para>
-/// Restrições:
-/// - [Business rule or technical constraint]
+/// 
+/// <para>
+/// Returns [value/type] when [condition].
 /// </para>
+/// 
 /// </remarks>
 ```
-
-## When to Apply Full vs. Partial Documentation
-
-| Function Complexity | Recommended Items |
-|---|---|
-| Simple getter/setter | Descrição only (or omit entirely if trivial) |
-| Utility/helper method | Descrição + Parâmetros + Retornos Esperados |
-| Business logic method | All 8 items |
-| Public API method | All 8 items |
-| Private internal method | Descrição + Assertivas (entrada/saída) as needed |
-| Constructor | Descrição + Parâmetros + Assertivas de Saída |
-
-> **Note:** The **Atributos** item is independent of complexity — whenever a type or member is decorated with attributes, document them, even on an otherwise trivial unit.

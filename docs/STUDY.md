@@ -1,10 +1,7 @@
-# STUDY
+# STUDY.md
 
 Material de estudo com os conceitos que surgiram durante o desenvolvimento deste projeto.
-Cada tema traz uma explicação geral e um exemplo tirado do **próprio código** do `todo-list` (Blazor WebAssembly + .NET Web API + SQL Server).
-
-> Este é um documento de **aprendizado**, não de arquitetura.
-> Para o estado atual do projeto, ver [`ARCHITECTURE.md`](ARCHITECTURE.md); para pendências, [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+Cada tema traz uma explicação geral e um exemplo tirado do **próprio código**.
 
 ## Índice
 

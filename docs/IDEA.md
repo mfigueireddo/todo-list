@@ -1,4 +1,4 @@
-# Requisitos do Projeto
+# IDEA.md
 
 Esse arquivo lista os requisitos estabelecidos para a implementação do projeto.
 
