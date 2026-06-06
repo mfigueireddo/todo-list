@@ -67,7 +67,7 @@ else
 
                     @if (CanAssignSelf(task))
                     {
-                        <button class="btn btn-sm btn-outline-primary" type="button"
+                        <button class="btn btn-sm btn-outline-primary text-nowrap" type="button"
                                 @onclick="() => AssignSelfAsync(task)">Atribuir-me</button>
                     }
                     @if (CanUnassignSelf(task))
