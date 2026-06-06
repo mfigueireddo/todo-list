@@ -125,7 +125,6 @@ As propriedades específicas de cada projeto estão descritas nas seções de ca
 
 Biblioteca de classes (SDK `Microsoft.NET.Sdk`, sem dependências de runtime) **referenciada por `TodoList.Api` e `TodoList.Web`** via `ProjectReference`.
 Existe para centralizar, em um único ponto visível aos dois lados, definições que de outra forma seriam duplicadas — hoje, as **URLs base (origens) de cada serviço**.
-Projeto compartilhado criado agora para as rotas, ele também passa a ser a casa natural de DTOs/contratos futuros.
 
 Além das [configurações de build comuns](#configurações-de-build-comuns), define `<RootNamespace>TodoList.Shared</RootNamespace>`.
 Por ser uma *class library*, não gera apphost nem usa `<UseAppHost>`.

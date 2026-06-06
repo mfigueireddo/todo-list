@@ -15,7 +15,7 @@ namespace TodoList.Api.Controllers;
 /// === <b>Objetivo</b> ===
 /// 
 /// <para>
-/// Expor os endpoints de autenticação e conta exigidos pelo docs/IDEA.md — cadastro, login,
+/// Expor os endpoints de autenticação e conta — cadastro, login,
 /// visualização e exclusão da própria conta — emitindo o JWT que o frontend usa nas requisições protegidas.
 /// </para>
 /// 

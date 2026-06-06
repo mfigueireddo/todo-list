@@ -12,7 +12,7 @@ namespace TodoList.Shared.Auth;
 /// === <b>Descrição</b> ===
 /// 
 /// <para>
-/// Define os dois papéis previstos pelo docs/IDEA.md: <see cref="Admin"/> (pode excluir tarefas e tudo mais) 
+/// Define 2 papéis: <see cref="Admin"/> (pode excluir tarefas e tudo mais) 
 /// e <see cref="User"/> (usuário comum).
 /// </para>
 /// 
@@ -33,7 +33,7 @@ namespace TodoList.Shared.Auth;
 /// </remarks>
 public static class AppRoles
 {
-    /// <summary>Papel administrativo: único que pode excluir tarefas (docs/IDEA.md). O usuário semeado "admin" o possui.</summary>
+    /// <summary>Papel administrativo: único que pode excluir tarefas. O usuário semeado "admin" o possui.</summary>
     public const string Admin = "Admin";
 
     /// <summary>Papel de usuário comum, atribuído a todo cadastro novo.</summary>

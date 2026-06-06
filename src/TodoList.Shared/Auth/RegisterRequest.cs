@@ -29,7 +29,7 @@ namespace TodoList.Shared.Auth;
 /// === <b>Restrições</b> ===
 /// 
 /// <para>
-/// O e-mail é OPCIONAL: o login do projeto é por nome de usuário (ver docs/IDEA.md); 
+/// O e-mail é OPCIONAL: o login do projeto é por nome de usuário; 
 /// o e-mail fica apenas como dado de conta.
 /// </para>
 /// 

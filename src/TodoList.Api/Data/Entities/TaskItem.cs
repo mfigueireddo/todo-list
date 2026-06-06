@@ -41,7 +41,7 @@ namespace TodoList.Api.Data.Entities;
 /// 
 /// <para>
 /// <see cref="ResponsibleUserId"/> e <see cref="CreatedByUserId"/> são chaves estrangeiras OPCIONAIS para <see cref="AppUser"/>
-/// (<c>DeleteBehavior.NoAction</c>): a deleção de uma conta limpa essas referências explicitamente no AuthController (ver docs/KNOWN-ISSUES.md).
+/// (<c>DeleteBehavior.NoAction</c>): a deleção de uma conta limpa essas referências explicitamente no AuthController.
 /// </para>
 /// 
 /// </remarks>

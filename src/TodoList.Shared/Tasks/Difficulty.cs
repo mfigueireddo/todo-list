@@ -27,8 +27,7 @@ namespace TodoList.Shared.Tasks;
 /// === <b>Restrições</b> ===
 /// 
 /// <para>
-/// O conjunto de valores é FECHADO: por requisito do projeto (ver docs/IDEA.md), 
-/// o usuário não pode criar novos níveis nem editar os existentes.
+/// O conjunto de valores é FECHADO: o usuário não pode criar novos níveis nem editar os existentes.
 /// Não adicione, remova nem reordene os membros sem necessidade — a ordem define o valor numérico subjacente.
 /// </para>
 /// 

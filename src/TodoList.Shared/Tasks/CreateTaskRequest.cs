@@ -24,8 +24,7 @@ namespace TodoList.Shared.Tasks;
 /// === <b>Restrições</b> ===
 ///
 /// <para>
-/// <see cref="IsCompleted"/> NÃO faz parte da criação: por requisito (docs/IDEA.md), 
-/// toda tarefa nasce com "Concluída = false".
+/// <see cref="IsCompleted"/> NÃO faz parte da criação: toda tarefa nasce com "Concluída = false".
 /// </para>
 /// 
 /// <para>

@@ -6,23 +6,47 @@ using TodoList.Api.Data.Entities;
 
 namespace TodoList.Api.Auth;
 
-///
 /// <summary>
-/// Objetivo: Emitir o token JWT assinado entregue ao frontend após login/cadastro bem-sucedidos —
-/// o token que o WASM reenvia no header Authorization e que a API valida a cada requisição protegida.
+/// 
+/// === <b>Objetivo</b> ===
 ///
-/// Descrição:
-/// 1. Recebe a <see cref="IConfiguration"/> por injeção de dependência e lê dela a chave/emissor/público do JWT (via <see cref="JwtConfig"/>).
-/// 2. Monta as claims curtas (<c>sub</c>=id, <c>name</c>=usuário, <c>role</c>=cada papel) e assina o token com HMAC-SHA256.
+/// <para> 
+/// Emitir o token JWT assinado entregue ao frontend após login/cadastro bem-sucedidos —
+/// o token que o WASM reenvia no header Authorization e que a API valida a cada requisição protegida.
+/// </para>
+/// 
+/// === <b>Descrição</b> ===
+/// 
+/// <para>
+/// Recebe a <see cref="IConfiguration"/> por injeção de dependência 
+/// e lê dela a chave/emissor/público do JWT (via <see cref="JwtConfig"/>).
+/// </para>
+/// 
+/// <para>
+/// Monta as claims curtas (<c>sub</c>=id, <c>name</c>=usuário, <c>role</c>=cada papel) 
+/// e assina o token com HMAC-SHA256.
+/// </para>
+/// 
 /// </summary>
 ///
 /// <remarks>
-/// Restrições:
-/// - Registrado como serviço (scoped) em <c>Program.cs</c>; recebe a configuração por DI.
-/// - As claims emitidas DEVEM casar com os <see cref="TokenValidationParameters"/> de <see cref="JwtConfig.BuildValidationParameters"/> (mesmos nomes curtos).
-/// - O tempo de vida é fixo (<see cref="TokenLifetimeHours"/>): não há refresh token nesta etapa (ver docs/KNOWN-ISSUES.md).
+/// 
+/// === <b>Restrições</b> ===
+/// 
+/// <para>
+/// Registrado como serviço (scoped) em <c>Program.cs</c>; recebe a configuração por DI.
+/// </para>
+/// 
+/// <para>
+/// As claims emitidas DEVEM casar com os <see cref="TokenValidationParameters"/> 
+/// de <see cref="JwtConfig.BuildValidationParameters"/> (mesmos nomes curtos).
+/// </para>
+/// 
+/// <para>
+/// O tempo de vida é fixo (<see cref="TokenLifetimeHours"/>): não há refresh token.
+/// </para>
+/// 
 /// </remarks>
-///
 public sealed class JwtTokenService
 {
     /// <summary>Tempo de vida do token, em horas. Expirado o prazo, o usuário precisa logar de novo.</summary>
@@ -31,39 +55,52 @@ public sealed class JwtTokenService
     /// <summary>Configuração da aplicação, fonte da chave/emissor/público do JWT.</summary>
     private readonly IConfiguration _configuration;
 
-    ///
-    /// <summary>
-    /// Guarda a configuração injetada para uso na emissão do token.
-    /// </summary>
+    /// <summary>Guarda a configuração injetada para uso na emissão do token.</summary>
     ///
     /// <param name="configuration">Configuração da aplicação (deve conter as chaves do JWT). Não deve ser nula.</param>
-    ///
     public JwtTokenService(IConfiguration configuration)
     {
         this._configuration = configuration;
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Monta as claims do usuário (subject = id, name = nome de usuário e uma claim de role por papel).
-    /// 2. Assina o token com a chave HMAC-SHA256 lida da configuração e o serializa em texto.
+    /// 
+    /// === <b>Descrição</b> ===
+    /// 
+    /// <para>
+    /// Monta as claims do usuário (subject = id, name = nome de usuário e uma claim de role por papel).
+    /// </para>
+    /// 
+    /// <para>
+    /// Assina o token com a chave HMAC-SHA256 lida da configuração e o serializa em texto.
+    /// </para>
+    /// 
     /// </summary>
     ///
     /// <param name="user">Usuário autenticado para quem o token é emitido. Não deve ser nulo.</param>
     /// <param name="roles">Papéis do usuário a embutir como claims <c>role</c> (ex.: "Admin", "User").</param>
     ///
-    /// <returns>- Retorna o token JWT assinado, em formato compacto (string), pronto para o header Authorization.</returns>
+    /// <returns>Retorna o token JWT assinado, em formato compacto (string), pronto para o header Authorization.</returns>
     ///
     /// <remarks>
-    /// Assertivas de Entrada:
-    /// - <paramref name="user"/> tem <c>Id</c> e <c>UserName</c> definidos (usuário já persistido pelo Identity).
-    /// - A configuração contém <c>Jwt:SigningKey</c>/<c>Jwt:Issuer</c>/<c>Jwt:Audience</c> (validado no startup).
-    ///
-    /// Assertivas de Saída:
-    /// - O token retornado é válido por <see cref="TokenLifetimeHours"/> horas e contém as claims <c>sub</c>/<c>name</c>/<c>role</c>.
+    /// 
+    /// === <b>Assertivas de Entrada</b> ===
+    /// 
+    /// <para>
+    /// <paramref name="user"/> tem <c>Id</c> e <c>UserName</c> definidos (usuário já persistido pelo Identity).
+    /// </para>
+    /// 
+    /// <para>
+    /// A configuração contém <c>Jwt:SigningKey</c>/<c>Jwt:Issuer</c>/<c>Jwt:Audience</c> (validado no startup).
+    /// </para>
+    /// 
+    /// === <b>Assertivas de Saída</b> ===
+    /// 
+    /// <para>
+    /// O token retornado é válido por <see cref="TokenLifetimeHours"/> horas e contém as claims <c>sub</c>/<c>name</c>/<c>role</c>.
+    /// </para>
+    /// 
     /// </remarks>
-    ///
     public string GenerateToken(AppUser user, IEnumerable<string> roles)
     {
         List<Claim> claims = new()
