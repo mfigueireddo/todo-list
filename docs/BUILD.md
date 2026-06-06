@@ -154,6 +154,17 @@ Em produção, forneça-a por **variável de ambiente** `Jwt__SigningKey`.
 
 No primeiro `dotnet run` (com o banco migrado), a API semeia os papéis `Admin`/`User` e o usuário **`admin`** / **`Admin@ICAD!`** exigido pelo [`IDEA.md`](IDEA.md) — use-o para entrar. O *seed* é idempotente (não duplica) e *best-effort* (se o banco estiver fora, registra um aviso e o app sobe mesmo assim; o login só funciona após o banco voltar). As credenciais são sobrescritíveis por `Seed:Admin:Username`/`Seed:Admin:Password` (User Secrets/variáveis de ambiente). Detalhes em [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 
+### 3.7. Resetar o banco (começar "do zero")
+
+Para apagar **todo** o banco (tarefas e usuários) e recriá-lo limpo, a partir da raiz do repositório:
+
+```powershell
+dotnet ef database drop --project src/TodoList.Api      # derruba o banco TodoList (pede confirmação; use --force para pular)
+dotnet ef database update --project src/TodoList.Api    # recria o schema do zero (Tasks + AspNet* do Identity)
+```
+
+Em seguida, suba a API (seção 4): ela re-semeia os papéis e o usuário **`admin`** / **`Admin@ICAD!`** (seção 3.6), deixando o ambiente no mesmo estado da primeira instalação.
+
 ---
 
 ## 4. Rodar o projeto
