@@ -54,6 +54,7 @@ else
         <div class="mb-3">
             <label class="form-label" for="dueDate">Data de entrega</label>
             <InputDate id="dueDate" class="form-control" @bind-Value="_model.DueDate" />
+            <small class="form-text text-muted">A data é formatada em MM/DD/YYYY.</small>
             <ValidationMessage For="() => _model.DueDate" />
         </div>
 
