@@ -3,34 +3,34 @@ using Microsoft.JSInterop;
 namespace TodoList.Web.Services;
 
 /// <summary>
-/// 
+///
 /// === <b>Objetivo</b> ===
-/// 
+///
 /// <para>
 /// Persistir e recuperar o token JWT no <c>localStorage</c> do navegador, para que a sessão sobreviva a recarregamentos da página —
 /// a única ponte entre o estado de login do app e o armazenamento do navegador.
 /// </para>
-/// 
+///
 /// === <b>Descrição</b> ===
-/// 
+///
 /// <para>
 /// Encapsula o <c>IJSRuntime</c> e expõe operações simples (ler, gravar, remover) sobre uma única chave do <c>localStorage</c>.
 /// </para>
-/// 
+///
 /// </summary>
 ///
 /// <remarks>
-/// 
+///
 /// === <b>Restrições</b> ===
-/// 
+///
 /// <para>
-/// Guardar o token em <c>localStorage</c> é prático, mas fica acessível a JavaScript da página (risco de XSS): ver docs/KNOWN-ISSUES.md.
+/// Guardar o token em <c>localStorage</c> é prático, mas fica acessível a JavaScript da página (risco de XSS).
 /// </para>
-/// 
+///
 /// <para>
 /// As chamadas dependem do <c>IJSRuntime</c> e só podem ocorrer após o app iniciar (no WASM standalone não há pré-renderização, então é seguro).
 /// </para>
-/// 
+///
 /// </remarks>
 public sealed class TokenStore
 {
@@ -41,7 +41,13 @@ public sealed class TokenStore
     private readonly IJSRuntime _jsRuntime;
 
     /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Guarda o <c>IJSRuntime</c> injetado para uso nas operações de armazenamento.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="jsRuntime">Runtime de interop com JavaScript. Não deve ser nulo.</param>
@@ -50,30 +56,79 @@ public sealed class TokenStore
         this._jsRuntime = jsRuntime;
     }
 
-    /// <summary>Lê o token guardado no <c>localStorage</c>.</summary>
+    /// <summary>
     ///
-    /// <returns>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Lê o token guardado no <c>localStorage</c>.
+    /// </para>
+    ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna o token quando existe.
+    /// </para>
+    ///
+    /// <para>
     /// Retorna <c>null</c> quando não há token guardado.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public async Task<string?> GetTokenAsync()
     {
         return await this._jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
     }
 
-    /// <summary>Grava o token no <c>localStorage</c>, sobrescrevendo um eventual valor anterior.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Grava o token no <c>localStorage</c>, sobrescrevendo um eventual valor anterior.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="token">Token JWT a guardar.</param>
     ///
-    /// <returns>Retorna uma <see cref="Task"/> concluída após a gravação.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> concluída após a gravação.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task SetTokenAsync(string token)
     {
         await this._jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenKey, token);
     }
 
-    /// <summary>Remove o token do <c>localStorage</c> (usado no logout).</summary>
+    /// <summary>
     ///
-    /// <returns>Retorna uma <see cref="Task"/> concluída após a remoção.</returns>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Remove o token do <c>localStorage</c> (usado no logout).
+    /// </para>
+    ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> concluída após a remoção.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task RemoveTokenAsync()
     {
         await this._jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);

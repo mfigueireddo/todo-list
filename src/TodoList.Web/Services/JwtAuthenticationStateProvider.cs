@@ -7,50 +7,50 @@ using TodoList.Shared.Auth;
 namespace TodoList.Web.Services;
 
 /// <summary>
-/// 
+///
 /// === <b>Objetivo</b> ===
-/// 
+///
 /// <para>
 /// Informar ao Blazor quem é o usuário autenticado a partir do token JWT guardado, e manter o cabeçalho Authorization
 /// do <c>HttpClient</c> em sincronia — é a peça que liga o token às verificações de autorização (<c>AuthorizeView</c>, <c>[Authorize]</c>) e às chamadas à API.
 /// </para>
-/// 
+///
 /// === <b>Descrição</b> ===
-/// 
+///
 /// <para>
-/// Em <see cref="GetAuthenticationStateAsync"/>, lê o token do <see cref="TokenStore"/>: 
-/// se ausente/expirado, retorna anônimo; 
+/// Em <see cref="GetAuthenticationStateAsync"/>, lê o token do <see cref="TokenStore"/>:
+/// se ausente/expirado, retorna anônimo;
 /// senão monta o usuário a partir das claims.
 /// </para>
-/// 
+///
 /// <para>
-/// <see cref="MarkLoggedInAsync"/>/<see cref="MarkLoggedOutAsync"/> atualizam o token, 
+/// <see cref="MarkLoggedInAsync"/>/<see cref="MarkLoggedOutAsync"/> atualizam o token,
 /// o cabeçalho do <c>HttpClient</c> e notificam a UI da mudança de estado.
 /// </para>
-/// 
+///
 /// <para>
-/// Faz o parse manual do JWT (sem dependências pesadas), 
+/// Faz o parse manual do JWT (sem dependências pesadas),
 /// extraindo as claims curtas <c>sub</c>/<c>name</c>/<c>role</c> e checando a expiração.
 /// </para>
-/// 
+///
 /// </summary>
 ///
 /// <remarks>
-/// 
+///
 /// === <b>Restrições</b> ===
-/// 
+///
 /// <para>
 /// É registrado como <c>scoped</c> (no WASM, equivale a uma instância por app); o mesmo <c>HttpClient</c> é compartilhado com os clientes de API, então definir o cabeçalho aqui afeta todas as chamadas.
 /// </para>
-/// 
+///
 /// <para>
 /// NÃO valida a assinatura do token (isso é responsabilidade da API a cada requisição): aqui o token é apenas lido para exibir o estado e detectar expiração.
 /// </para>
-/// 
+///
 /// <para>
 /// Um token malformado ou sem <c>exp</c> legível é tratado como NÃO autenticado (decisão conservadora).
 /// </para>
-/// 
+///
 /// </remarks>
 public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
 {
@@ -73,7 +73,13 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     private readonly TokenStore _tokenStore;
 
     /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Guarda o <c>HttpClient</c> compartilhado e o <see cref="TokenStore"/> injetados.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="httpClient">Cliente HTTP compartilhado pelos clientes de API. Não deve ser nulo.</param>
@@ -85,23 +91,32 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
-    /// 
+    ///
     /// === <b>Descrição</b> ===
-    /// 
+    ///
     /// <para>
     /// Lê o token do armazenamento; se ausente ou expirado, limpa a sessão e retorna o estado anônimo.
     /// </para>
-    /// 
+    ///
     /// <para>
     /// Caso válido, garante o cabeçalho Authorization e constrói o usuário a partir das claims.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna o estado autenticado (com as claims do token) quando há um token válido.
+    /// </para>
+    ///
+    /// <para>
     /// Retorna o estado anônimo quando não há token ou ele está expirado.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         string? token = await this._tokenStore.GetTokenAsync();
@@ -118,18 +133,26 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
-    /// 
+    ///
     /// === <b>Descrição</b> ===
-    /// 
+    ///
     /// <para>
     /// Persiste o token, atualiza o cabeçalho Authorization e notifica a UI de que o usuário ficou autenticado.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
     /// <param name="token">Token JWT recém-emitido pelo login/cadastro.</param>
     ///
-    /// <returns>Retorna uma <see cref="Task"/> concluída após o estado ser atualizado e propagado.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> concluída após o estado ser atualizado e propagado.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task MarkLoggedInAsync(string token)
     {
         await this._tokenStore.SetTokenAsync(token);
@@ -138,10 +161,24 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Remove o token, limpa o cabeçalho Authorization e notifica a UI de que o usuário ficou anônimo.
+    /// </para>
+    ///
     /// </summary>
     ///
-    /// <returns>Retorna uma <see cref="Task"/> concluída após a sessão ser encerrada e propagada.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> concluída após a sessão ser encerrada e propagada.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task MarkLoggedOutAsync()
     {
         await this.ClearSessionAsync(removeStoredToken: true);
@@ -149,12 +186,26 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Remove (opcionalmente) o token guardado e limpa o cabeçalho Authorization do <c>HttpClient</c>.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="removeStoredToken">Quando verdadeiro, apaga o token do armazenamento (ex.: token expirado ou logout).</param>
     ///
-    /// <returns>Retorna uma <see cref="Task"/> concluída após a limpeza.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> concluída após a limpeza.
+    /// </para>
+    ///
+    /// </remarks>
     private async Task ClearSessionAsync(bool removeStoredToken)
     {
         if (removeStoredToken)
@@ -165,7 +216,15 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
         this._httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
-    /// <summary>Define o cabeçalho Authorization do <c>HttpClient</c> compartilhado como "Bearer {token}".</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Define o cabeçalho Authorization do <c>HttpClient</c> compartilhado como "Bearer {token}".
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="token">Token JWT a anexar.</param>
     private void SetAuthorizationHeader(string token)
@@ -174,13 +233,27 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
-    /// Monta um <see cref="ClaimsPrincipal"/> a partir das claims do token, 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Monta um <see cref="ClaimsPrincipal"/> a partir das claims do token,
     /// fixando os tipos de nome e papel nas claims curtas.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="token">Token JWT do qual extrair as claims.</param>
     ///
-    /// <returns>Retorna o usuário autenticado, com <c>Name</c> e papéis legíveis por <c>AuthorizeView</c>/<c>User.IsInRole</c>.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna o usuário autenticado, com <c>Name</c> e papéis legíveis por <c>AuthorizeView</c>/<c>User.IsInRole</c>.
+    /// </para>
+    ///
+    /// </remarks>
     private static ClaimsPrincipal BuildPrincipal(string token)
     {
         IReadOnlyList<Claim> claims = ParseClaims(token);
@@ -189,14 +262,31 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
         return new ClaimsPrincipal(identity);
     }
 
-    /// <summary>Lê a claim <c>exp</c> (segundos Unix) e a compara com o instante atual.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Lê a claim <c>exp</c> (segundos Unix) e a compara com o instante atual.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="token">Token JWT a verificar.</param>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna <c>true</c> quando o token expirou ou não tem <c>exp</c> legível (conservador).
+    /// </para>
+    ///
+    /// <para>
     /// Retorna <c>false</c> quando ainda é válido.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     private static bool IsExpired(string token)
     {
         Claim? expiration = ParseClaims(token).FirstOrDefault(claim => claim.Type == ExpirationClaim);
@@ -210,13 +300,27 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
-    /// Decodifica o segmento de payload do JWT 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Decodifica o segmento de payload do JWT
     /// e converte cada propriedade JSON em uma ou mais claims (arrays viram várias claims).
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="token">Token JWT compacto (três segmentos separados por ponto).</param>
     ///
-    /// <returns>Retorna a lista de claims do payload (vazia quando o token é malformado).</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a lista de claims do payload (vazia quando o token é malformado).
+    /// </para>
+    ///
+    /// </remarks>
     private static IReadOnlyList<Claim> ParseClaims(string token)
     {
         string[] segments = token.Split('.');
@@ -251,18 +355,26 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
     }
 
     /// <summary>
-    /// 
+    ///
     /// === <b>Descrição</b> ===
-    /// 
+    ///
     /// <para>
     /// Converte um segmento Base64Url (sem padding) em bytes, reintroduzindo os caracteres e o preenchimento padrão do Base64.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
     /// <param name="segment">Segmento Base64Url do JWT.</param>
     ///
-    /// <returns>Retorna os bytes decodificados.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna os bytes decodificados.
+    /// </para>
+    ///
+    /// </remarks>
     private static byte[] DecodeBase64Url(string segment)
     {
         const int Base64BlockSize = 4;

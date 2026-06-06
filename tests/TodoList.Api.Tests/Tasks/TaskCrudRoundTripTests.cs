@@ -7,18 +7,16 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Tasks;
 
-///
 /// <summary>
-/// Objetivo: Verificar o ciclo completo do CRUD ponta a ponta (POST → GET → PUT → GET → DELETE → GET 404) 
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Verificar o ciclo completo do CRUD ponta a ponta (POST → GET → PUT → GET → DELETE → GET 404)
 /// sobre o pipeline HTTP real e o banco de teste, garantindo que os endpoints colaboram de forma consistente.
+/// </para>
+///
 /// </summary>
-///
-/// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: compartilha a <see cref="TodoListApiFactory"/> 
-/// e serializa a execução (ver <see cref="ApiCollection"/>).
-/// </remarks>
-///
 [Collection("TodoListApi")]
 public sealed class TaskCrudRoundTripTests : IAsyncLifetime
 {
@@ -28,47 +26,82 @@ public sealed class TaskCrudRoundTripTests : IAsyncLifetime
     /// <summary>Cliente HTTP in-memory apontando para a API de teste.</summary>
     private readonly HttpClient _client;
 
+    /// <summary>
     ///
-    /// <summary>Descrição: guarda a factory e cria o cliente HTTP in-memory.</summary>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory e cria o cliente HTTP in-memory.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public TaskCrudRoundTripTests(TodoListApiFactory factory)
     {
         this._factory = factory;
         this._client = factory.CreateClient();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: limpa a tabela <c>Tasks</c> antes de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <para>
+    /// Limpa a tabela <c>Tasks</c> antes de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
         await this._factory.AuthenticateAsAdminAsync(this._client);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: percorre o ciclo de vida completo de uma tarefa, 
-    /// verificando cada passo: cria, lê, edita, relê (refletindo a edição), exclui e confirma a ausência (404).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Percorre o ciclo de vida completo de uma tarefa,
+    /// verificando cada passo: cria, lê, edita, relê (refletindo a edição), exclui e confirma a ausência (404).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Crud_CreateGetUpdateDelete_FullLifecycle()
     {
@@ -105,14 +138,15 @@ public sealed class TaskCrudRoundTripTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NotFound, getAfterDelete.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: após criar uma tarefa, a busca por parte do seu título a encontra na listagem.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Após criar uma tarefa, a busca por parte do seu título a encontra na listagem.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Crud_SearchAfterCreate_FindsCreatedTask()
     {

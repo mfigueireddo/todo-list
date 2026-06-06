@@ -7,45 +7,45 @@ using TodoList.Api.Data.Entities;
 namespace TodoList.Api.Auth;
 
 /// <summary>
-/// 
+///
 /// === <b>Objetivo</b> ===
 ///
-/// <para> 
+/// <para>
 /// Emitir o token JWT assinado entregue ao frontend após login/cadastro bem-sucedidos —
 /// o token que o WASM reenvia no header Authorization e que a API valida a cada requisição protegida.
 /// </para>
-/// 
+///
 /// === <b>Descrição</b> ===
-/// 
+///
 /// <para>
-/// Recebe a <see cref="IConfiguration"/> por injeção de dependência 
+/// Recebe a <see cref="IConfiguration"/> por injeção de dependência
 /// e lê dela a chave/emissor/público do JWT (via <see cref="JwtConfig"/>).
 /// </para>
-/// 
+///
 /// <para>
-/// Monta as claims curtas (<c>sub</c>=id, <c>name</c>=usuário, <c>role</c>=cada papel) 
+/// Monta as claims curtas (<c>sub</c>=id, <c>name</c>=usuário, <c>role</c>=cada papel)
 /// e assina o token com HMAC-SHA256.
 /// </para>
-/// 
+///
 /// </summary>
 ///
 /// <remarks>
-/// 
+///
 /// === <b>Restrições</b> ===
-/// 
+///
 /// <para>
 /// Registrado como serviço (scoped) em <c>Program.cs</c>; recebe a configuração por DI.
 /// </para>
-/// 
+///
 /// <para>
-/// As claims emitidas DEVEM casar com os <see cref="TokenValidationParameters"/> 
+/// As claims emitidas DEVEM casar com os <see cref="TokenValidationParameters"/>
 /// de <see cref="JwtConfig.BuildValidationParameters"/> (mesmos nomes curtos).
 /// </para>
-/// 
+///
 /// <para>
 /// O tempo de vida é fixo (<see cref="TokenLifetimeHours"/>): não há refresh token.
 /// </para>
-/// 
+///
 /// </remarks>
 public sealed class JwtTokenService
 {
@@ -55,7 +55,15 @@ public sealed class JwtTokenService
     /// <summary>Configuração da aplicação, fonte da chave/emissor/público do JWT.</summary>
     private readonly IConfiguration _configuration;
 
-    /// <summary>Guarda a configuração injetada para uso na emissão do token.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a configuração injetada para uso na emissão do token.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="configuration">Configuração da aplicação (deve conter as chaves do JWT). Não deve ser nula.</param>
     public JwtTokenService(IConfiguration configuration)
@@ -64,42 +72,46 @@ public sealed class JwtTokenService
     }
 
     /// <summary>
-    /// 
+    ///
     /// === <b>Descrição</b> ===
-    /// 
+    ///
     /// <para>
     /// Monta as claims do usuário (subject = id, name = nome de usuário e uma claim de role por papel).
     /// </para>
-    /// 
+    ///
     /// <para>
     /// Assina o token com a chave HMAC-SHA256 lida da configuração e o serializa em texto.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
     /// <param name="user">Usuário autenticado para quem o token é emitido. Não deve ser nulo.</param>
     /// <param name="roles">Papéis do usuário a embutir como claims <c>role</c> (ex.: "Admin", "User").</param>
     ///
-    /// <returns>Retorna o token JWT assinado, em formato compacto (string), pronto para o header Authorization.</returns>
-    ///
     /// <remarks>
-    /// 
+    ///
     /// === <b>Assertivas de Entrada</b> ===
-    /// 
+    ///
     /// <para>
     /// <paramref name="user"/> tem <c>Id</c> e <c>UserName</c> definidos (usuário já persistido pelo Identity).
     /// </para>
-    /// 
+    ///
     /// <para>
     /// A configuração contém <c>Jwt:SigningKey</c>/<c>Jwt:Issuer</c>/<c>Jwt:Audience</c> (validado no startup).
     /// </para>
-    /// 
+    ///
     /// === <b>Assertivas de Saída</b> ===
-    /// 
+    ///
     /// <para>
     /// O token retornado é válido por <see cref="TokenLifetimeHours"/> horas e contém as claims <c>sub</c>/<c>name</c>/<c>role</c>.
     /// </para>
-    /// 
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna o token JWT assinado, em formato compacto (string), pronto para o header Authorization.
+    /// </para>
+    ///
     /// </remarks>
     public string GenerateToken(AppUser user, IEnumerable<string> roles)
     {

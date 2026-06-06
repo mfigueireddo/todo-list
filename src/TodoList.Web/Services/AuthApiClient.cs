@@ -6,42 +6,42 @@ using TodoList.Shared.Auth;
 namespace TodoList.Web.Services;
 
 /// <summary>
-/// 
-/// === <b>Objetivo</b> === 
-/// 
+///
+/// === <b>Objetivo</b> ===
+///
 /// <para>
 /// Centralizar, em um único ponto do frontend, as chamadas HTTP de autenticação/conta (login, cadastro, ver e excluir conta)
 /// e coordenar a transição de estado de login com o <see cref="JwtAuthenticationStateProvider"/>.
 /// </para>
-/// 
+///
 /// === <b>Descrição</b> ===
-/// 
+///
 /// <para>
 /// Encapsula o <c>HttpClient</c> (mesmo BaseAddress da API) e expõe um método por operação de autenticação/conta.
 /// </para>
-/// 
+///
 /// <para>
 /// Em login/cadastro bem-sucedidos, repassa o token ao provider (que guarda o token, ajusta o cabeçalho e notifica a UI).
 /// </para>
-/// 
+///
 /// <para>
 /// Traduz as respostas HTTP em retornos convenientes para as páginas (null em sucesso, mensagem de erro em falha).
 /// </para>
-/// 
+///
 /// </summary>
 ///
 /// <remarks>
-/// 
+///
 /// === <b>Restrições</b> ===
-/// 
+///
 /// <para>
 /// É um cliente de TRANSPORTE + coordenação de estado de sessão; a verificação de credenciais e a emissão do token são da API.
 /// </para>
-/// 
+///
 /// <para>
 /// Registrado como serviço (scoped) em Program.cs; recebe o <c>HttpClient</c> e o provider por injeção de dependência.
 /// </para>
-/// 
+///
 /// </remarks>
 public sealed class AuthApiClient
 {
@@ -51,7 +51,15 @@ public sealed class AuthApiClient
     /// <summary>Provider de estado de autenticação, atualizado em login/logout.</summary>
     private readonly JwtAuthenticationStateProvider _authStateProvider;
 
-    /// <summary>Guarda o <c>HttpClient</c> e o provider de autenticação injetados.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda o <c>HttpClient</c> e o provider de autenticação injetados.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="httpClient">Cliente HTTP já configurado com o endereço base da API. Não deve ser nulo.</param>
     /// <param name="authStateProvider">Provider de estado de autenticação. Não deve ser nulo.</param>
@@ -62,25 +70,34 @@ public sealed class AuthApiClient
     }
 
     /// <summary>
-    /// 
+    ///
     /// === <b>Descrição</b> ===
-    /// 
+    ///
     /// <para>
     /// Envia as credenciais para POST /auth/login.
     /// </para>
-    /// 
+    ///
     /// <para>
     /// Em sucesso, marca o usuário como autenticado (token + estado); em 401, retorna a mensagem de credenciais inválidas.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
     /// <param name="request">Credenciais de login (nome de usuário e senha).</param>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna <c>null</c> quando o login é bem-sucedido (já autenticado).
+    /// </para>
+    ///
+    /// <para>
     /// Retorna a mensagem de erro quando as credenciais são inválidas ou ocorre outra falha.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public async Task<string?> LoginAsync(LoginRequest request)
     {
         HttpResponseMessage response = await this._httpClient.PostAsJsonAsync($"{Routes.Api.Auth}/login", request);
@@ -99,25 +116,34 @@ public sealed class AuthApiClient
     }
 
     /// <summary>
-    /// 
-    /// === <b> Descrição</b> ===
-    /// 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
     /// <para>
     /// Envia os dados para POST /auth/register.
     /// </para>
-    /// 
+    ///
     /// <para>
     /// Em sucesso, marca o usuário como autenticado (auto-login); em 400, extrai a mensagem de validação (ex.: usuário em uso, senha fraca).
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
     /// <param name="request">Dados de cadastro (nome de usuário, senha e e-mail opcional).</param>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna <c>null</c> quando o cadastro é bem-sucedido (já autenticado).
+    /// </para>
+    ///
+    /// <para>
     /// Retorna a mensagem de erro quando o cadastro é rejeitado ou ocorre outra falha.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public async Task<string?> RegisterAsync(RegisterRequest request)
     {
         HttpResponseMessage response = await this._httpClient.PostAsJsonAsync($"{Routes.Api.Auth}/register", request);
@@ -136,35 +162,61 @@ public sealed class AuthApiClient
         return await this.ApplyAuthResponseAsync(response);
     }
 
-    /// <summary>Busca os dados da conta autenticada em GET /auth/me.</summary>
+    /// <summary>
     ///
-    /// <returns>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Busca os dados da conta autenticada em GET /auth/me.
+    /// </para>
+    ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna o <see cref="AccountDto"/> da conta autenticada.
+    /// </para>
+    ///
+    /// <para>
     /// Retorna <c>null</c> quando o corpo é vazio (situação inesperada).
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public async Task<AccountDto?> GetAccountAsync()
     {
         return await this._httpClient.GetFromJsonAsync<AccountDto>($"{Routes.Api.Auth}/me");
     }
 
     /// <summary>
-    /// 
+    ///
     /// === <b>Descrição</b> ===
-    /// 
+    ///
     /// <para>
     /// Solicita a exclusão da conta autenticada em DELETE /auth/me.
     /// </para>
-    /// 
+    ///
     /// <para>
     /// Em sucesso, encerra a sessão (logout).
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna <c>true</c> quando a conta é excluída (e a sessão é encerrada).
+    /// </para>
+    ///
+    /// <para>
     /// Retorna <c>false</c> quando a exclusão é recusada (ex.: conta administradora) ou falha.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public async Task<bool> DeleteAccountAsync()
     {
         HttpResponseMessage response = await this._httpClient.DeleteAsync($"{Routes.Api.Auth}/me");
@@ -180,24 +232,55 @@ public sealed class AuthApiClient
     }
 
     /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Encerra a sessão localmente (remove o token, limpa o cabeçalho e notifica a UI).
     /// O JWT é stateless: não há revogação no servidor.
+    /// </para>
+    ///
     /// </summary>
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> concluída após o logout.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> concluída após o logout.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task LogoutAsync()
     {
         await this._authStateProvider.MarkLoggedOutAsync();
     }
 
-    /// <summary>Lê o <see cref="AuthResponse"/> de uma resposta de sucesso e marca o usuário como autenticado.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Lê o <see cref="AuthResponse"/> de uma resposta de sucesso e marca o usuário como autenticado.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="response">Resposta de sucesso de login/cadastro contendo o token.</param>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna <c>null</c> quando o token é aplicado com sucesso.
+    /// </para>
+    ///
+    /// <para>
     /// Retorna uma mensagem de erro quando o corpo é inválido.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     private async Task<string?> ApplyAuthResponseAsync(HttpResponseMessage response)
     {
         AuthResponse? auth = await response.Content.ReadFromJsonAsync<AuthResponse>();

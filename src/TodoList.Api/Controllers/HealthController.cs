@@ -27,12 +27,18 @@ public sealed class HealthController : ControllerBase
     /// <para>
     /// Retorna um objeto com o estado e o horário (UTC) da verificação.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna HTTP 200 com <c>{ status, timeUtc }</c> sempre que a API estiver no ar.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     [HttpGet]
     public IActionResult Get() => Ok(new { status = "ok", timeUtc = DateTime.UtcNow });
 }

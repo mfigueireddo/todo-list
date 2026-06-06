@@ -36,7 +36,15 @@ public sealed class UsersController : ControllerBase
     /// <summary>Gerenciador de usuários do Identity; expõe a consulta dos usuários cadastrados.</summary>
     private readonly UserManager<AppUser> _userManager;
 
-    /// <summary>Guarda o <see cref="UserManager{TUser}"/> injetado para uso na listagem.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda o <see cref="UserManager{TUser}"/> injetado para uso na listagem.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="userManager">Gerenciador de usuários do Identity. Não deve ser nulo.</param>
     public UsersController(UserManager<AppUser> userManager)
@@ -51,10 +59,18 @@ public sealed class UsersController : ControllerBase
     /// <para>
     /// Lê todos os usuários e os projeta em <see cref="UserSummaryDto"/> (id + nome), ordenados por nome.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
-    /// <returns>Retorna HTTP 200 com a lista (possivelmente vazia) de <see cref="UserSummaryDto"/>.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna HTTP 200 com a lista (possivelmente vazia) de <see cref="UserSummaryDto"/>.
+    /// </para>
+    ///
+    /// </remarks>
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<UserSummaryDto>>> GetAll()
     {

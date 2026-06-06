@@ -6,17 +6,16 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Auth;
 
-///
 /// <summary>
-/// Objetivo: Exercitar o endpoint POST /auth/register pelo pipeline HTTP real, cobrindo o cadastro válido (com auto-login)
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Exercitar o endpoint POST /auth/register pelo pipeline HTTP real, cobrindo o cadastro válido (com auto-login)
 /// e as rejeições esperadas (usuário duplicado, senha fraca e campos obrigatórios ausentes).
+/// </para>
+///
 /// </summary>
-///
-/// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: compartilha a <see cref="TodoListApiFactory"/> e serializa a execução (ver <see cref="ApiCollection"/>).
-/// </remarks>
-///
 [Collection("TodoListApi")]
 public sealed class RegisterTests : IAsyncLifetime
 {
@@ -26,45 +25,80 @@ public sealed class RegisterTests : IAsyncLifetime
     /// <summary>Cliente HTTP in-memory (anônimo) apontando para a API de teste.</summary>
     private readonly HttpClient _client;
 
+    /// <summary>
     ///
-    /// <summary>Descrição: guarda a factory e cria o cliente HTTP in-memory.</summary>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory e cria o cliente HTTP in-memory.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public RegisterTests(TodoListApiFactory factory)
     {
         this._factory = factory;
         this._client = factory.CreateClient();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: limpa tarefas e usuários não-admin antes de cada teste, garantindo isolamento.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <para>
+    /// Limpa tarefas e usuários não-admin antes de cada teste, garantindo isolamento.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: cadastro válido retorna 200 com token, o nome informado e o papel "User" (auto-login).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Cadastro válido retorna 200 com token, o nome informado e o papel "User" (auto-login).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Register_WithValidData_ReturnsTokenAndUserRole()
     {
@@ -82,14 +116,15 @@ public sealed class RegisterTests : IAsyncLifetime
         Assert.NotEqual(Guid.Empty, auth.UserId);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: cadastrar um nome de usuário já existente retorna 400 (validação do Identity).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Cadastrar um nome de usuário já existente retorna 400 (validação do Identity).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Register_WithDuplicateUserName_ReturnsBadRequest()
     {
@@ -101,14 +136,15 @@ public sealed class RegisterTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, second.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: senha fraca (curta, sem maiúscula nem símbolo) é rejeitada pela política do Identity — retorna 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Senha fraca (curta, sem maiúscula nem símbolo) é rejeitada pela política do Identity — retorna 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Register_WithWeakPassword_ReturnsBadRequest()
     {
@@ -117,14 +153,15 @@ public sealed class RegisterTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nome de usuário vazio falha na validação do modelo ([Required]) — retorna 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Nome de usuário vazio falha na validação do modelo ([Required]) — retorna 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Register_WithMissingUserName_ReturnsBadRequest()
     {

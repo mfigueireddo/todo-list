@@ -41,13 +41,22 @@ public sealed class ValidationProblemResponse
     /// <para>
     /// Se não houver mensagens detalhadas, recai no título geral.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna as mensagens de validação unidas por espaço quando há erros por campo.
+    /// </para>
+    ///
+    /// <para>
     /// Retorna o <see cref="Title"/> quando não há detalhes por campo.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public string ToMessage()
     {
         if (this.Errors is not null && this.Errors.Count > 0)

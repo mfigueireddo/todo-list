@@ -54,8 +54,14 @@ public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>
     public DbSet<TaskItem> Tasks => this.Set<TaskItem>();
 
     /// <summary>
-    /// Repassa as opções já configuradas (provider SQL Server, connection string, etc.) 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Repassa as opções já configuradas (provider SQL Server, connection string, etc.)
     /// para o construtor base do <c>DbContext</c>, que as utiliza ao abrir conexões e montar consultas.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="options">
@@ -64,14 +70,15 @@ public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>
     /// </param>
     ///
     /// <remarks>
-    /// === <b>Assertivas de saída</b> ===
-    /// 
+    ///
+    /// === <b>Assertivas de Saída</b> ===
+    ///
     /// <para>
     /// A instância fica pronta para uso, vinculada ao provider e à connection string fornecidos nas <paramref name="options"/>.
-    /// Nenhuma conexão com o banco é aberta neste momento — 
+    /// Nenhuma conexão com o banco é aberta neste momento —
     /// o EF Core conecta de forma tardia (lazy), apenas quando uma operação real é executada.
     /// </para>
-    /// 
+    ///
     /// </remarks>
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {

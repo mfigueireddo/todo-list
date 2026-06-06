@@ -45,14 +45,14 @@ public sealed class DatabaseHealthController : ControllerBase
     /// </param>
     ///
     /// <remarks>
-    /// 
-    /// === <b>Assertivas de saída</b> ===
-    /// 
+    ///
+    /// === <b>Assertivas de Saída</b> ===
+    ///
     /// <para>
     /// O controller fica pronto para responder, com <c>_dbContext</c> apontando para a sessão de banco da requisição atual.
     /// Nenhuma conexão é aberta no construtor.
     /// </para>
-    /// 
+    ///
     /// </remarks>
     public DatabaseHealthController(AppDbContext dbContext)
     {
@@ -71,23 +71,28 @@ public sealed class DatabaseHealthController : ControllerBase
     /// <para>
     /// Traduz o resultado em uma resposta HTTP: disponível (200) ou indisponível (503).
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
-    /// <returns>
-    /// Retorna HTTP 200 com <c>{ status = "ok", timeUtc }</c> quando a conexão com o banco é estabelecida com sucesso.
-    /// Retorna HTTP 503 (Service Unavailable) com <c>{ status = "unavailable", timeUtc }</c> quando o banco não pode ser alcançado.
-    /// </returns>
-    ///
     /// <remarks>
-    /// 
+    ///
     /// === <b>Restrições</b> ===
-    /// 
+    ///
     /// <para>
     /// É um smoke test de conectividade: usa <c>CanConnectAsync</c> de propósito (em vez de uma query de negócio)
     /// para não depender de nenhum schema/tabela, que ainda não existem.
     /// </para>
-    /// 
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna HTTP 200 com <c>{ status = "ok", timeUtc }</c> quando a conexão com o banco é estabelecida com sucesso.
+    /// </para>
+    ///
+    /// <para>
+    /// Retorna HTTP 503 (Service Unavailable) com <c>{ status = "unavailable", timeUtc }</c> quando o banco não pode ser alcançado.
+    /// </para>
+    ///
     /// </remarks>
     [HttpGet]
     public async Task<IActionResult> Get()

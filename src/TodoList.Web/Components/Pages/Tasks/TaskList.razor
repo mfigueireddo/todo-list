@@ -192,13 +192,29 @@ else
         }
     }
 
-    /// <summary>Reaplica o filtro a partir do texto digitado, recarregando a lista pela API.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Reaplica o filtro a partir do texto digitado, recarregando a lista pela API.
+    /// </para>
+    ///
+    /// </summary>
     private async Task ApplyFilterAsync()
     {
         await this.LoadTasksAsync();
     }
 
-    /// <summary>Dispara a busca quando o usuário pressiona Enter no campo de filtro.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Dispara a busca quando o usuário pressiona Enter no campo de filtro.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="args">Dados do evento de teclado; usado para identificar a tecla Enter.</param>
     private async Task OnSearchKeyUp(KeyboardEventArgs args)
@@ -258,7 +274,15 @@ else
         await this.LoadTasksAsync();
     }
 
-    /// <summary>Autoatribui o usuário autenticado como responsável da tarefa e recarrega a lista.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Autoatribui o usuário autenticado como responsável da tarefa e recarrega a lista.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="task">Tarefa a ser autoatribuída.</param>
     private async Task AssignSelfAsync(TaskDto task)
@@ -274,7 +298,15 @@ else
         await this.LoadTasksAsync();
     }
 
-    /// <summary>Navega para a página de edição da tarefa selecionada.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Navega para a página de edição da tarefa selecionada.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="id">Identificador da tarefa a editar.</param>
     private void EditTask(Guid id)
@@ -317,44 +349,109 @@ else
         }
     }
 
-    /// <summary>Indica se o usuário atual pode editar a tarefa (admin ou responsável atual).</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Indica se o usuário atual pode editar a tarefa (admin ou responsável atual).
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="task">Tarefa avaliada.</param>
     ///
-    /// <returns>Retorna <c>true</c> quando o usuário é admin ou o responsável da tarefa.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna <c>true</c> quando o usuário é admin ou o responsável da tarefa.
+    /// </para>
+    ///
+    /// </remarks>
     private bool CanEdit(TaskDto task)
     {
         return this._isAdmin || (this._currentUserId is not null && task.ResponsibleUserId == this._currentUserId);
     }
 
-    /// <summary>Indica se o usuário atual pode excluir a tarefa (apenas admin).</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Indica se o usuário atual pode excluir a tarefa (apenas admin).
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="task">Tarefa avaliada.</param>
     ///
-    /// <returns>Retorna <c>true</c> quando o usuário é admin.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna <c>true</c> quando o usuário é admin.
+    /// </para>
+    ///
+    /// </remarks>
     private bool CanDelete(TaskDto task)
     {
         return this._isAdmin;
     }
 
-    /// <summary>Indica se o usuário pode se autoatribuir como responsável (a tarefa não tem responsável).</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Indica se o usuário pode se autoatribuir como responsável (a tarefa não tem responsável).
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="task">Tarefa avaliada.</param>
     ///
-    /// <returns>Retorna <c>true</c> quando a tarefa está sem responsável.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna <c>true</c> quando a tarefa está sem responsável.
+    /// </para>
+    ///
+    /// </remarks>
     private bool CanAssignSelf(TaskDto task)
     {
         return task.ResponsibleUserId is null;
     }
 
-    /// <summary>Produz o rótulo do responsável para exibição (nome do usuário ou "Não atribuído").</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Produz o rótulo do responsável para exibição (nome do usuário ou "Não atribuído").
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="task">Tarefa cujo responsável será rotulado.</param>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna o nome do responsável quando há um.
+    /// </para>
+    ///
+    /// <para>
     /// Retorna "Não atribuído" quando a tarefa não tem responsável.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     private static string ResponsibleLabel(TaskDto task)
     {
         return string.IsNullOrWhiteSpace(task.ResponsibleUserName) ? "Não atribuído" : task.ResponsibleUserName;

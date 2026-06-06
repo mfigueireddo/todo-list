@@ -7,23 +7,28 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Tasks;
 
-///
 /// <summary>
-/// Objetivo: Exercitar o endpoint POST /tasks pelo pipeline HTTP real, 
-/// cobrindo o caminho feliz e, principalmente, as vulnerabilidades de cada campo 
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Exercitar o endpoint POST /tasks pelo pipeline HTTP real,
+/// cobrindo o caminho feliz e, principalmente, as vulnerabilidades de cada campo
 /// (obrigatório ausente, tipo errado, tamanho de fronteira, valor maior que o banco suporta e data anterior à atual).
+/// </para>
+///
 /// </summary>
 ///
 /// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: associa esta classe à collection única da suíte, 
-/// compartilhando a <see cref="TodoListApiFactory"/> e rodando de forma serializada (ver <see cref="ApiCollection"/>).
 ///
-/// Restrições:
-/// - Casos de tipo errado / fora de range usam o sender RAW (<see cref="HttpJson.RawJson"/>), 
+/// === <b>Restrições</b> ===
+///
+/// <para>
+///Casos de tipo errado / fora de range usam o sender RAW (<see cref="HttpJson.RawJson"/>),
 /// pois um DTO tipado não consegue carregar o valor inválido.
-/// </remarks>
+/// </para>
 ///
+/// </remarks>
 [Collection("TodoListApi")]
 public sealed class CreateTaskTests : IAsyncLifetime
 {
@@ -36,39 +41,67 @@ public sealed class CreateTaskTests : IAsyncLifetime
     /// <summary>Data de hoje, base das comparações de data de entrega.</summary>
     private readonly DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Guarda a factory compartilhada e cria um <c>HttpClient</c> in-memory para a API.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory compartilhada e cria um <c>HttpClient</c> in-memory para a API.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public CreateTaskTests(TodoListApiFactory factory)
     {
         this._factory = factory;
         this._client = factory.CreateClient();
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Limpa a tabela <c>Tasks</c> antes de cada teste, garantindo isolamento sobre o banco compartilhado.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Limpa a tabela <c>Tasks</c> antes de cada teste, garantindo isolamento sobre o banco compartilhado.
+    /// </para>
+    ///
     /// </summary>
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <remarks>
     ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
         await this._factory.AuthenticateAsAdminAsync(this._client);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
@@ -78,14 +111,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
     // Obrigatório ausente
     // ----------------------------------------------------------------------
 
+    /// <summary>
     ///
-    /// <summary>Descrição: POST sem o campo <c>title</c> deve falhar na validação do modelo, retornando 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: marca o método como um teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// POST sem o campo <c>title</c> deve falhar na validação do modelo, retornando 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithMissingTitle_ReturnsBadRequest()
     {
@@ -96,14 +130,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: POST com <c>title</c> explícito nulo deve falhar na validação ([Required]), retornando 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// POST com <c>title</c> explícito nulo deve falhar na validação ([Required]), retornando 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithNullTitle_ReturnsBadRequest()
     {
@@ -114,14 +149,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: POST com corpo vazio deve retornar 400 (o [ApiController] exige corpo não vazio).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// POST com corpo vazio deve retornar 400 (o [ApiController] exige corpo não vazio).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithEmptyBody_ReturnsBadRequest()
     {
@@ -134,17 +170,16 @@ public sealed class CreateTaskTests : IAsyncLifetime
     // Tipo errado
     // ----------------------------------------------------------------------
 
-    ///
     /// <summary>
-    /// Descrição: POST com <c>dueDate</c> em texto não-data deve 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// POST com <c>dueDate</c> em texto não-data deve
     /// falhar na desserialização JSON, retornando 400.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Create_WithStringDueDate_ReturnsBadRequest()
     {
@@ -155,15 +190,16 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: POST com <c>difficulty</c> como string ("Facil") 
-    /// deve retornar 400 — documenta a ausência de JsonStringEnumConverter (o enum só aceita número).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// POST com <c>difficulty</c> como string ("Facil") deve retornar 400 —
+    /// documenta a ausência de JsonStringEnumConverter (o enum só aceita número).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithStringEnumDifficulty_ReturnsBadRequest()
     {
@@ -174,15 +210,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: POST com <c>responsibleUserId</c> 
-    /// que não é GUID deve falhar na desserialização, retornando 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// POST com <c>responsibleUserId</c> que não é GUID deve falhar na desserialização, retornando 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithNonGuidResponsibleUserId_ReturnsBadRequest()
     {
@@ -197,14 +233,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
     // Tamanho (fronteira)
     // ----------------------------------------------------------------------
 
+    /// <summary>
     ///
-    /// <summary>Descrição: título com 1 caractere é válido — deve retornar 201.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Título com 1 caractere é válido — deve retornar 201.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithTitleLength1_ReturnsCreated()
     {
@@ -215,14 +252,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: título com 200 caracteres (limite máximo) é válido — deve retornar 201.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Título com 200 caracteres (limite máximo) é válido — deve retornar 201.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithTitleLength200_ReturnsCreated()
     {
@@ -233,14 +271,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: título com 201 caracteres ultrapassa o limite ([StringLength]) — deve retornar 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Título com 201 caracteres ultrapassa o limite ([StringLength]) — deve retornar 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithTitleLength201_ReturnsBadRequest()
     {
@@ -251,14 +290,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: título com 0 caracteres é tratado como ausente pelo [Required] — deve retornar 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Título com 0 caracteres é tratado como ausente pelo [Required] — deve retornar 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithTitleLength0_ReturnsBadRequest()
     {
@@ -269,14 +309,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: descrição com 2000 caracteres (limite máximo) é válida — deve retornar 201.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Descrição com 2000 caracteres (limite máximo) é válida — deve retornar 201.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithDescriptionLength2000_ReturnsCreated()
     {
@@ -288,14 +329,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: descrição com 2001 caracteres ultrapassa o limite ([StringLength]) — deve retornar 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Descrição com 2001 caracteres ultrapassa o limite ([StringLength]) — deve retornar 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithDescriptionLength2001_ReturnsBadRequest()
     {
@@ -307,14 +349,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: omitir a descrição é válido — a tarefa nasce com descrição vazia e o POST retorna 201.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Omitir a descrição é válido — a tarefa nasce com descrição vazia e o POST retorna 201.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithDescriptionOmitted_ReturnsCreated()
     {
@@ -333,17 +376,16 @@ public sealed class CreateTaskTests : IAsyncLifetime
     // Maior que o banco / enum fora de range
     // ----------------------------------------------------------------------
 
-    ///
     /// <summary>
-    /// Descrição: título de 5000 caracteres é barrado pela validação 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Título de 5000 caracteres é barrado pela validação
     /// ([StringLength]) antes de chegar ao banco — deve retornar 400.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Create_WithOversizedTitle_ReturnsBadRequest()
     {
@@ -354,14 +396,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: descrição de 5000 caracteres é barrada pela validação antes do banco — deve retornar 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Descrição de 5000 caracteres é barrada pela validação antes do banco — deve retornar 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithOversizedDescription_ReturnsBadRequest()
     {
@@ -373,17 +416,16 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    ///
     /// <summary>
-    /// Descrição: enum fora de range (<c>"difficulty":99</c>) é 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Enum fora de range (<c>"difficulty":99</c>) é
     /// ACEITO e vira <c>(Difficulty)99</c> — documenta a brecha (sem validação de enum e sem JsonStringEnumConverter).
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Create_WithOutOfRangeEnum99_ReturnsCreated()
     {
@@ -402,17 +444,16 @@ public sealed class CreateTaskTests : IAsyncLifetime
     // Data de entrega
     // ----------------------------------------------------------------------
 
-    ///
     /// <summary>
-    /// Descrição: data de entrega no passado (ontem) é barrada no servidor — 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Data de entrega no passado (ontem) é barrada no servidor —
     /// deve retornar 400 com o erro no campo DueDate.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Create_WithPastDueDate_ReturnsBadRequest()
     {
@@ -426,14 +467,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Contains("DueDate", content);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: data de entrega igual a hoje é válida — deve retornar 201.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Data de entrega igual a hoje é válida — deve retornar 201.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithDueDateToday_ReturnsCreated()
     {
@@ -444,14 +486,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: data de entrega no futuro é válida — deve retornar 201.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Data de entrega no futuro é válida — deve retornar 201.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithFutureDueDate_ReturnsCreated()
     {
@@ -466,14 +509,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
     // Caminho feliz
     // ----------------------------------------------------------------------
 
+    /// <summary>
     ///
-    /// <summary>Descrição: requisição válida retorna 201 com o cabeçalho Location apontando para o recurso criado.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Requisição válida retorna 201 com o cabeçalho Location apontando para o recurso criado.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithValidRequest_Returns201WithLocationHeader()
     {
@@ -485,14 +529,15 @@ public sealed class CreateTaskTests : IAsyncLifetime
         Assert.NotNull(response.Headers.Location);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: requisição válida nasce com <c>IsCompleted = false</c> e identificador gerado pelo servidor.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Requisição válida nasce com <c>IsCompleted = false</c> e identificador gerado pelo servidor.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_WithValidRequest_SetsIsCompletedFalseAndGeneratesId()
     {

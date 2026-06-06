@@ -5,47 +5,47 @@ using TodoList.Shared.Auth;
 namespace TodoList.Api.Auth;
 
 /// <summary>
-/// 
+///
 /// === <b>Objetivo</b> ===
-/// 
+///
 /// <para>
 /// Concentrar a configuração do JWT da API em um único lugar — os nomes das chaves de configuração, os nomes
 /// das claims usadas no token e a construção dos <see cref="TokenValidationParameters"/> — para que a emissão (JwtTokenService)
 /// e a validação (Program.cs) sigam exatamente as mesmas regras.
 /// </para>
-/// 
+///
 /// === <b>Descrição</b> ===
-/// 
+///
 /// <para>
-/// Expõe constantes para as chaves de configuração (<c>Jwt:SigningKey</c>/<c>Jwt:Issuer</c>/<c>Jwt:Audience</c>) 
+/// Expõe constantes para as chaves de configuração (<c>Jwt:SigningKey</c>/<c>Jwt:Issuer</c>/<c>Jwt:Audience</c>)
 /// e para as claims curtas (<c>sub</c>/<c>name</c>/<c>role</c>).
 /// </para>
-/// 
+///
 /// <para>
-/// Oferece leitores com <c>fail-fast</c> (<see cref="GetSigningKey"/>/<see cref="GetIssuer"/>/<see cref="GetAudience"/>) 
+/// Oferece leitores com <c>fail-fast</c> (<see cref="GetSigningKey"/>/<see cref="GetIssuer"/>/<see cref="GetAudience"/>)
 /// e a fábrica <see cref="BuildValidationParameters"/>.
 /// </para>
-/// 
+///
 /// </summary>
 ///
 /// <remarks>
-/// 
+///
 /// === <b>Restrições</b> ===
-/// 
+///
 /// <para>
-/// <c>Jwt:SigningKey</c> é SEGREDO: nunca versionar. 
+/// <c>Jwt:SigningKey</c> é SEGREDO: nunca versionar.
 /// Em desenvolvimento vem de User Secrets; em produção, de variável de ambiente.
 /// </para>
-/// 
+///
 /// <para>
-/// As claims são curtas e previsíveis (<c>sub</c>/<c>name</c>/<c>role</c>) 
+/// As claims são curtas e previsíveis (<c>sub</c>/<c>name</c>/<c>role</c>)
 /// e a validação usa <c>MapInboundClaims = false</c> (em Program.cs), para que <c>User.IsInRole</c> e o frontend leiam os mesmos nomes.
 /// </para>
-/// 
+///
 /// <para>
 /// HMAC-SHA256 exige chave de pelo menos 256 bits (32 bytes / ~32 caracteres ASCII).
 /// </para>
-/// 
+///
 /// </remarks>
 public static class JwtConfig
 {
@@ -59,7 +59,7 @@ public static class JwtConfig
     public const string AudienceName = "Jwt:Audience";
 
     /// <summary>
-    /// Claim que carrega o identificador do usuário (subject). 
+    /// Claim que carrega o identificador do usuário (subject).
     /// Fonte única em <see cref="JwtClaimNames"/> (compartilhada com o frontend).
     /// </summary>
     public const string SubjectClaim = JwtClaimNames.Subject;
@@ -71,41 +71,63 @@ public static class JwtConfig
     public const string RoleClaim = JwtClaimNames.Role;
 
     /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
     /// Lê a chave de assinatura da configuração, falhando cedo com mensagem clara quando ausente.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="configuration">Configuração da aplicação (appsettings + User Secrets + variáveis de ambiente).</param>
     ///
     /// <remarks>
-    /// 
-    /// === <b>Retornos</b> ===
-    /// 
-    /// <para>
-    /// Retorna a chave de assinatura (segredo) configurada.
-    /// </para>
-    /// 
+    ///
     /// === <b>Assertivas de Entrada</b> ===
-    /// 
+    ///
     /// <para>
     /// <c>Jwt:SigningKey</c> deve estar definida (User Secrets em dev, variável de ambiente em prod).
     /// </para>
-    /// 
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a chave de assinatura (segredo) configurada.
+    /// </para>
+    ///
     /// </remarks>
     public static string GetSigningKey(IConfiguration configuration)
     {
         return configuration[SigningKeyName]
             ?? throw new InvalidOperationException(
                 $"A chave '{SigningKeyName}' não foi configurada. " +
-                "Defina-a via user-secrets (dev) ou variável de ambiente (prod). Veja docs/BUILD.md e docs/KNOWN-ISSUES.md."
+                "Defina-a via user-secrets (dev) ou variável de ambiente (prod)."
             )
         ;
     }
 
-    /// <summary>Lê o emissor (issuer) da configuração, falhando cedo quando ausente.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Lê o emissor (issuer) da configuração, falhando cedo quando ausente.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="configuration">Configuração da aplicação.</param>
     ///
-    /// <returns>Retorna o emissor configurado.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna o emissor configurado.
+    /// </para>
+    ///
+    /// </remarks>
     public static string GetIssuer(IConfiguration configuration)
     {
         return configuration[IssuerName]
@@ -113,11 +135,27 @@ public static class JwtConfig
         ;
     }
 
-    /// <summary>Lê o público (audience) da configuração, falhando cedo quando ausente.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Lê o público (audience) da configuração, falhando cedo quando ausente.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="configuration">Configuração da aplicação.</param>
     ///
-    /// <returns>Retorna o público configurado.</returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna o público configurado.
+    /// </para>
+    ///
+    /// </remarks>
     public static string GetAudience(IConfiguration configuration)
     {
         return configuration[AudienceName]
@@ -126,32 +164,36 @@ public static class JwtConfig
     }
 
     /// <summary>
-    /// 
+    ///
     /// === <b>Descrição</b> ===
-    /// 
+    ///
     /// <para>
     /// Monta os parâmetros de validação do token (emissor, público, tempo de vida e chave de assinatura).
     /// </para>
-    /// 
+    ///
     /// <para>
-    /// Define <c>NameClaimType</c>/<c>RoleClaimType</c> como as claims curtas, 
+    /// Define <c>NameClaimType</c>/<c>RoleClaimType</c> como as claims curtas,
     /// para <c>User.Identity.Name</c> e <c>User.IsInRole</c> funcionarem.
     /// </para>
-    /// 
+    ///
     /// </summary>
     ///
     /// <param name="configuration">Configuração da aplicação; deve conter as chaves do JWT.</param>
     ///
-    /// <returns>Retorna os <see cref="TokenValidationParameters"/> usados pelo middleware JwtBearer em Program.cs.</returns>
-    ///
     /// <remarks>
-    /// 
+    ///
     /// === <b>Assertivas de Saída</b> ===
-    /// 
+    ///
     /// <para>
     /// Os parâmetros validam emissor, público, tempo de vida e assinatura (sem tolerância de relógio extra além do padrão).
     /// </para>
-    /// 
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna os <see cref="TokenValidationParameters"/> usados pelo middleware JwtBearer em Program.cs.
+    /// </para>
+    ///
     /// </remarks>
     public static TokenValidationParameters BuildValidationParameters(IConfiguration configuration)
     {

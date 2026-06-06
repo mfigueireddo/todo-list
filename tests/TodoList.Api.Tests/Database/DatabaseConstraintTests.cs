@@ -8,70 +8,120 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Database;
 
-///
 /// <summary>
-/// Objetivo: Provar que o SCHEMA real do SQL Server (e não apenas a validação da API) 
-/// barra valores maiores do que as colunas suportam, 
-/// inserindo diretamente via <c>AppDbContext</c> e pulando o pipeline HTTP — 
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Provar que o SCHEMA real do SQL Server (e não apenas a validação da API)
+/// barra valores maiores do que as colunas suportam,
+/// inserindo diretamente via <c>AppDbContext</c> e pulando o pipeline HTTP —
 /// é a cobertura genuína de "valores maiores do que o banco suporta".
+/// </para>
+///
 /// </summary>
 ///
 /// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: compartilha a <see cref="TodoListApiFactory"/> e 
-/// serializa a execução (ver <see cref="ApiCollection"/>).
 ///
-/// Restrições:
-/// - As inserções ignoram de propósito a validação dos DTOs: 
-/// a entidade <see cref="TaskItem"/> não carrega anotações, 
+/// === <b>Restrições</b> ===
+///
+/// <para>
+///As inserções ignoram de propósito a validação dos DTOs:
+/// a entidade <see cref="TaskItem"/> não carrega anotações,
 /// então só o banco impõe os limites aqui exercitados.
-/// </remarks>
+/// </para>
 ///
+/// </remarks>
 [Collection("TodoListApi")]
 public sealed class DatabaseConstraintTests : IAsyncLifetime
 {
     /// <summary>Factory que dá acesso ao container de serviços e ao banco de teste.</summary>
     private readonly TodoListApiFactory _factory;
 
+    /// <summary>
     ///
-    /// <summary>Descrição: guarda a factory compartilhada da collection.</summary>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory compartilhada da collection.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public DatabaseConstraintTests(TodoListApiFactory factory)
     {
         this._factory = factory;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: limpa a tabela <c>Tasks</c> antes de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <para>
+    /// Limpa a tabela <c>Tasks</c> antes de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Monta uma <see cref="TaskItem"/> de baseline válida (data hoje), 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Monta uma <see cref="TaskItem"/> de baseline válida (data hoje),
     /// permitindo que o teste sobrescreva o campo que vai exercitar.
+    /// </para>
+    ///
     /// </summary>
     ///
-    /// <returns>- Retorna a entidade de baseline pronta para inserção.</returns>
+    /// <remarks>
     ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a entidade de baseline pronta para inserção.
+    /// </para>
+    ///
+    /// </remarks>
     private static TaskItem BuildTask()
     {
         return new TaskItem
@@ -87,16 +137,16 @@ public sealed class DatabaseConstraintTests : IAsyncLifetime
         };
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: inserir título com 201 caracteres viola 
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Inserir título com 201 caracteres viola
     /// <c>nvarchar(200)</c> no SQL Server — deve lançar <see cref="DbUpdateException"/>.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Insert_TitleExceeding200Chars_ThrowsDbUpdateException()
     {
@@ -110,16 +160,16 @@ public sealed class DatabaseConstraintTests : IAsyncLifetime
         _ = await Assert.ThrowsAsync<DbUpdateException>(() => dbContext.SaveChangesAsync());
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: inserir descrição com 2001 caracteres viola 
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Inserir descrição com 2001 caracteres viola
     /// <c>nvarchar(2000)</c> — deve lançar <see cref="DbUpdateException"/>.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Insert_DescriptionExceeding2000Chars_ThrowsDbUpdateException()
     {
@@ -133,16 +183,16 @@ public sealed class DatabaseConstraintTests : IAsyncLifetime
         _ = await Assert.ThrowsAsync<DbUpdateException>(() => dbContext.SaveChangesAsync());
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: inserir título nulo viola a restrição 
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Inserir título nulo viola a restrição
     /// <c>NOT NULL</c> da coluna Title — deve lançar <see cref="DbUpdateException"/>.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Insert_NullTitle_ThrowsDbUpdateException()
     {
@@ -156,16 +206,16 @@ public sealed class DatabaseConstraintTests : IAsyncLifetime
         _ = await Assert.ThrowsAsync<DbUpdateException>(() => dbContext.SaveChangesAsync());
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: título com exatamente 200 caracteres cabe em 
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Título com exatamente 200 caracteres cabe em
     /// <c>nvarchar(200)</c> — persiste sem erro.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Insert_TitleExactly200Chars_Persists()
     {
@@ -181,16 +231,16 @@ public sealed class DatabaseConstraintTests : IAsyncLifetime
         Assert.Equal(1, affected);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: descrição com exatamente 2000 caracteres cabe em 
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Descrição com exatamente 2000 caracteres cabe em
     /// <c>nvarchar(2000)</c> — persiste sem erro.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Insert_DescriptionExactly2000Chars_Persists()
     {
@@ -206,16 +256,16 @@ public sealed class DatabaseConstraintTests : IAsyncLifetime
         Assert.Equal(1, affected);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: uma tarefa válida persiste e é relida do banco; 
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Uma tarefa válida persiste e é relida do banco;
     /// a dificuldade é gravada como TEXTO ("Facil"), confirmado por leitura SQL crua.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Insert_ValidTask_PersistsAndReadsBack()
     {
@@ -242,18 +292,17 @@ public sealed class DatabaseConstraintTests : IAsyncLifetime
         Assert.Equal("Facil", storedDifficulty);
     }
 
-    ///
     /// <summary>
-    /// Descrição: enum fora de range (<c>(Difficulty)99</c>) é gravado 
-    /// como a string "99" e cabe em <c>nvarchar(20)</c> — 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Enum fora de range (<c>(Difficulty)99</c>) é gravado
+    /// como a string "99" e cabe em <c>nvarchar(20)</c> —
     /// documenta que o banco também não barra o valor.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Insert_OutOfRangeEnum99_PersistsAs99String()
     {

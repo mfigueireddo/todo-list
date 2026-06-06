@@ -12,61 +12,95 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Auth;
 
-///
 /// <summary>
-/// Objetivo: Exercitar os endpoints de conta (GET /auth/me e DELETE /auth/me): visualização dos dados, exclusão da própria conta,
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Exercitar os endpoints de conta (GET /auth/me e DELETE /auth/me): visualização dos dados, exclusão da própria conta,
 /// a limpeza das referências de tarefas ao excluir e a proteção da conta administradora exigida por docs/IDEA.md.
+/// </para>
+///
 /// </summary>
-///
-/// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: compartilha a <see cref="TodoListApiFactory"/> e serializa a execução (ver <see cref="ApiCollection"/>).
-/// </remarks>
-///
 [Collection("TodoListApi")]
 public sealed class AccountTests : IAsyncLifetime
 {
     /// <summary>Factory que sobe a API em memória contra o banco de teste.</summary>
     private readonly TodoListApiFactory _factory;
 
+    /// <summary>
     ///
-    /// <summary>Descrição: guarda a factory compartilhada da collection.</summary>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory compartilhada da collection.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public AccountTests(TodoListApiFactory factory)
     {
         this._factory = factory;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: limpa tarefas e usuários não-admin antes de cada teste, garantindo isolamento.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <para>
+    /// Limpa tarefas e usuários não-admin antes de cada teste, garantindo isolamento.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: GET /auth/me autenticado retorna os dados da conta (id, nome e papel User).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// GET /auth/me autenticado retorna os dados da conta (id, nome e papel User).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Me_WithToken_ReturnsAccount()
     {
@@ -82,14 +116,15 @@ public sealed class AccountTests : IAsyncLifetime
         Assert.Contains(AppRoles.User, account.Roles);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: GET /auth/me sem token retorna 401.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// GET /auth/me sem token retorna 401.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Me_WithoutToken_ReturnsUnauthorized()
     {
@@ -100,14 +135,15 @@ public sealed class AccountTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: DELETE /auth/me exclui a conta (204) e o GET /auth/me seguinte com o mesmo token passa a retornar 401.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// DELETE /auth/me exclui a conta (204) e o GET /auth/me seguinte com o mesmo token passa a retornar 401.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task DeleteMe_RemovesAccount_AndSubsequentMeIsUnauthorized()
     {
@@ -120,14 +156,15 @@ public sealed class AccountTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Unauthorized, me.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: ao excluir a conta, as referências de tarefas ao usuário (criador e responsável) são anuladas, mas as tarefas permanecem.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Ao excluir a conta, as referências de tarefas ao usuário (criador e responsável) são anuladas, mas as tarefas permanecem.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task DeleteMe_NullsTaskReferences()
     {
@@ -152,14 +189,15 @@ public sealed class AccountTests : IAsyncLifetime
         Assert.Null(responsibleTask.ResponsibleUserId);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: a conta administradora não pode ser excluída — DELETE /auth/me como admin retorna 400 (preserva o seed exigido).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// A conta administradora não pode ser excluída — DELETE /auth/me como admin retorna 400 (preserva o seed exigido).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task DeleteMe_AsAdmin_ReturnsBadRequest()
     {
@@ -170,17 +208,28 @@ public sealed class AccountTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Cria uma tarefa válida pelo cliente informado, opcionalmente com um responsável, e devolve o id gerado.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Cria uma tarefa válida pelo cliente informado, opcionalmente com um responsável, e devolve o id gerado.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="client">Cliente HTTP autenticado que cria a tarefa.</param>
     /// <param name="responsibleUserId">Responsável a atribuir, ou nulo.</param>
     ///
-    /// <returns>- Retorna o identificador da tarefa criada.</returns>
+    /// <remarks>
     ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna o identificador da tarefa criada.
+    /// </para>
+    ///
+    /// </remarks>
     private static async Task<Guid> CreateTaskAsync(HttpClient client, Guid? responsibleUserId)
     {
         CreateTaskRequest request = TaskRequestFactory.CreateValidRequest();
@@ -195,16 +244,27 @@ public sealed class AccountTests : IAsyncLifetime
         return created.Id;
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Lê uma tarefa diretamente do banco de teste (sem passar pela API), para asserções de estado persistido.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Lê uma tarefa diretamente do banco de teste (sem passar pela API), para asserções de estado persistido.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="id">Identificador da tarefa a ler.</param>
     ///
-    /// <returns>- Retorna a <see cref="TaskItem"/> persistida, ou <c>null</c> quando não existe.</returns>
+    /// <remarks>
     ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="TaskItem"/> persistida, ou <c>null</c> quando não existe.
+    /// </para>
+    ///
+    /// </remarks>
     private async Task<TaskItem?> GetTaskFromDbAsync(Guid id)
     {
         using IServiceScope scope = this._factory.Services.CreateScope();

@@ -35,7 +35,8 @@ namespace TodoList.Api.Data.Entities;
 /// 
 /// <para>
 /// A senha NUNCA é guardada em texto puro: o Identity grava apenas o <c>PasswordHash</c>.
-/// 
+/// </para>
+///
 /// </remarks>
 public sealed class AppUser : IdentityUser<Guid>
 {

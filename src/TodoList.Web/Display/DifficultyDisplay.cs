@@ -31,13 +31,27 @@ namespace TodoList.Web.Display;
 /// </remarks>
 public static class DifficultyDisplay
 {
-    /// <summary>Mapeia cada valor de <see cref="Difficulty"/> para o rótulo em português exibido na tag.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Mapeia cada valor de <see cref="Difficulty"/> para o rótulo em português exibido na tag.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="difficulty">Valor de dificuldade a ser rotulado.</param>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna "FÁCIL", "MÉDIA" ou "DIFÍCIL" conforme o valor.
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public static string GetLabel(Difficulty difficulty)
     {
         return difficulty switch
@@ -49,13 +63,27 @@ public static class DifficultyDisplay
         };
     }
 
-    /// <summary>Mapeia cada valor de <see cref="Difficulty"/> para a classe CSS de cor do badge Bootstrap.</summary>
+    /// <summary>
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Mapeia cada valor de <see cref="Difficulty"/> para a classe CSS de cor do badge Bootstrap.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="difficulty">Valor de dificuldade a ser colorido.</param>
     ///
-    /// <returns>
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
     /// Retorna a classe de fundo do badge: verde (fácil), amarelo (média) ou vermelho (difícil).
-    /// </returns>
+    /// </para>
+    ///
+    /// </remarks>
     public static string GetBadgeCssClass(Difficulty difficulty)
     {
         return difficulty switch

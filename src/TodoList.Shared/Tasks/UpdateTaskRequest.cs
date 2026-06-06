@@ -10,9 +10,9 @@ namespace TodoList.Shared.Tasks;
 /// Representar o corpo (payload) enviado pelo frontend ao editar uma tarefa existente (PUT /tasks/{id}) — 
 /// o contrato de entrada da edição, compartilhado entre TodoList.Api e TodoList.Web.
 /// </para>
-/// 
-/// === <b>Objetivo</b> ===
-/// 
+///
+/// === <b>Descrição</b> ===
+///
 /// <para>
 /// Carrega os mesmos campos da criação E, adicionalmente, o estado de conclusão.
 /// </para>

@@ -8,19 +8,17 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Tasks;
 
-///
 /// <summary>
-/// Objetivo: Exercitar o endpoint PUT /tasks/{id}, cobrindo a validação de cada campo e, 
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Exercitar o endpoint PUT /tasks/{id}, cobrindo a validação de cada campo e,
 /// em especial, a nuance de que a validação da data de entrega roda ANTES da checagem de existência
 /// (data inválida em id inexistente retorna 400, não 404).
+/// </para>
+///
 /// </summary>
-///
-/// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: compartilha a <see cref="TodoListApiFactory"/> e 
-/// serializa a execução (ver <see cref="ApiCollection"/>).
-/// </remarks>
-///
 [Collection("TodoListApi")]
 public sealed class UpdateTaskTests : IAsyncLifetime
 {
@@ -33,33 +31,67 @@ public sealed class UpdateTaskTests : IAsyncLifetime
     /// <summary>Data de hoje, base das comparações de data de entrega.</summary>
     private readonly DateOnly _today = DateOnly.FromDateTime(DateTime.Today);
 
+    /// <summary>
     ///
-    /// <summary>Descrição: guarda a factory e cria o cliente HTTP in-memory.</summary>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory e cria o cliente HTTP in-memory.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public UpdateTaskTests(TodoListApiFactory factory)
     {
         this._factory = factory;
         this._client = factory.CreateClient();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: limpa a tabela <c>Tasks</c> antes de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <para>
+    /// Limpa a tabela <c>Tasks</c> antes de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
         await this._factory.AuthenticateAsAdminAsync(this._client);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
@@ -69,14 +101,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
     // Validação
     // ----------------------------------------------------------------------
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT sem <c>title</c> em id existente falha na validação do modelo — retorna 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT sem <c>title</c> em id existente falha na validação do modelo — retorna 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithMissingTitle_ReturnsBadRequest()
     {
@@ -88,14 +121,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT com título de 201 caracteres ultrapassa o limite — retorna 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT com título de 201 caracteres ultrapassa o limite — retorna 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithTitleLength201_ReturnsBadRequest()
     {
@@ -107,14 +141,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT com descrição de 2001 caracteres ultrapassa o limite — retorna 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT com descrição de 2001 caracteres ultrapassa o limite — retorna 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithDescriptionLength2001_ReturnsBadRequest()
     {
@@ -127,14 +162,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT com <c>dueDate</c> em texto não-data falha na desserialização — retorna 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT com <c>dueDate</c> em texto não-data falha na desserialização — retorna 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithStringDueDate_ReturnsBadRequest()
     {
@@ -146,17 +182,16 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    ///
     /// <summary>
-    /// Descrição: PUT com enum fora de range (99) é aceito e persistido — 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// PUT com enum fora de range (99) é aceito e persistido —
     /// retorna 204 e o GET seguinte confirma <c>(Difficulty)99</c>.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Update_WithOutOfRangeEnum99_ReturnsNoContent()
     {
@@ -176,14 +211,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
     // Nuance: validação de data antes do NotFound
     // ----------------------------------------------------------------------
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT com data passada em id EXISTENTE retorna 400.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT com data passada em id EXISTENTE retorna 400.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithPastDueDate_OnExistingId_ReturnsBadRequest()
     {
@@ -195,17 +231,16 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    ///
     /// <summary>
-    /// Descrição: PUT com data passada em id INEXISTENTE retorna 400 (não 404) — 
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// PUT com data passada em id INEXISTENTE retorna 400 (não 404) —
     /// a validação da data roda antes da checagem de existência.
+    /// </para>
+    ///
     /// </summary>
-    ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
-    ///
     [Fact]
     public async Task Update_WithPastDueDate_OnNonExistentId_ReturnsBadRequest()
     {
@@ -216,14 +251,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT com data válida em id INEXISTENTE retorna 404 (validação passa, tarefa não existe).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT com data válida em id INEXISTENTE retorna 404 (validação passa, tarefa não existe).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithValidDate_OnNonExistentId_ReturnsNotFound()
     {
@@ -234,14 +270,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT com data igual a hoje em id existente é válido — retorna 204.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT com data igual a hoje em id existente é válido — retorna 204.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithDueDateToday_OnExistingId_ReturnsNoContent()
     {
@@ -257,14 +294,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
     // Rota / caminho feliz
     // ----------------------------------------------------------------------
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT em id que não é GUID não casa a constraint de rota {id:guid} — retorna 404.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT em id que não é GUID não casa a constraint de rota {id:guid} — retorna 404.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithMalformedGuid_ReturnsNotFound()
     {
@@ -275,14 +313,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: PUT válido retorna 204 e o GET seguinte reflete os novos valores (título e descrição).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// PUT válido retorna 204 e o GET seguinte reflete os novos valores (título e descrição).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_WithValidRequest_ReturnsNoContentAndPersists()
     {
@@ -300,14 +339,15 @@ public sealed class UpdateTaskTests : IAsyncLifetime
         Assert.Equal("Nova descrição", updated.Description);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: alternar <c>IsCompleted</c> via PUT (caso do checkbox da lista) persiste o novo estado.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Alternar <c>IsCompleted</c> via PUT (caso do checkbox da lista) persiste o novo estado.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Update_TogglingIsCompleted_Persists()
     {

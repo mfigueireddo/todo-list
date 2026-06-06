@@ -12,62 +12,96 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Auth;
 
-///
 /// <summary>
-/// Objetivo: Exercitar as regras de autorização das tarefas exigidas por docs/IDEA.md sobre o pipeline HTTP real:
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Exercitar as regras de autorização das tarefas exigidas por docs/IDEA.md sobre o pipeline HTTP real:
 /// deslogado não acessa (401); apenas o admin exclui; o responsável (ou o admin) edita; o usuário comum só visualiza
 /// e pode se autoatribuir como responsável caso a tarefa não tenha nenhum; e o criador é o usuário autenticado.
+/// </para>
+///
 /// </summary>
-///
-/// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: compartilha a <see cref="TodoListApiFactory"/> e serializa a execução (ver <see cref="ApiCollection"/>).
-/// </remarks>
-///
 [Collection("TodoListApi")]
 public sealed class AuthorizationTests : IAsyncLifetime
 {
     /// <summary>Factory que sobe a API em memória contra o banco de teste.</summary>
     private readonly TodoListApiFactory _factory;
 
+    /// <summary>
     ///
-    /// <summary>Descrição: guarda a factory compartilhada da collection.</summary>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory compartilhada da collection.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public AuthorizationTests(TodoListApiFactory factory)
     {
         this._factory = factory;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: limpa tarefas e usuários não-admin antes de cada teste, garantindo isolamento.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <para>
+    /// Limpa tarefas e usuários não-admin antes de cada teste, garantindo isolamento.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: sem token, todas as operações sobre /tasks (listar, criar, editar, excluir) retornam 401.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Sem token, todas as operações sobre /tasks (listar, criar, editar, excluir) retornam 401.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task UnauthenticatedRequests_AreRejected()
     {
@@ -80,14 +114,15 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.DeleteAsync($"tasks/{anyId}")).StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: um usuário comum autenticado pode listar (200) e criar (201) tarefas.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Um usuário comum autenticado pode listar (200) e criar (201) tarefas.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task CommonUser_CanListAndCreate()
     {
@@ -99,14 +134,15 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Created, create.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: criar uma tarefa grava o usuário autenticado como criador (CreatedByUserId).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Criar uma tarefa grava o usuário autenticado como criador (CreatedByUserId).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Create_SetsCreatedByToCaller()
     {
@@ -121,14 +157,15 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(auth.UserId, stored.CreatedByUserId);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: um usuário comum não pode excluir tarefas (apenas o admin) — retorna 403.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Um usuário comum não pode excluir tarefas (apenas o admin) — retorna 403.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task CommonUser_CannotDelete_ReturnsForbidden()
     {
@@ -141,14 +178,15 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: um usuário comum não pode editar uma tarefa da qual não é responsável — retorna 403.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Um usuário comum não pode editar uma tarefa da qual não é responsável — retorna 403.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task CommonUser_CannotEditTaskTheyDoNotOwn_ReturnsForbidden()
     {
@@ -161,14 +199,15 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: um usuário comum se autoatribui (204) em uma tarefa sem responsável e, então, passa a poder editá-la (204).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Um usuário comum se autoatribui (204) em uma tarefa sem responsável e, então, passa a poder editá-la (204).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task CommonUser_CanSelfAssignUnassignedTask_ThenEdit()
     {
@@ -184,14 +223,15 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NoContent, edit.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: autoatribuir-se em uma tarefa que JÁ tem responsável retorna 409 (Conflict).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Autoatribuir-se em uma tarefa que JÁ tem responsável retorna 409 (Conflict).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task SelfAssign_AlreadyAssignedTask_ReturnsConflict()
     {
@@ -207,14 +247,15 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: o admin pode editar (204) e excluir (204) qualquer tarefa.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// O admin pode editar (204) e excluir (204) qualquer tarefa.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Admin_CanEditAndDeleteAnyTask()
     {
@@ -228,16 +269,27 @@ public sealed class AuthorizationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Cria uma tarefa (válida) pelo cliente informado e devolve o id gerado.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Cria uma tarefa (válida) pelo cliente informado e devolve o id gerado.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="client">Cliente HTTP autenticado que cria a tarefa.</param>
     ///
-    /// <returns>- Retorna o identificador da tarefa criada.</returns>
+    /// <remarks>
     ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna o identificador da tarefa criada.
+    /// </para>
+    ///
+    /// </remarks>
     private static async Task<Guid> CreateTaskAsync(HttpClient client)
     {
         HttpResponseMessage response = await client.PostAsJsonAsync("tasks", TaskRequestFactory.CreateValidRequest(), HttpJson.Options);
@@ -249,16 +301,27 @@ public sealed class AuthorizationTests : IAsyncLifetime
         return created.Id;
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Lê uma tarefa diretamente do banco de teste (sem passar pela API), para asserções de estado persistido.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Lê uma tarefa diretamente do banco de teste (sem passar pela API), para asserções de estado persistido.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="id">Identificador da tarefa a ler.</param>
     ///
-    /// <returns>- Retorna a <see cref="TaskItem"/> persistida, ou <c>null</c> quando não existe.</returns>
+    /// <remarks>
     ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="TaskItem"/> persistida, ou <c>null</c> quando não existe.
+    /// </para>
+    ///
+    /// </remarks>
     private async Task<TaskItem?> GetTaskFromDbAsync(Guid id)
     {
         using IServiceScope scope = this._factory.Services.CreateScope();

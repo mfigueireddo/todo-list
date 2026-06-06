@@ -8,17 +8,16 @@ using Xunit;
 
 namespace TodoList.Api.Tests.Auth;
 
-///
 /// <summary>
-/// Objetivo: Exercitar o endpoint POST /auth/login, em especial provar que o usuário admin EXIGIDO por docs/IDEA.md
+///
+/// === <b>Objetivo</b> ===
+///
+/// <para>
+/// Exercitar o endpoint POST /auth/login, em especial provar que o usuário admin EXIGIDO por docs/IDEA.md
 /// (admin / Admin@ICAD!) foi semeado e autentica, além de cobrir credenciais inválidas e o conteúdo das claims do token.
+/// </para>
+///
 /// </summary>
-///
-/// <remarks>
-/// Atributos:
-/// - [Collection("TodoListApi")]: compartilha a <see cref="TodoListApiFactory"/> e serializa a execução (ver <see cref="ApiCollection"/>).
-/// </remarks>
-///
 [Collection("TodoListApi")]
 public sealed class LoginTests : IAsyncLifetime
 {
@@ -28,45 +27,80 @@ public sealed class LoginTests : IAsyncLifetime
     /// <summary>Cliente HTTP in-memory (anônimo) apontando para a API de teste.</summary>
     private readonly HttpClient _client;
 
+    /// <summary>
     ///
-    /// <summary>Descrição: guarda a factory e cria o cliente HTTP in-memory.</summary>
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Guarda a factory e cria o cliente HTTP in-memory.
+    /// </para>
+    ///
+    /// </summary>
     ///
     /// <param name="factory">Factory da collection, injetada pelo xUnit; não deve ser nula.</param>
-    ///
     public LoginTests(TodoListApiFactory factory)
     {
         this._factory = factory;
         this._client = factory.CreateClient();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: limpa tarefas e usuários não-admin antes de cada teste (o admin semeado permanece).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna a <see cref="Task"/> de limpeza concluída.</returns>
+    /// <para>
+    /// Limpa tarefas e usuários não-admin antes de cada teste (o admin semeado permanece).
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna a <see cref="Task"/> de limpeza concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public async Task InitializeAsync()
     {
         await this._factory.ResetDatabaseAsync();
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: nada a liberar ao final de cada teste.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <returns>- Retorna uma <see cref="Task"/> já concluída.</returns>
+    /// <para>
+    /// Nada a liberar ao final de cada teste.
+    /// </para>
     ///
+    /// </summary>
+    ///
+    /// <remarks>
+    ///
+    /// === <b>Retornos</b> ===
+    ///
+    /// <para>
+    /// Retorna uma <see cref="Task"/> já concluída.
+    /// </para>
+    ///
+    /// </remarks>
     public Task DisposeAsync()
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: o admin semeado (docs/IDEA.md) autentica com a senha exigida e recebe o papel "Admin".</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// O admin semeado (docs/IDEA.md) autentica com a senha exigida e recebe o papel "Admin".
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Login_WithSeededAdmin_ReturnsTokenWithAdminRole()
     {
@@ -80,14 +114,15 @@ public sealed class LoginTests : IAsyncLifetime
         Assert.Contains(AppRoles.Admin, auth.Roles);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: senha incorreta para o admin retorna 401.</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Senha incorreta para o admin retorna 401.
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Login_WithWrongPassword_ReturnsUnauthorized()
     {
@@ -96,14 +131,15 @@ public sealed class LoginTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: usuário inexistente retorna 401 (mesma resposta de senha errada — não revela qual falhou).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// Usuário inexistente retorna 401 (mesma resposta de senha errada — não revela qual falhou).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Login_WithUnknownUser_ReturnsUnauthorized()
     {
@@ -112,14 +148,15 @@ public sealed class LoginTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    /// <summary>
     ///
-    /// <summary>Descrição: o token emitido contém as claims curtas esperadas — sub (GUID), name (= admin) e role (= Admin).</summary>
+    /// === <b>Descrição</b> ===
     ///
-    /// <remarks>
-    /// Atributos:
-    /// - [Fact]: teste sem parâmetros executado pelo runner do xUnit.
-    /// </remarks>
+    /// <para>
+    /// O token emitido contém as claims curtas esperadas — sub (GUID), name (= admin) e role (= Admin).
+    /// </para>
     ///
+    /// </summary>
     [Fact]
     public async Task Login_Token_ContainsExpectedClaims()
     {
