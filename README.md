@@ -8,6 +8,12 @@ Para entrar localmente, use o admin semeado `admin` / `Admin@ICAD!` — ver o pa
 
 ---
 
+## Amostragem do projeto
+
+Link para vídeo no Youtube [aqui](https://youtu.be/WFX3R32jrb8)
+
+---
+
 ## Documentação
 
 Os documentos do projeto estão na pasta [`docs/`](docs):
