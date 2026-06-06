@@ -3,8 +3,14 @@
 @inject NavigationManager Navigation
 
 @*
-    Layout raiz de todas as páginas. Fornece a navbar fixa exigida pelo projeto (docs/IDEA.md):
-    nome do site + navegação para a lista e o cadastro de tarefas + Conta + botão de Logout (vermelho).
+    Layout raiz de todas as páginas. 
+
+    Fornece a navbar fixa:
+    - Nome do site
+    - Navegação para a lista e o cadastro de tarefas
+    - Conta
+    - Botão de Logout (vermelho)
+
     Os links de navegação e o Logout só aparecem quando há usuário autenticado (<AuthorizeView>);
     deslogado, a navbar mostra apenas Entrar/Cadastrar. O conteúdo da página atual é renderizado em @Body.
 *@
@@ -40,12 +46,10 @@
 </main>
 
 @code {
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Encerra a sessão (remove o token, limpa o cabeçalho e notifica a UI) e redireciona para a página de login (docs/IDEA.md).
+    /// Encerra a sessão (remove o token, limpa o cabeçalho e notifica a UI) 
+    /// e redireciona para a página de login.
     /// </summary>
-    ///
     private async Task Logout()
     {
         await this.AuthApi.LogoutAsync();

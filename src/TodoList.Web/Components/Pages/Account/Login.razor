@@ -3,7 +3,8 @@
 @inject NavigationManager Navigation
 
 @*
-    Página de login (docs/IDEA.md). Formulário com usuário e senha; em sucesso, navega para a lista de tarefas.
+    Página de login. 
+    Formulário com usuário e senha; em sucesso, navega para a lista de tarefas.
     É anônima (sem [Authorize]): acessível por um usuário deslogado.
 *@
 
@@ -50,13 +51,19 @@
     /// <summary>Mensagem de erro a exibir (credenciais inválidas ou falha de conexão); nula quando não há erro.</summary>
     private string? _errorMessage;
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Envia as credenciais para a API.
-    /// 2. Em sucesso, navega para a lista de tarefas; em erro, exibe a mensagem.
-    /// </summary>
     ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Envia as credenciais para a API.
+    /// </para>
+    ///
+    /// <para>
+    /// Em sucesso, navega para a lista de tarefas; em erro, exibe a mensagem.
+    /// </para>
+    ///
+    /// </summary>
     private async Task SubmitAsync()
     {
         this._isSubmitting = true;

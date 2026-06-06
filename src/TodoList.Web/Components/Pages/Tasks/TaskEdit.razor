@@ -5,10 +5,15 @@
 @inject NavigationManager Navigation
 
 @*
-    Página de edição de uma tarefa existente (docs/IDEA.md). Carrega a tarefa pela API,
-    preenche o formulário e envia um PUT. Os campos são os mesmos do cadastro, acrescidos
-    do estado de conclusão. O responsável só é editável pelo admin; para os demais (responsável
-    editando a própria tarefa) ele é exibido como somente leitura, pois o servidor não permite reatribuir.
+    Página de edição de uma tarefa existente. 
+
+    Carrega a tarefa pela API, preenche o formulário e envia um PUT. 
+
+    Os campos são os mesmos do cadastro, acrescidos do estado de conclusão. 
+
+    O responsável só é editável pelo admin; 
+    para os demais (responsável editando a própria tarefa) ele é exibido como somente leitura, 
+    pois o servidor não permite reatribuir.
 *@
 
 <PageTitle>Editar Tarefa</PageTitle>
@@ -124,14 +129,23 @@ else
     /// <summary>Mensagem de erro retornada pela API; nula quando não há erro.</summary>
     private string? _errorMessage;
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Resolve o papel do usuário (admin define se o responsável é editável).
-    /// 2. Carrega a tarefa pelo identificador da rota e preenche o modelo, ou sinaliza ausência (404).
-    /// 3. Para o admin, carrega a lista de usuários do seletor de responsável.
-    /// </summary>
     ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Resolve o papel do usuário (admin define se o responsável é editável).
+    /// </para>
+    ///
+    /// <para>
+    /// Carrega a tarefa pelo identificador da rota e preenche o modelo, ou sinaliza ausência (404).
+    /// </para>
+    ///
+    /// <para>
+    /// Para o admin, carrega a lista de usuários do seletor de responsável.
+    /// </para>
+    ///
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         AuthenticationState authState = await this.AuthenticationStateTask;
@@ -174,13 +188,19 @@ else
         }
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Envia o modelo para a API atualizar a tarefa.
-    /// 2. Em sucesso, navega para a lista; em erro de validação do servidor, exibe a mensagem.
-    /// </summary>
     ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Envia o modelo para a API atualizar a tarefa.
+    /// </para>
+    ///
+    /// <para>
+    /// Em sucesso, navega para a lista; em erro de validação do servidor, exibe a mensagem.
+    /// </para>
+    ///
+    /// </summary>
     private async Task SubmitAsync()
     {
         this._isSaving = true;

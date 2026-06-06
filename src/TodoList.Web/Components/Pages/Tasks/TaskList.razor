@@ -6,11 +6,16 @@
 @inject IJSRuntime JsRuntime
 
 @*
-    Página de listagem de tarefas (docs/IDEA.md). Mostra um accordion por tarefa:
-    no cabeçalho ficam título, data e o checkbox de concluída; ao expandir, aparecem
-    descrição, responsável e a dificuldade como tag colorida. Há filtro por nome e os
-    botões disponíveis variam conforme o papel: excluir só para admin; editar e o checkbox
-    só para o admin ou o responsável; "Atribuir-me" quando a tarefa não tem responsável.
+    Página de listagem de tarefas. 
+    
+    Mostra um accordion por tarefa:
+    - No cabeçalho ficam título, data e o checkbox de concluída; 
+    - Ao expandir, aparecem descrição, responsável e a dificuldade como tag colorida. 
+    
+    Há filtro por nome e os botões disponíveis variam conforme o papel: 
+    - Excluir só para admin; 
+    - Editar e o checkbox só para o admin ou o responsável;
+    - "Atribuir-me" quando a tarefa não tem responsável.
 *@
 
 <PageTitle>Lista de Tarefas</PageTitle>
@@ -117,13 +122,19 @@ else
     /// <summary>Indica se o usuário autenticado é admin (pode excluir e editar qualquer tarefa).</summary>
     private bool _isAdmin;
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Resolve a identidade do usuário (id e papel) a partir do estado de autenticação.
-    /// 2. Carrega a lista completa de tarefas.
-    /// </summary>
     ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Resolve a identidade do usuário (id e papel) a partir do estado de autenticação.
+    /// </para>
+    ///
+    /// <para>
+    /// Carrega a lista completa de tarefas.
+    /// </para>
+    ///
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         AuthenticationState authState = await this.AuthenticationStateTask;
@@ -137,19 +148,30 @@ else
         await this.LoadTasksAsync();
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Busca as tarefas na API aplicando o filtro atual e atualiza o estado da página.
-    /// 2. Captura falhas de comunicação para exibi-las ao usuário.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Busca as tarefas na API aplicando o filtro atual e atualiza o estado da página.
+    /// </para>
+    ///
+    /// <para>
+    /// Captura falhas de comunicação para exibi-las ao usuário.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <remarks>
-    /// Assertivas de Saída:
+    ///
+    /// === <b>Assertivas de Saída</b> ===
+    ///
+    /// <para>
     /// Ao término, <c>_isLoading</c> é falso e <c>_tasks</c> reflete o resultado da API
     /// (ou ficou inalterado, com <c>_errorMessage</c> preenchido, em caso de falha).
-    /// </remarks>
+    /// </para>
     ///
+    /// </remarks>
     private async Task LoadTasksAsync()
     {
         this._isLoading = true;
@@ -170,25 +192,15 @@ else
         }
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Reaplica o filtro a partir do texto digitado, recarregando a lista pela API.
-    /// </summary>
-    ///
+    /// <summary>Reaplica o filtro a partir do texto digitado, recarregando a lista pela API.</summary>
     private async Task ApplyFilterAsync()
     {
         await this.LoadTasksAsync();
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Dispara a busca quando o usuário pressiona Enter no campo de filtro.
-    /// </summary>
+    /// <summary>Dispara a busca quando o usuário pressiona Enter no campo de filtro.</summary>
     ///
     /// <param name="args">Dados do evento de teclado; usado para identificar a tecla Enter.</param>
-    ///
     private async Task OnSearchKeyUp(KeyboardEventArgs args)
     {
         if (args.Key == "Enter")
@@ -197,20 +209,32 @@ else
         }
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Alterna o estado de conclusão de uma tarefa e persiste a mudança via PUT na API.
-    /// 2. Recarrega a lista para refletir o novo estado.
+    /// 
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Alterna o estado de conclusão de uma tarefa e persiste a mudança via PUT na API.
+    /// </para>
+    ///
+    /// <para>
+    /// Recarrega a lista para refletir o novo estado.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="task">Tarefa cujo checkbox foi alterado.</param>
     ///
     /// <remarks>
-    /// Restrições:
-    /// - Reutiliza o endpoint de edição (PUT /tasks/{id}); só está habilitado para quem pode editar (admin ou responsável).
-    /// </remarks>
     ///
+    /// === <b>Restrições</b> ===
+    ///
+    /// <para>
+    /// Reutiliza o endpoint de edição (PUT /tasks/{id}); 
+    /// só está habilitado para quem pode editar (admin ou responsável).
+    /// </para>
+    ///
+    /// </remarks>
     private async Task ToggleCompletedAsync(TaskDto task)
     {
         UpdateTaskRequest request = new()
@@ -234,14 +258,9 @@ else
         await this.LoadTasksAsync();
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Autoatribui o usuário autenticado como responsável da tarefa e recarrega a lista.
-    /// </summary>
+    /// <summary>Autoatribui o usuário autenticado como responsável da tarefa e recarrega a lista.</summary>
     ///
     /// <param name="task">Tarefa a ser autoatribuída.</param>
-    ///
     private async Task AssignSelfAsync(TaskDto task)
     {
         string? error = await this.TaskApi.AssignSelfAsync(task.Id);
@@ -255,28 +274,29 @@ else
         await this.LoadTasksAsync();
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Navega para a página de edição da tarefa selecionada.
-    /// </summary>
+    /// <summary>Navega para a página de edição da tarefa selecionada.</summary>
     ///
     /// <param name="id">Identificador da tarefa a editar.</param>
-    ///
     private void EditTask(Guid id)
     {
         this.Navigation.NavigateTo($"tarefas/{id}/editar");
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Pede confirmação ao usuário e, se confirmada, exclui a tarefa via DELETE na API.
-    /// 2. Recarrega a lista após a exclusão.
+    ///
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Pede confirmação ao usuário e, se confirmada, exclui a tarefa via DELETE na API.
+    /// </para>
+    ///
+    /// <para>
+    /// Recarrega a lista após a exclusão.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <param name="task">Tarefa a ser excluída.</param>
-    ///
     private async Task DeleteTaskAsync(TaskDto task)
     {
         bool confirmed = await this.JsRuntime.InvokeAsync<bool>("confirm", $"Excluir a tarefa \"{task.Title}\"?");
@@ -297,64 +317,44 @@ else
         }
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Indica se o usuário atual pode editar a tarefa (admin ou responsável atual).
-    /// </summary>
+    /// <summary>Indica se o usuário atual pode editar a tarefa (admin ou responsável atual).</summary>
     ///
     /// <param name="task">Tarefa avaliada.</param>
     ///
-    /// <returns>- Retorna <c>true</c> quando o usuário é admin ou o responsável da tarefa.</returns>
-    ///
+    /// <returns>Retorna <c>true</c> quando o usuário é admin ou o responsável da tarefa.</returns>
     private bool CanEdit(TaskDto task)
     {
         return this._isAdmin || (this._currentUserId is not null && task.ResponsibleUserId == this._currentUserId);
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Indica se o usuário atual pode excluir a tarefa (apenas admin).
-    /// </summary>
+    /// <summary>Indica se o usuário atual pode excluir a tarefa (apenas admin).</summary>
     ///
     /// <param name="task">Tarefa avaliada.</param>
     ///
-    /// <returns>- Retorna <c>true</c> quando o usuário é admin.</returns>
-    ///
+    /// <returns>Retorna <c>true</c> quando o usuário é admin.</returns>
     private bool CanDelete(TaskDto task)
     {
         return this._isAdmin;
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Indica se o usuário pode se autoatribuir como responsável (a tarefa não tem responsável).
-    /// </summary>
+    /// <summary>Indica se o usuário pode se autoatribuir como responsável (a tarefa não tem responsável).</summary>
     ///
     /// <param name="task">Tarefa avaliada.</param>
     ///
-    /// <returns>- Retorna <c>true</c> quando a tarefa está sem responsável.</returns>
-    ///
+    /// <returns>Retorna <c>true</c> quando a tarefa está sem responsável.</returns>
     private bool CanAssignSelf(TaskDto task)
     {
         return task.ResponsibleUserId is null;
     }
 
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Produz o rótulo do responsável para exibição (nome do usuário ou "Não atribuído").
-    /// </summary>
+    /// <summary>Produz o rótulo do responsável para exibição (nome do usuário ou "Não atribuído").</summary>
     ///
     /// <param name="task">Tarefa cujo responsável será rotulado.</param>
     ///
     /// <returns>
-    /// - Retorna o nome do responsável quando há um.
-    /// - Retorna "Não atribuído" quando a tarefa não tem responsável.
+    /// Retorna o nome do responsável quando há um.
+    /// Retorna "Não atribuído" quando a tarefa não tem responsável.
     /// </returns>
-    ///
     private static string ResponsibleLabel(TaskDto task)
     {
         return string.IsNullOrWhiteSpace(task.ResponsibleUserName) ? "Não atribuído" : task.ResponsibleUserName;

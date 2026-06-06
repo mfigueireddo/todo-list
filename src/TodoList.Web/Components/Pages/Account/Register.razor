@@ -3,8 +3,9 @@
 @inject NavigationManager Navigation
 
 @*
-    Página de cadastro (docs/IDEA.md). Usuário, e-mail (opcional) e senha; em sucesso, faz auto-login e navega
-    para a lista de tarefas. É anônima (sem [Authorize]): acessível por um usuário deslogado.
+    Página de cadastro. 
+    Usuário, e-mail (opcional) e senha; em sucesso, faz auto-login e navega para a lista de tarefas. 
+    É anônima (sem [Authorize]): acessível por um usuário deslogado.
 *@
 
 <PageTitle>Cadastrar</PageTitle>
@@ -57,13 +58,20 @@
     /// <summary>Mensagem de erro a exibir (validação do servidor ou falha de conexão); nula quando não há erro.</summary>
     private string? _errorMessage;
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Envia os dados de cadastro para a API.
-    /// 2. Em sucesso (auto-login), navega para a lista de tarefas; em erro, exibe a mensagem retornada.
-    /// </summary>
+    /// 
+    /// === <b>Descrição</b> ===
     ///
+    /// <para>
+    /// Envia os dados de cadastro para a API.
+    /// </para>
+    ///
+    /// <para>
+    /// Em sucesso (auto-login), navega para a lista de tarefas; 
+    /// em erro, exibe a mensagem retornada.
+    /// </para>
+    ///
+    /// </summary>
     private async Task SubmitAsync()
     {
         this._isSubmitting = true;

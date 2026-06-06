@@ -5,9 +5,10 @@
 @inject NavigationManager Navigation
 
 @*
-    Página de cadastro de uma nova tarefa (docs/IDEA.md). Formulário com título, descrição,
-    data de entrega, dificuldade e responsável. O seletor de responsável oferece todos os usuários
-    para o admin e apenas o próprio usuário (ou "Não atribuído") para um usuário comum (docs/IDEA.md).
+    Página de cadastro de uma nova tarefa. 
+    Formulário com título, descrição, data de entrega, dificuldade e responsável. 
+    O seletor de responsável oferece todos os usuários para o admin 
+    e apenas o próprio usuário (ou "Não atribuído") para um usuário comum.
 *@
 
 <PageTitle>Adicionar Nova Tarefa</PageTitle>
@@ -66,7 +67,7 @@
 </EditForm>
 
 @code {
-    /// <summary>Estado de autenticação atual, fornecido pelo <CascadingAuthenticationState> (App.razor).</summary>
+    /// <summary>Estado de autenticação atual.</summary>
     [CascadingParameter]
     public Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
@@ -85,13 +86,18 @@
     /// <summary>Mensagem de erro retornada pela API (ex.: data inválida); nula quando não há erro.</summary>
     private string? _errorMessage;
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Resolve a identidade do usuário (id e papel).
-    /// 2. Carrega os usuários e restringe as opções de responsável conforme o papel (admin vê todos; comum, apenas a si mesmo).
-    /// </summary>
+    /// === <b>Descrição</b> ===
     ///
+    /// <para>
+    /// Resolve a identidade do usuário (id e papel).
+    /// </para>
+    ///
+    /// <para>
+    /// Carrega os usuários e restringe as opções de responsável conforme o papel (admin vê todos; comum, apenas a si mesmo).
+    /// </para>
+    ///
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         AuthenticationState authState = await this.AuthenticationStateTask;
@@ -114,18 +120,29 @@
         }
     }
 
-    ///
     /// <summary>
-    /// Descrição:
-    /// 1. Envia o modelo para a API criar a tarefa.
-    /// 2. Em sucesso, navega para a lista; em erro de validação do servidor, exibe a mensagem.
+    /// === <b>Descrição</b> ===
+    ///
+    /// <para>
+    /// Envia o modelo para a API criar a tarefa.
+    /// </para>
+    ///
+    /// <para>
+    /// Em sucesso, navega para a lista; 
+    /// em erro de validação do servidor, exibe a mensagem.
+    /// </para>
+    ///
     /// </summary>
     ///
     /// <remarks>
-    /// Restrições:
-    /// - As validações de obrigatoriedade/tamanho são checadas no cliente e no servidor; a regra de data não-passada é validada no servidor.
-    /// </remarks>
     ///
+    /// === <b>Restrições</b> ===
+    ///
+    /// <para>
+    /// As validações de obrigatoriedade/tamanho são checadas no cliente e no servidor; a regra de data não-passada é validada no servidor.
+    /// </para>
+    ///
+    /// </remarks>
     private async Task SubmitAsync()
     {
         this._isSaving = true;

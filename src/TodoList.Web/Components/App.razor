@@ -4,24 +4,57 @@
     redirecionem o usuário deslogado para o login (via <RedirectToLogin>). No WASM standalone, o documento HTML fica
     em wwwroot/index.html; este componente é montado no elemento #app daquela página.
 *@
+
+@* Fornece Autenticação aos níveis inferiores da árvore *@
 <CascadingAuthenticationState>
+
+    @* Mapeia URLs para componentes de página. *@
     <Router AppAssembly="@typeof(Program).Assembly">
+
+        @* Bloco renderizado quando a rota corresponde a uma página. Recebe `routeData` com o componente a renderizar. *@
         <Found Context="routeData">
+
+            @* Renderiza a página solicitada mas com controle de autorização: se o componente tiver [Authorize],
+               o AuthorizeRouteView valida o estado de autenticação antes de mostrar a página. *@
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+
+                @* Conteúdo exibido quando o usuário não está autorizado para a rota (p.ex. sem login).
+                   Aqui usamos um componente que redireciona para a página de login. *@
                 <NotAuthorized>
                     <RedirectToLogin />
                 </NotAuthorized>
+
+                @* Conteúdo exibido enquanto a verificação de autorização está em andamento (loading). *@
                 <Authorizing>
+                    @* Parágrafo de aviso mostrado ao usuário durante checagens de autenticação. *@
                     <p class="text-muted">Verificando autenticação...</p>
                 </Authorizing>
+
             </AuthorizeRouteView>
+
+            @* Componente que, após navegação, coloca o foco no elemento escolhido (aqui `h1`) para acessibilidade.
+               Não produz conteúdo visual além do efeito de foco. *@
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+
         </Found>
+
+        @* Bloco exibido quando nenhuma rota corresponde (404 dentro da SPA). *@
         <NotFound>
+
+            @* Define o título do documento (elemento <title> no HTML gerado). *@
             <PageTitle>Não encontrado</PageTitle>
+
+            @* Layout que envolve o conteúdo da página de 'não encontrado' usando o layout principal. *@
             <LayoutView Layout="@typeof(Layout.MainLayout)">
+
+                @* Parágrafo visível ao usuário indicando que não há conteúdo para o endereço —
+                   inclui `role="alert"` para acessibilidade. *@
                 <p role="alert">Não há nada neste endereço.</p>
+
             </LayoutView>
+
         </NotFound>
+
     </Router>
+
 </CascadingAuthenticationState>

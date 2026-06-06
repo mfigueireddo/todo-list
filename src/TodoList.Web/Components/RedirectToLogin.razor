@@ -6,17 +6,17 @@
 *@
 
 @code {
-    ///
-    /// <summary>
-    /// Descrição:
-    /// 1. Ao inicializar, redireciona imediatamente para a página de login.
-    /// </summary>
+    /// <summary>Ao inicializar, redireciona imediatamente para a página de login.</summary>
     ///
     /// <remarks>
-    /// Restrições:
-    /// - Não força recarregamento (navegação do lado do cliente), preservando o app WASM já carregado.
-    /// </remarks>
     ///
+    /// === <b>Restrições</b> ===
+    ///
+    /// <para>
+    /// Não força recarregamento (navegação do lado do cliente), preservando o app WASM já carregado.
+    /// </para>
+    ///
+    /// </remarks>
     protected override void OnInitialized()
     {
         this.Navigation.NavigateTo("login");
